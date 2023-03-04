@@ -232,7 +232,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     /**
      * This gets whether the given flag is set.
      * @param flag The flag to check for.
-     * @return 
+     * @return Whether the flag is set.
      */
     protected boolean getFlag(int flag){
         return SnakeUtilities.getFlag(flags, flag);
