@@ -23,11 +23,10 @@
 hs_err_pid*
 replay_pid*
 
-# Build, dist, lib, and Development Stuff folders
+# Build, dist, and Development Stuff folders
 build/
 dist/
 Development_Stuff/
-lib/
 
 # Windows desktop.imi files
 **/desktop.ini
