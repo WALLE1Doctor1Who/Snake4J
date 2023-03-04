@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="57">
+        <file>
+            <url>src/snake/playfield/DefaultPlayFieldRenderer.java</url>
+            <bookmark id="7">
+                <name/>
+                <line>156</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/JSnakePlayField.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>64</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/SnakeTester.java</url>
+            <bookmark id="55">
+                <name/>
+                <line>111</line>
+                <key/>
+            </bookmark>
+            <bookmark id="26">
+                <name/>
+                <line>1161</line>
+                <key/>
+            </bookmark>
+            <bookmark id="25">
+                <name/>
+                <line>1280</line>
+                <key/>
+            </bookmark>
+            <bookmark id="51">
+                <name/>
+                <line>1301</line>
+                <key/>
+            </bookmark>
+            <bookmark id="50">
+                <name/>
+                <line>1353</line>
+                <key/>
+            </bookmark>
+            <bookmark id="52">
+                <name/>
+                <line>1391</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/Snake.java</url>
+            <bookmark id="57">
+                <name/>
+                <line>79</line>
+                <key/>
+            </bookmark>
+            <bookmark id="37">
+                <name/>
+                <line>383</line>
+                <key/>
+            </bookmark>
+            <bookmark id="30">
+                <name/>
+                <line>436</line>
+                <key/>
+            </bookmark>
+            <bookmark id="53">
+                <name/>
+                <line>750</line>
+                <key/>
+            </bookmark>
+            <bookmark id="54">
+                <name/>
+                <line>792</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/JPlayFieldTester.java</url>
+            <bookmark id="24">
+                <name/>
+                <line>2292</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/action/SnakeCommand.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/playfield/DefaultPlayFieldModel.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/JPlayFieldBeanInfo.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/event/SnakeEvent.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/Snake.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/action/DefaultSnakeAction.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/event/SnakeListener.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/JPlayField.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/playfield/PlayFieldModel.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/event/PlayFieldEvent.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/event/PlayFieldListener.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/SnakeConstants.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/playfield/AbstractPlayFieldModel.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/SnakeUtilities.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/snake/playfield/Tile.java</file>
+            <file>file:/C:/Users/mstei/Documents/Programs/Java/My%20Programs/Snake4J/src/overview.html</file>
+        </group>
+    </open-files>
+</project-private>
