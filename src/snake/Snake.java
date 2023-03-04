@@ -230,8 +230,8 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         return flags;
     }
     /**
-     * This sets 
-     * @param flag
+     * This gets whether the given flag is set.
+     * @param flag The flag to check for.
      * @return 
      */
     protected boolean getFlag(int flag){

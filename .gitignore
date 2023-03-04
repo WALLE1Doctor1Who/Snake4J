@@ -28,3 +28,6 @@ build/
 dist/
 Development_Stuff/
 lib/
+
+# Windows desktop.imi files
+**/desktop.ini
