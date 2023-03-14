@@ -6,20 +6,20 @@ package snake.playfield;
 
 import java.util.Iterator;
 import java.util.List;
-import snake.SnakeConstants;
-import snake.SnakeUtilities;
+import java.util.function.Predicate;
+import snake.*;
 import snake.event.*;
 
 /**
  * This is an interface representing a play field consisting of a grid of 
- * {@link Tile tiles}. This defines the methods that {@link snake.JPlayField 
+ * {@link Tile tiles}. This defines the methods that {@link JPlayField 
  * JPlayField} and similar components will use to get a tile from a specific row 
  * and column, along with the number of rows and columns of tiles. 
  * @author Milo Steier
  * @see Tile
  * @see AbstractPlayFieldModel
  * @see DefaultPlayFieldModel
- * @see snake.JPlayField
+ * @see JPlayField
  */
 public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
     /**
@@ -109,7 +109,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      */
@@ -128,7 +128,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @return Whether the given row and column are within range.
      * @see #getRowCount 
      * @see #getColumnCount 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTile 
      */
     public default boolean contains(int row, int column){
@@ -231,8 +231,8 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
-     * @see #getAdjacentTile(snake.playfield.Tile, int) 
+     * @see #contains(Tile) 
+     * @see #getAdjacentTile(Tile, int) 
      */
     public Tile getAdjacentTile(Tile tile, int direction, boolean wrapAround);
     /**
@@ -242,11 +242,11 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * whether this should wrap around when getting an adjacent tile that is out 
      * of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating that this 
      * should not wrap around. This is equivalent to calling {@link 
-     * #getAdjacentTile(snake.playfield.Tile, int, boolean) 
-     * getAdjacentTile}{@code (tile, direction&~ALTERNATE_MODE_FLAG, !}{@link 
-     * SnakeUtilities#getFlag SnakeUtilities.getFlag}{@code (direction, 
-     * ALTERNATE_MODE_FLAG))}. As such, calling {@code getAdjacentTile(tile, } 
-     * {@link #UP_DIRECTION}{@code )} is equivalent to calling {@code 
+     * #getAdjacentTile(Tile, int, boolean) getAdjacentTile}{@code (tile, 
+     * direction&~ALTERNATE_MODE_FLAG, !}{@link SnakeUtilities#getFlag 
+     * SnakeUtilities.getFlag}{@code (direction, ALTERNATE_MODE_FLAG))}. As 
+     * such, calling {@code getAdjacentTile(tile, } {@link 
+     * #UP_DIRECTION}{@code )} is equivalent to calling {@code 
      * getAdjacentTile(tile, UP_DIRECTION_FLAG, true)} while calling {@code 
      * getAdjacentTile(tile, UP_DIRECTION_FLAG | ALTERNATE_MODE_FLAG)} is 
      * equivalent to calling {@code getAdjacentTile(tile, UP_DIRECTION_FLAG, 
@@ -282,8 +282,8 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
-     * @see #getAdjacentTile(snake.playfield.Tile, int, boolean) 
+     * @see #contains(Tile) 
+     * @see #getAdjacentTile(Tile, int, boolean) 
      */
     public default Tile getAdjacentTile(Tile tile, int direction){
         return getAdjacentTile(tile,direction&~ALTERNATE_TYPE_FLAG,
@@ -305,7 +305,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTiles 
      * @see #getFilteredTileList 
      */
@@ -324,7 +324,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTileList 
      * @see #getFilteredTileList 
      */
@@ -346,14 +346,14 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTileList 
      * @see #getTiles 
      * @see #getFilteredTileCount 
      * @see #getEmptyTiles 
      * @see #getAppleTiles 
      */
-    public List<Tile> getFilteredTileList(java.util.function.Predicate<? super Tile> filter);
+    public List<Tile> getFilteredTileList(Predicate<? super Tile> filter);
     /**
      * This returns the number of tiles in this model that currently satisfy the 
      * given predicate.
@@ -371,14 +371,14 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @see #getTileCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTileList 
      * @see #getTiles 
      * @see #getFilteredTileList 
      * @see #getEmptyTileCount 
      * @see #getAppleTileCount 
      */
-    public default int getFilteredTileCount(java.util.function.Predicate<? super Tile> filter){
+    public default int getFilteredTileCount(Predicate<? super Tile> filter){
             // Get the list of tiles that match the filter
         List<Tile> tiles = getFilteredTileList(filter);
             // If the list is not null, return its size. Otherwise, return 0.
@@ -391,7 +391,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * empty.
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -418,7 +418,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @return The number of empty tiles in this model.
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -442,7 +442,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * are apple tiles.
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -468,7 +468,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * @return The number of apple tiles in this model.
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 

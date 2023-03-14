@@ -6,11 +6,9 @@ package snake.playfield;
 
 import java.awt.*;
 import java.awt.geom.*;
-import javax.swing.Painter;
-import snake.JPlayField;
-import snake.SnakeConstants;
-import snake.event.PlayFieldEvent;
-import snake.event.PlayFieldListener;
+import javax.swing.*;
+import snake.*;
+import snake.event.*;
 
 /**
  * This is an interface used by JPlayField to delegate operations such as 
@@ -50,7 +48,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @return A Dimension object with the minimum size for the JPlayField, or 
      * null.
      * @see JPlayField#getMinimumSize 
-     * @see javax.swing.JComponent#getMinimumSize 
+     * @see JComponent#getMinimumSize 
      */
     public default Dimension getMinimumSize(JPlayField c){
         return null;
@@ -68,7 +66,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @return A Dimension object with the maximum size for the JPlayField, or 
      * null.
      * @see JPlayField#getMaximumSize 
-     * @see javax.swing.JComponent#getMaximumSize 
+     * @see JComponent#getMaximumSize 
      */
     public default Dimension getMaximumSize(JPlayField c){
         return null;
@@ -86,7 +84,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @return A Dimension object with the preferred size for the JPlayField, or 
      * null.
      * @see JPlayField#getPreferredSize 
-     * @see javax.swing.JComponent#getPreferredSize 
+     * @see JComponent#getPreferredSize 
      */
     public default Dimension getPreferredSize(JPlayField c){
         return null;
@@ -309,11 +307,11 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @param dim The Dimension2D object to store the results in, may be null.
      * @return A Dimension2D object with the size of the tiles.
      * @throws NullPointerException If {@code c} is null.
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see JPlayField#getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see JPlayField#getTileSize(Dimension2D) 
      * @see JPlayField#getTileSize() 
      */
     public Dimension2D getTileSize(JPlayField c, Dimension2D dim);
@@ -322,16 +320,16 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * all of the tiles are the same size, then this will return the average 
      * size of the tiles. The {@link #getTileBounds getTileBounds} method can be 
      * used to get a more exact size for any particular tile. This is equivalent 
-     * to calling {@link #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
+     * to calling {@link #getTileSize(JPlayField, Dimension2D) 
      * getTileSize}{@code (c, null)}.
      * @param c The JPlayField which is being queried. This cannot be null.
      * @return A Dimension2D object with the size of the tiles.
      * @throws NullPointerException If {@code c} is null.
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
      * @see #getTileBounds 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see JPlayField#getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see JPlayField#getTileSize(Dimension2D) 
      * @see JPlayField#getTileSize() 
      */
     public default Dimension2D getTileSize(JPlayField c){
@@ -350,11 +348,11 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @param rect The Rectangle2D object to store the results in, may be null.
      * @return A Rectangle2D object with the bounds for the painted paint field.
      * @throws NullPointerException If {@code c} is null.
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see JPlayField#getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see JPlayField#getPlayFieldBounds(Rectangle2D) 
      * @see JPlayField#getPlayFieldBounds() 
      */
     public Rectangle2D getPlayFieldBounds(JPlayField c, Rectangle2D rect);
@@ -365,16 +363,16 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * area of the JPlayField will be returned. Otherwise, this will be the 
      * bounds of the region within the JPlayField in which the play field will 
      * be painted into. This is equivalent to calling {@link 
-     * #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * getPlayFieldBounds}{@code (c, null)}.
      * @param c The JPlayField which is being queried. This cannot be null.
      * @return A Rectangle2D object with the bounds for the painted paint field.
      * @throws NullPointerException If {@code c} is null.
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see JPlayField#getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see JPlayField#getPlayFieldBounds(Rectangle2D) 
      * @see JPlayField#getPlayFieldBounds() 
      */
     public default Rectangle2D getPlayFieldBounds(JPlayField c){
@@ -405,14 +403,14 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * null.
      * @throws NullPointerException If {@code c} is null.
      * @see #tileToLocation 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#containsTile(int, int) 
      * @see JPlayField#getTileBounds(int, int, int, int) 
      * @see JPlayField#getTileBounds(int, int) 
-     * @see JPlayField#getTileBounds(snake.playfield.Tile) 
+     * @see JPlayField#getTileBounds(Tile) 
      */
     public Rectangle2D getTileBounds(JPlayField c,int row0,int row1,int column0,
             int column1);
@@ -428,13 +426,13 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @see #getTileBounds 
      * @see #locationToTile 
      * @see #locationToTile2D 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#containsTile(int, int) 
      * @see JPlayField#tileToLocation(int, int) 
-     * @see JPlayField#tileToLocation(snake.playfield.Tile) 
+     * @see JPlayField#tileToLocation(Tile) 
      */
     public Point2D tileToLocation(JPlayField c, int row, int column);
     /**
@@ -456,15 +454,15 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @see #locationToTile 
      * @see #tileToLocation 
      * @see #getTileBounds 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#getTile 
      * @see JPlayField#locationToTile(int, int) 
-     * @see JPlayField#locationToTile(java.awt.Point) 
+     * @see JPlayField#locationToTile(Point) 
      * @see JPlayField#locationToTile2D(double, double) 
-     * @see JPlayField#locationToTile2D(java.awt.geom.Point2D) 
+     * @see JPlayField#locationToTile2D(Point2D) 
      */
     public Tile locationToTile2D(JPlayField c, double x, double y);
     /**
@@ -489,15 +487,15 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * @see #locationToTile2D 
      * @see #tileToLocation 
      * @see #getTileBounds 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#getTile 
      * @see JPlayField#locationToTile(int, int) 
-     * @see JPlayField#locationToTile(java.awt.Point) 
+     * @see JPlayField#locationToTile(Point) 
      * @see JPlayField#locationToTile2D(double, double) 
-     * @see JPlayField#locationToTile2D(java.awt.geom.Point2D) 
+     * @see JPlayField#locationToTile2D(geom.Point2D) 
      */
     public default Tile locationToTile(JPlayField c, int x, int y){
         return locationToTile2D(c,x,y);

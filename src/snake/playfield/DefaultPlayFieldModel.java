@@ -4,11 +4,8 @@
  */
 package snake.playfield;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import snake.SnakeConstants;
+import java.util.*;
+import snake.*;
 
 /**
  * This is the default implementation of {@link PlayFieldModel} which uses a 
@@ -36,15 +33,14 @@ import snake.SnakeConstants;
  * The iterators returned by this class's {@code iterator} method are fail-fast,
  * i.e. if this PlayFieldModel is structurally modified in any way at any time 
  * after the iterator is created, such as changing the number of rows and/or 
- * columns, the iterator will throw a {@link 
- * java.util.ConcurrentModificationException ConcurrentModificationException}. 
- * This way, when faced with concurrent modification, the iterator will fail 
- * quickly and cleanly instead of risking arbitrary, non-deterministic behavior. 
- * However, the fail-fast behavior of the iterator cannot be guaranteed, 
- * especially when dealing with unsynchronized concurrent modifications. It is 
- * also possible, though not guaranteed, for the iterator to not fail if the 
- * structure of the model is reverted to how it was when the iterator was 
- * created. The fail-fast iterators throw {@code 
+ * columns, the iterator will throw a {@link ConcurrentModificationException 
+ * ConcurrentModificationException}. This way, when faced with concurrent 
+ * modification, the iterator will fail quickly and cleanly instead of risking 
+ * arbitrary, non-deterministic behavior. However, the fail-fast behavior of the 
+ * iterator cannot be guaranteed, especially when dealing with unsynchronized 
+ * concurrent modifications. It is also possible, though not guaranteed, for the 
+ * iterator to not fail if the structure of the model is reverted to how it was 
+ * when the iterator was created. The fail-fast iterators throw {@code 
  * ConcurrentModificationExceptions} on a best-effort basis. As such the 
  * fail-fast behavior should not be depended on for its correctness and should 
  * only be used to detect bugs.
@@ -54,7 +50,7 @@ import snake.SnakeConstants;
  * @see TileObserver
  * @see PlayFieldModel
  * @see AbstractPlayFieldModel
- * @see snake.JPlayField
+ * @see JPlayField
  */
 public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements 
         SnakeConstants{
@@ -149,7 +145,7 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
      * @return The tile that was constructed.
      * @throws IllegalArgumentException If either the row or column are 
      * negative.
-     * @see Tile#Tile(int, int, snake.playfield.TileObserver) 
+     * @see Tile#Tile(int, int, TileObserver) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see Tile#getModelTileObserver 
@@ -160,7 +156,6 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #setRowCount 
      * @see #getColumnCount 
      * @see #setColumnCount 
@@ -172,7 +167,6 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #setColumnCount 
      * @see #getRowCount 
      * @see #setRowCount 
@@ -343,14 +337,11 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @param row {@inheritDoc }
-     * @param column {@inheritDoc }
-     * @return {@inheritDoc }
      * @throws IndexOutOfBoundsException {@inheritDoc }
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      */
@@ -388,7 +379,7 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
      * @see #setRowCount 
      * @see #setColumnCount 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #MAXIMUM_ROW_COUNT
      * @see #MAXIMUM_COLUMN_COUNT
      * @see Tile#getRow 
@@ -415,9 +406,8 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @param tile {@inheritDoc }
      * @see #getTile
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      */
     @Override
     public void tileUpdate(Tile tile){
@@ -430,17 +420,16 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
      * @see #getTileList 
      * @see #getTiles 
      * @see #getFilteredTileList 
-     * @see snake.SnakeUtilities#getEmptyTilePredicate 
+     * @see SnakeUtilities#getEmptyTilePredicate 
      * @see #getEmptyTileCount 
      * @see #getAppleTiles 
      * @see #getAppleTileCount 
@@ -455,15 +444,14 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
      * @see #getFilteredTileCount 
-     * @see snake.SnakeUtilities#getEmptyTilePredicate 
+     * @see SnakeUtilities#getEmptyTilePredicate 
      * @see #getEmptyTiles 
      * @see #getAppleTiles 
      * @see #getAppleTileCount 
@@ -478,17 +466,16 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
      * @see #getTileList 
      * @see #getTiles 
      * @see #getFilteredTileList 
-     * @see snake.SnakeUtilities#getAppleTilePredicate 
+     * @see SnakeUtilities#getAppleTilePredicate 
      * @see #getAppleTileCount 
      * @see #getEmptyTiles 
      * @see #getEmptyTileCount 
@@ -502,15 +489,14 @@ public class DefaultPlayFieldModel extends AbstractPlayFieldModel implements
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
      * @see #getFilteredTileCount 
-     * @see snake.SnakeUtilities#getAppleTilePredicate 
+     * @see SnakeUtilities#getAppleTilePredicate 
      * @see #getAppleTiles 
      * @see #getEmptyTiles 
      * @see #getEmptyTileCount 

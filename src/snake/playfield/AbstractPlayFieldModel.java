@@ -4,19 +4,11 @@
  */
 package snake.playfield;
 
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.EventListener;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import javax.swing.event.EventListenerList;
-import snake.SnakeConstants;
-import snake.SnakeUtilities;
-import snake.event.PlayFieldEvent;
-import snake.event.PlayFieldListener;
+import snake.*;
+import snake.event.*;
 
 /**
  * This is an abstract implementation for the {@link PlayFieldModel model} 
@@ -45,7 +37,7 @@ import snake.event.PlayFieldListener;
  * @see TileObserver
  * @see PlayFieldModel
  * @see DefaultPlayFieldModel
- * @see snake.JPlayField
+ * @see JPlayField
  */
 public abstract class AbstractPlayFieldModel implements PlayFieldModel, 
         TileObserver{
@@ -66,7 +58,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     private EventFlag pausedFlag = new EventFlag();
     /**
      * {@inheritDoc }
-     * @param isAdjusting {@inheritDoc }
      * @see #getTilesAreAdjusting 
      * @see PlayFieldEvent#getTilesAreAdjusting 
      */
@@ -76,7 +67,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #setTilesAreAdjusting 
      */
     @Override
@@ -122,7 +112,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getTilesAreAdjusting 
      * @see #setEventsArePaused(boolean)
      * @see #getEventsArePaused 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      */
     protected void setEventsArePaused(boolean pauseEvents, Integer eventType){
         pausedFlag.setValue(pauseEvents, eventType);
@@ -143,16 +133,17 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * to {@code true}. <p>
      * 
      * This version of the method is equivalent to calling {@link 
-     * #setEventsArePaused(boolean, java.lang.Integer) 
+     * #setEventsArePaused(boolean, Integer) 
      * setEventsArePaused}{@code (pauseEvents, null)}. As such, this will not 
      * fire a PlayFieldEvent when setting this to {@code false}.
+     * 
      * @param pauseEvents Whether to pause firing events. If this is {@code 
      * true}, then no {@code PlayFieldEvent}s will be fired as long as this is 
      * {@code true}. If this is {@code false}, then {@code PlayFieldEvent}s 
      * will be allowed to be fired.
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #getEventsArePaused 
      * @see #firePlayFieldChange 
      */
@@ -169,7 +160,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * true}, then no {@code PlayFieldEvent}s will be fired as long as this is 
      * {@code true}. If this is {@code false}, then {@code PlayFieldEvent}s 
      * will be allowed to be fired.
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
@@ -184,7 +175,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * tile is null or not in this model.
      * @param tile {@inheritDoc }
      * @see #getTile 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      */
     @Override
     public void tileUpdate(Tile tile){
@@ -213,7 +204,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @param l {@inheritDoc }
      * @see #removePlayFieldListener 
      * @see #getPlayFieldListeners 
      */
@@ -224,7 +214,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @param l {@inheritDoc }
      * @see #addPlayFieldListener 
      * @see #getPlayFieldListeners 
      */
@@ -249,11 +238,11 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * given event's {@link PlayFieldEvent#getType() type} and invokes the 
      * listener's corresponding method. This ignores whether {@link 
      * #getEventsArePaused() events are paused}. This is used by {@link 
-     * #firePlayFieldChange(snake.event.PlayFieldEvent) firePlayFieldChange} to 
-     * notify each listener of the event given to it. 
+     * #firePlayFieldChange(PlayFieldEvent) firePlayFieldChange} to notify each 
+     * listener of the event given to it. 
      * @param evt The event to notify the listener of (cannot be null).
      * @param l The listener to notify.
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see PlayFieldEvent#getType 
      * @see PlayFieldEvent#TILES_CHANGED
      * @see PlayFieldEvent#TILES_ADDED
@@ -289,7 +278,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #tileUpdate 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see #notifyPlayFieldListener 
@@ -332,7 +321,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      *      {@link PlayFieldEvent#TILES_ADDED TILES_ADDED}, 
      *      {@link PlayFieldEvent#TILES_CHANGED TILES_CHANGED}, or
      *      {@link PlayFieldEvent#TILES_REMOVED TILES_REMOVED}.
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see #addPlayFieldListener 
@@ -341,7 +330,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #tileUpdate 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -376,7 +365,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      *      {@link PlayFieldEvent#TILES_ADDED TILES_ADDED}, 
      *      {@link PlayFieldEvent#TILES_CHANGED TILES_CHANGED}. or
      *      {@link PlayFieldEvent#TILES_REMOVED TILES_REMOVED}.
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, boolean, int) 
      * @see PlayFieldEvent
      * @see #addPlayFieldListener 
@@ -385,7 +374,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #tileUpdate 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -416,7 +405,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @param column1 The other end of the range of columns that have been 
      * updated.
      * @see #fireTilesChanged(int, int) 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_CHANGED
@@ -426,7 +415,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #tileUpdate 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -447,7 +436,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @param row The row of the tile that has been updated.
      * @param column The column of the tile that has been updated.
      * @see #fireTilesChanged 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_CHANGED
@@ -457,7 +446,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #tileUpdate 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -486,7 +475,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * added.
      * @see #fireTileRowsAdded 
      * @see #fireTileColumnsAdded 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_ADDED
@@ -495,7 +484,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -523,7 +512,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @param row1 The other end of the range of rows that have been added.
      * @see #fireTilesAdded 
      * @see #fireTileColumnsAdded 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_ADDED
@@ -532,7 +521,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -560,7 +549,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * added.
      * @see #fireTilesAdded 
      * @see #fireTileRowsAdded 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_ADDED
@@ -569,7 +558,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -602,7 +591,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * removed.
      * @see #fireTileRowsRemoved 
      * @see #fireTileColumnsRemoved 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_REMOVED
@@ -611,7 +600,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -639,7 +628,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @param row1 The other end of the range of rows that have been removed.
      * @see #fireTilesRemoved 
      * @see #fireTileColumnsRemoved 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_REMOVED
@@ -648,7 +637,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -676,7 +665,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * removed.
      * @see #fireTilesRemoved 
      * @see #fireTileRowsRemoved 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_REMOVED
@@ -685,7 +674,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see Tile#getRow 
@@ -707,17 +696,17 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * This is equivalent to calling {@link snake.JPlayField#setModel setModel} 
      * on the JPlayField. If the {@link #getEventsArePaused() events are 
      * paused}, then the {@code PlayFieldListener}s will not be notified.
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, boolean, int) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
-     * @see PlayFieldEvent#PlayFieldEvent(java.lang.Object, boolean) 
+     * @see PlayFieldEvent#PlayFieldEvent(Object, boolean) 
      * @see #addPlayFieldListener 
      * @see #removePlayFieldListener 
      * @see #getPlayFieldListeners 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
-     * @see #setEventsArePaused(boolean, java.lang.Integer) 
+     * @see #setEventsArePaused(boolean, Integer) 
      * @see #setEventsArePaused(boolean) 
      * @see #getEventsArePaused 
      * @see #fireTilesChanged 
@@ -729,10 +718,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @param tile {@inheritDoc }
-     * @param direction {@inheritDoc }
-     * @param wrapAround {@inheritDoc }
-     * @return {@inheritDoc }
      * @throws NullPointerException {@inheritDoc }
      * @throws IllegalArgumentException {@inheritDoc }
      * @see #UP_DIRECTION
@@ -746,8 +731,8 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
-     * @see #getAdjacentTile(snake.playfield.Tile, int) 
+     * @see #contains(Tile) 
+     * @see #getAdjacentTile(Tile, int) 
      */
     @Override
     public Tile getAdjacentTile(Tile tile, int direction, boolean wrapAround){
@@ -842,10 +827,6 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @param fromRow {@inheritDoc }
-     * @param toRow {@inheritDoc }
-     * @param fromColumn {@inheritDoc }
-     * @param toColumn {@inheritDoc }
      * @throws IndexOutOfBoundsException {@inheritDoc }
      * @see #clearTiles() 
      * @see #getTile 
@@ -894,12 +875,11 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTiles 
      * @see #getFilteredTileList 
      */
@@ -919,12 +899,11 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
     }
     /**
      * {@inheritDoc }
-     * @return {@inheritDoc }
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getTileList 
      * @see #getFilteredTileList 
      */
@@ -957,7 +936,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getColumnCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #iterator 
      * @see #getTileList 
      * @see #getTiles 
@@ -992,7 +971,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * @see #getTileCount 
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #iterator 
      * @see #getTileList 
      * @see #getTiles 
@@ -1013,19 +992,18 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
         return count;
     }
     /**
-     * This returns a list of tiles in this model that are currently {@link 
-     * Tile#isEmpty() empty}. 
+     * {@inheritDoc }
      * 
      * @implSpec The default implementation calls {@link 
      * #getFilteredTileList getFilteredTileList}{@code (}{@link 
-     * SnakeUtilities#getEmptyTilePredicate()}{@code )} and returns the 
+     * SnakeUtilities#getEmptyTilePredicate 
+     * SnakeUtilities.getEmptyTilePredicate}{@code ())} and returns the 
      * resulting list.
      * 
-     * @return A list of tiles that are empty, or an empty list if no tiles are 
-     * empty.
+     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1046,17 +1024,17 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
         return getFilteredTileList(SnakeUtilities.getEmptyTilePredicate());
     }
     /**
-     * This returns the number of {@link Tile#isEmpty() empty tiles} that are 
-     * currently in this model.
+     * {@inheritDoc }
      * 
      * @implSpec The default implementation calls {@link 
      * #getFilteredTileCount getFilteredTileCount}{@code (}{@link 
-     * SnakeUtilities#getEmptyTilePredicate()}{@code )}.
+     * SnakeUtilities#getEmptyTilePredicate 
+     * SnakeUtilities.getEmptyTilePredicate}{@code ())}.
      * 
-     * @return The number of empty tiles in this model.
+     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1075,19 +1053,18 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
         return getFilteredTileCount(SnakeUtilities.getEmptyTilePredicate());
     }
     /**
-     * This returns a list of tiles in this model that are currently {@link 
-     * Tile#isApple() apple tiles}. 
+     * {@inheritDoc }
      * 
      * @implSpec The default implementation calls {@link 
      * #getFilteredTileList getFilteredTileList}{@code (}{@link 
-     * SnakeUtilities#getAppleTilePredicate()}{@code )} and returns the 
+     * SnakeUtilities#getAppleTilePredicate 
+     * SnakeUtilities.getAppleTilePredicate}{@code ())} and returns the 
      * resulting list.
      * 
-     * @return A list of apple tiles in this model, or an empty list if no tiles 
-     * are apple tiles.
+     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1107,17 +1084,17 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
         return getFilteredTileList(SnakeUtilities.getAppleTilePredicate());
     }
     /**
-     * This returns the number of {@link Tile#isApple() apple tiles} that are 
-     * currently in this model.
+     * {@inheritDoc }
      * 
      * @implSpec The default implementation calls {@link 
      * #getFilteredTileCount getFilteredTileCount}{@code (}{@link 
-     * SnakeUtilities#getAppleTilePredicate()}{@code )}.
+     * SnakeUtilities#getAppleTilePredicate 
+     * SnakeUtilities.getAppleTilePredicate}{@code ())}.
      * 
-     * @return The number of apple tiles in this model.
+     * @return {@inheritDoc }
      * @see #getTile 
      * @see #contains(int, int) 
-     * @see #contains(snake.playfield.Tile) 
+     * @see #contains(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1230,7 +1207,8 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
         }
         @Override
         public Tile next() {
-            checkForConcurrentModification();
+                // Check for concurrent modification
+            checkForConcurrentModification();   
             if (!hasNext()) // If there are no more tiles to return
                 throw new NoSuchElementException();
                 // This gets the tile to return

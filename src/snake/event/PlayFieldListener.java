@@ -5,14 +5,16 @@
 package snake.event;
 
 import java.util.EventListener;
+import snake.*;
+import snake.playfield.*;
 
 /**
  * This is the listener interface for receiving play field events.
  * @author Milo Steier
  * @see PlayFieldEvent
- * @see snake.playfield.Tile
- * @see snake.playfield.PlayFieldModel
- * @see snake.JPlayField
+ * @see Tile
+ * @see PlayFieldModel
+ * @see JPlayField
  */
 public interface PlayFieldListener extends EventListener{
     /**

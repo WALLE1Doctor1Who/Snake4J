@@ -605,7 +605,7 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
      * for monochrome).
      * @return The image to use as an icon representing JPlayField.
      * @see #getIcon(int) 
-     * @see #loadImage(java.lang.String) 
+     * @see #loadImage(String) 
      */
     private java.awt.Image generateIcon(String iconName,int scale,boolean mono){
         if (iconName != null)   // If the icon name is not null

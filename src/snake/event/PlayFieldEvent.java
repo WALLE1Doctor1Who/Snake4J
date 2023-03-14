@@ -5,6 +5,8 @@
 package snake.event;
 
 import java.util.EventObject;
+import snake.*;
+import snake.playfield.*;
 
 /**
  * This is an event that indicates that there has been a change to the contents 
@@ -13,9 +15,9 @@ import java.util.EventObject;
  * made and the region of tiles that may have been affected.
  * @author Milo Steier
  * @see PlayFieldListener
- * @see snake.playfield.Tile
- * @see snake.playfield.PlayFieldModel
- * @see snake.JPlayField
+ * @see Tile
+ * @see PlayFieldModel
+ * @see JPlayField
  */
 public class PlayFieldEvent extends EventObject{
     /**
@@ -185,11 +187,11 @@ public class PlayFieldEvent extends EventObject{
     /**
      * This returns whether or not this event is one in a series of multiple 
      * events, where changes are still being made. Refer to the {@link 
-     * snake.playfield.PlayFieldModel#setTilesAreAdjusting(boolean) 
+     * PlayFieldModel#setTilesAreAdjusting(boolean) 
      * PlayFieldModel.setTilesAreAdjusting} method for more information.
      * @return Whether this event is one in a series of multiple events.
-     * @see snake.playfield.PlayFieldModel#setTilesAreAdjusting(boolean) 
-     * @see snake.playfield.PlayFieldModel#getTilesAreAdjusting() 
+     * @see PlayFieldModel#setTilesAreAdjusting(boolean) 
+     * @see PlayFieldModel#getTilesAreAdjusting() 
      */
     public boolean getTilesAreAdjusting(){
         return isAdjusting;
@@ -224,6 +226,10 @@ public class PlayFieldEvent extends EventObject{
                 ",lastColumn="+getLastColumn()+
                 ",isAdjusting="+getTilesAreAdjusting();
     }
+    /**
+     * This returns a String representation of this PlayFieldEvent.
+     * @return A String representation of this PlayFieldEvent.
+     */
     @Override
     public String toString(){
         return getClass().getName() + "["+paramString()+"]";

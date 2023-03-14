@@ -5,6 +5,7 @@
 package snake;
 
 import java.awt.Color;
+import snake.playfield.*;
 
 /**
  * This is a collection of constants generally used for the game Snake.
@@ -142,15 +143,13 @@ public interface SnakeConstants {
     public static final int DOWN_RIGHT_DIRECTION = DOWN_DIRECTION | RIGHT_DIRECTION;
     /**
      * This is a flag used to set an alternate type or mode. This is primarily 
-     * used by {@link snake.playfield.Tile tiles} to indicate that {@link 
-     * snake.playfield.Tile#isSnake() snake tiles} should be drawn in a 
-     * different way. Tiles also use this to indicate whether a tile should be 
-     * an {@link snake.playfield.Tile#isApple() apple tile} or an {@link 
-     * snake.playfield.Tile#isEmpty() empty tile} when a tile is not a snake 
-     * tile, with apple tiles being an alternate version of empty tiles. This 
-     * flag is also used by {@link Snake snakes} to determine what {@link 
-     * snake.playfield.Tile#getType() type} of snake tiles should they be 
-     * comprised of.
+     * used by {@link Tile tiles} to indicate whether a {@link Tile#isSnake() 
+     * snake tiles} should be drawn in a different way. Tiles also use this to 
+     * indicate whether a tile should be an {@link Tile#isApple() apple tile} or 
+     * an {@link Tile#isEmpty() empty tile} when a tile is not a snake tile, 
+     * with apple tiles being an alternate version of empty tiles. This flag is 
+     * also used by {@link Snake snakes} to determine what {@link Tile#getType() 
+     * type} of snake tiles should they be comprised of.
      */
     public static final int ALTERNATE_TYPE_FLAG = 0x10;
     /**
@@ -161,24 +160,22 @@ public interface SnakeConstants {
     public static final Color TILE_BACKGROUND_COLOR = Color.BLACK;
     /**
      * This is the color that is used as the default color for {@link 
-     * snake.playfield.Tile#isApple() apple tiles}. This is the same as the 
-     * color {@link Color#RED red}.
+     * Tile#isApple() apple tiles}. This is the same as the color {@link 
+     * Color#RED red}.
      * @see Color#RED
      */
     public static final Color APPLE_COLOR = Color.RED;
     /**
      * This is the color that is used as the default color for {@link 
-     * snake.playfield.Tile#isSnake() snake tiles} that do not have their {@link 
-     * snake.playfield.Tile#getType() type flag} set. This is the same as the 
-     * color {@link Color#GREEN green}.
+     * Tile#isSnake() snake tiles} that do not have their {@link Tile#getType() 
+     * type flag} set. This is the same as the color {@link Color#GREEN green}.
      * @see Color#GREEN
      */
     public static final Color PRIMARY_SNAKE_COLOR = Color.GREEN;
     /**
      * This is the color that is used as the default color for {@link 
-     * snake.playfield.Tile#isSnake() snake tiles} that have their {@link 
-     * snake.playfield.Tile#getType() type flag} set. This is the same as the 
-     * color {@link Color#BLUE blue}.
+     * Tile#isSnake() snake tiles} that have their {@link Tile#getType() type 
+     * flag} set. This is the same as the color {@link Color#BLUE blue}.
      * @see Color#BLUE
      */
     public static final Color SECONDARY_SNAKE_COLOR = Color.BLUE;

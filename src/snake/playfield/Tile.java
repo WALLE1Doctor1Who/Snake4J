@@ -4,8 +4,7 @@
  */
 package snake.playfield;
 
-import snake.SnakeConstants;
-import snake.SnakeUtilities;
+import snake.*;
 
 /**
  * This is a tile that represents a space on the play field in the game Snake. 
@@ -443,7 +442,7 @@ public class Tile implements Comparable<Tile>, SnakeConstants{
      * method for more information about what the tile's state is. If this tile 
      * has any tile observers set, then they will be notified of a change to 
      * this tile's state.
-     * @param flag The flag to set or clear.
+     * @param flag The flag to be set or cleared based off {@code value}.
      * @param value Whether the flag should be set or cleared.
      * @throws IllegalArgumentException If the state would become invalid as a 
      * result of setting the flag.
@@ -1025,7 +1024,8 @@ public class Tile implements Comparable<Tile>, SnakeConstants{
      * {@link #getType() type flag} is set. <p>
      * 
      * This is equivalent to calling {@link SnakeUtilities#getDirections(int) 
-     * SnakeUtilities.getDirections}{@code (}{@link #getState()}{@code )}.
+     * SnakeUtilities.getDirections}{@code (}{@link #getState 
+     * getState}{@code ())}.
      * 
      * @return The direction flags for the directions that this tile is facing, 
      * or 0 if this tile is not facing any directions.
@@ -1202,7 +1202,7 @@ public class Tile implements Comparable<Tile>, SnakeConstants{
      * @see #setFacingRight 
      * @see SnakeUtilities#invertDirections 
      * @see SnakeUtilities#getDirections 
-     * @see #alterDirection(snake.playfield.Tile) 
+     * @see #alterDirection(Tile) 
      * @see #getTileObserver 
      * @see #getModelTileObserver 
      */
@@ -1219,7 +1219,7 @@ public class Tile implements Comparable<Tile>, SnakeConstants{
      * tile's state are not effected. If this tile has any tile observers set, 
      * then they will be notified of a change to this tile's state. This is 
      * equivalent to calling {@link #alterDirection(int) 
-     * alterDirection}{@code (source.}{@link #getState()}{@code )}.
+     * alterDirection}{@code (source.}{@link #getState getState}{@code ())}.
      * @param source The tile to get the directions to use to alter the 
      * directions of this tile (cannot be null).
      * @return This tile.

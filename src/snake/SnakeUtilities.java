@@ -5,9 +5,10 @@
 package snake;
 
 import java.awt.geom.*;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Predicate;
-import snake.playfield.PlayFieldModel;
-import snake.playfield.Tile;
+import snake.playfield.*;
 
 /**
  * This is a collection of utility methods for the game Snake.
@@ -74,7 +75,7 @@ public class SnakeUtilities implements SnakeConstants{
      * This sets whether the given flag is set based off the given {@code 
      * value}.
      * @param flags The value to set the flag on.
-     * @param flag The flag to set or clear.
+     * @param flag The flag to be set or cleared based off {@code value}.
      * @param value Whether the flag should be set or cleared.
      * @return The value with the given flag either set or cleared.
      * @see #getFlag
@@ -88,7 +89,7 @@ public class SnakeUtilities implements SnakeConstants{
     /**
      * This toggles whether the given flag is set.
      * @param flags The value to toggle the flag on.
-     * @param flag The flag to toggle.
+     * @param flag The flag to be toggled.
      * @return The value with the given flag toggled.
      * @see #getFlag
      * @see #setFlag
@@ -106,7 +107,7 @@ public class SnakeUtilities implements SnakeConstants{
      * @return A String stating the binary representation of the given value.
      * @see Integer#toBinaryString
      */
-    public static String getStateBinaryString(int value, int bits){
+    public static String getFormattedBinaryString(int value, int bits){
         return String.format("%"+bits+"s",Integer.toBinaryString(value))
                 .replace(' ','0');
     }
@@ -259,13 +260,13 @@ public class SnakeUtilities implements SnakeConstants{
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
      * @see #RIGHT_DIRECTION
-     * @see #getDirections(int) 
+     * @see #getDirections 
      * @see #getDirectionString 
-     * @see #getStateBinaryString 
+     * @see #getFormattedBinaryString 
      * @see Integer#toBinaryString 
      */
     public static String getDirectionBinary(int direction){
-        return getStateBinaryString(getDirections(direction),
+        return getFormattedBinaryString(getDirections(direction),
                 Integer.bitCount(ALL_DIRECTIONS));
     }
     /**
@@ -400,10 +401,9 @@ public class SnakeUtilities implements SnakeConstants{
      * model is null.
      * @see PlayFieldModel#getColumnCount 
      * @see PlayFieldModel#getRowCount 
-     * @see #calculatePlayFieldBounds(snake.playfield.PlayFieldModel, double, 
-     * double, double, double, java.awt.geom.Rectangle2D) 
-     * @see #calculatePlayFieldBounds(snake.playfield.PlayFieldModel, 
-     * java.awt.geom.Rectangle2D, java.awt.geom.Rectangle2D) 
++     * @see #calculatePlayFieldBounds(PlayFieldModel, double, double, double, 
+     * double, Rectangle2D) 
+     * @see #calculatePlayFieldBounds(PlayFieldModel, Rectangle2D, Rectangle2D) 
      */
     public static Dimension2D calculateTileSize(PlayFieldModel model, double w, 
             double h, Dimension2D dim){
@@ -445,8 +445,7 @@ public class SnakeUtilities implements SnakeConstants{
      * @see #calculateTileSize
      * @see PlayFieldModel#getRowCount
      * @see PlayFieldModel#getColumnCount
-     * @see #calculatePlayFieldBounds(snake.playfield.PlayFieldModel, 
-     * java.awt.geom.Rectangle2D, java.awt.geom.Rectangle2D) 
+     * @see #calculatePlayFieldBounds(PlayFieldModel, Rectangle2D, Rectangle2D) 
      */
     public static Rectangle2D calculatePlayFieldBounds(PlayFieldModel model, 
             double x, double y, double w, double h, Rectangle2D rect){
@@ -492,8 +491,8 @@ public class SnakeUtilities implements SnakeConstants{
      * @see #calculateTileSize
      * @see PlayFieldModel#getRowCount
      * @see PlayFieldModel#getColumnCount
-     * @see #calculatePlayFieldBounds(snake.playfield.PlayFieldModel, double, 
-     * double, double, double, java.awt.geom.Rectangle2D) 
+     * @see #calculatePlayFieldBounds(PlayFieldModel, double, double, double, 
+     * double, Rectangle2D) 
      */
     public static Rectangle2D calculatePlayFieldBounds(PlayFieldModel model, 
             Rectangle2D viewR, Rectangle2D rect){
@@ -502,6 +501,23 @@ public class SnakeUtilities implements SnakeConstants{
         return (viewR!=null)?calculatePlayFieldBounds(model,viewR.getX(),
                 viewR.getY(),viewR.getWidth(),viewR.getHeight(),rect):null;
     }
-    
+    /**
+     * This goes through the given collection of snakes and invokes each of 
+     * their {@link Snake#doNextAction() doNextAction} methods. If any of the 
+     * snakes throws an exception while performing their next action, the 
+     * exception will be relayed to the caller and the remaining snakes will not 
+     * perform their next action.
+     * @param snakes The collection of snakes that are to perform their next 
+     * actions (cannot be null).
+     * @throws NullPointerException If the given collection is null.
+     * @see Snake#doNextAction 
+     */
+    public static void snakesDoNextAction(Collection<? extends Snake> snakes){
+        Objects.requireNonNull(snakes); // Check to see if the collection is null
+        for (Snake snake : snakes){     // A for loop to go through the snakes
+            if (snake != null)          // If the current snake is non-null
+                snake.doNextAction();   // Have the snake perform its action
+        }
+    }
     
 }

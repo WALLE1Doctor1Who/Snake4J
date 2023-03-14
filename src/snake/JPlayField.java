@@ -6,17 +6,22 @@ package snake;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.util.Objects;
-import snake.event.PlayFieldEvent;
-import snake.event.PlayFieldListener;
+import java.util.*;
+import java.util.function.Predicate;
+import javax.swing.*;
+import javax.swing.plaf.*;
+import snake.event.*;
 import snake.playfield.*;
 
 /**
  * This is a panel that displays the play field for the game Snake. The play 
- * field is made up of a grid of {@link Tile tiles}, which is maintained by a 
- * model, the {@link PlayFieldModel PlayFieldModel}. <p>
+ * field is made up of a grid of {@link Tile tiles}, which is maintained by the 
+ * model for {@code JPlayField}, the {@link PlayFieldModel PlayFieldModel}. <p>
  * 
  * The contents of the {@code PlayFieldModel} do not need to be static, as the 
  * number of rows and columns and the states of the tiles can change over time. 
@@ -253,7 +258,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRenderer 
      * @see PlayFieldRenderer#getMinimumSize 
      * @see PlayFieldRenderer
-     * @see javax.swing.plaf.ComponentUI
+     * @see ComponentUI
+     * @see JComponent#getMinimumSize 
      */
     @Override
     public Dimension getMinimumSize(){
@@ -293,7 +299,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRenderer 
      * @see PlayFieldRenderer#getMaximumSize 
      * @see PlayFieldRenderer
-     * @see javax.swing.plaf.ComponentUI
+     * @see ComponentUI
+     * @see JComponent#getMaximumSize 
      */
     @Override
     public Dimension getMaximumSize(){
@@ -333,7 +340,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRenderer 
      * @see PlayFieldRenderer#getPreferredSize 
      * @see PlayFieldRenderer
-     * @see javax.swing.plaf.ComponentUI
+     * @see ComponentUI
+     * @see JComponent#getPreferredSize 
      */
     @Override
     public Dimension getPreferredSize(){
@@ -361,7 +369,6 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * {@inheritDoc }
-     * @param isOpaque {@inheritDoc }
      * @see #isOpaque 
      */
     @Override
@@ -452,9 +459,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * get a more exact size for any particular tile. <p>
      * 
      * This delegates to the {@link 
-     * PlayFieldRenderer#getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * getTileSize} method of the {@link #getRenderer() play field renderer}. 
-     * This will return null if the renderer is null.
+     * PlayFieldRenderer#getTileSize(JPlayField, Dimension2D) getTileSize} 
+     * method of the {@link #getRenderer() play field renderer}. This will 
+     * return null if the renderer is null.
      * 
      * @param dim The Dimension2D object to return with the average dimensions 
      * of the tiles, or null.
@@ -463,13 +470,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getTileSize() 
      * @see #getTileBounds(int, int, int, int) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getTileBounds(Tile) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
      * @see PlayFieldRenderer
-     * @see PlayFieldRenderer#getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
+     * @see PlayFieldRenderer#getTileSize(JPlayField, Dimension2D) 
      */
     public Dimension2D getTileSize(Dimension2D dim){
             // If the renderer is not null, then return the tile size. 
@@ -479,28 +486,27 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     /**
      * This returns a Dimension2D object containing the average width and height 
      * of the tiles. This is equivalent to calling {@link 
-     * #getTileSize(java.awt.geom.Dimension2D) getTileSize}{@code (null)}. <p>
+     * #getTileSize(Dimension2D) getTileSize}{@code (null)}. <p>
      * 
      * The {@link #getTileBounds(int, int) getTileBounds} method can be used to 
      * get a more exact size for any particular tile. <p>
      * 
-     * This delegates to the {@link 
-     * PlayFieldRenderer#getTileSize(snake.JPlayField) getTileSize} method of 
-     * the {@link #getRenderer() play field renderer}. This will return null if 
-     * the renderer is null.
+     * This delegates to the {@link PlayFieldRenderer#getTileSize(JPlayField) 
+     * getTileSize} method of the {@link #getRenderer() play field renderer}. 
+     * This will return null if the renderer is null.
      * 
      * @return The Dimension2D object holding the average dimensions of the 
      * tiles.
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileBounds(int, int, int, int) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getTileBounds(Tile) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
      * @see PlayFieldRenderer
-     * @see PlayFieldRenderer#getTileSize(snake.JPlayField) 
+     * @see PlayFieldRenderer#getTileSize(JPlayField) 
      */
     public Dimension2D getTileSize(){
             // If the renderer is not null, then return the tile size. 
@@ -514,7 +520,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * useful as to avoid creating a new Rectangle2D object. <p>
      * 
      * This delegates to the {@link 
-     * PlayFieldRenderer#getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * PlayFieldRenderer#getPlayFieldBounds(JPlayField, Rectangle2D) 
      * getPlayFieldBounds} method of the {@link #getRenderer() play field 
      * renderer}. This will return null if the renderer is null.
      * 
@@ -522,15 +528,15 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * field, or null.
      * @return The Rectangle2D object holding the bounds of the play field.
      * @see #getPlayFieldBounds() 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
      * @see #getTileBounds(int, int, int, int) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getRenderer 
      * @see #setRenderer 
      * @see PlayFieldRenderer
-     * @see PlayFieldRenderer#getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see PlayFieldRenderer#getPlayFieldBounds(JPlayField, Rectangle2D) 
      */
     public Rectangle2D getPlayFieldBounds(Rectangle2D rect){
             // If the renderer is not null, then return the play field bounds. 
@@ -541,25 +547,24 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     /**
      * This returns the bounds, in this panel's coordinate system, for the play 
      * field. This is equivalent to calling {@link 
-     * #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
-     * getPlayFieldBounds}{@code (null)}. <p>
+     * #getPlayFieldBounds(Rectangle2D) getPlayFieldBounds}{@code (null)}. <p>
      * 
      * This delegates to the {@link 
-     * PlayFieldRenderer#getPlayFieldBounds(snake.JPlayField) 
-     * getPlayFieldBounds} method of the {@link #getRenderer() play field 
-     * renderer}. This will return null if the renderer is null.
+     * PlayFieldRenderer#getPlayFieldBounds(JPlayField) getPlayFieldBounds} 
+     * method of the {@link #getRenderer() play field renderer}. This will 
+     * return null if the renderer is null.
      * 
      * @return The Rectangle2D object holding the bounds of the play field.
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
      * @see #getTileBounds(int, int, int, int) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getRenderer 
      * @see #setRenderer 
      * @see PlayFieldRenderer
-     * @see PlayFieldRenderer#getPlayFieldBounds(snake.JPlayField) 
+     * @see PlayFieldRenderer#getPlayFieldBounds(JPlayField) 
      */
     public Rectangle2D getPlayFieldBounds(){
             // If the renderer is not null, then return the play field bounds. 
@@ -594,13 +599,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @return The Rectangle2D object with the bounds for the range of tiles, or 
      * null.
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #tileToLocation(Tile) 
      * @see #containsTile(int, int) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -629,13 +634,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @return The Rectangle2D object with the bounds of the tile at the given 
      * row and column, or null.
      * @see #getTileBounds(int, int, int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #tileToLocation(Tile) 
      * @see #containsTile(int, int) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -651,10 +656,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * <p>
      * This is equivalent to calling {@link #getTileBounds(int, int) 
      * getTileBounds} with the tile's {@link Tile#getRow() row} and {@link 
-     * Tile#getColumn() column} if this panel {@link 
-     * #containsTile(snake.playfield.Tile) contains} the tile. As such, this 
-     * will return null if either the play field does not contain the tile or if 
-     * the {@link #getRenderer() play field renderer} is null.
+     * Tile#getColumn() column} if this panel {@link #containsTile(Tile) 
+     * contains} the tile. As such, this will return null if either the play 
+     * field does not contain the tile or if the {@link #getRenderer() play 
+     * field renderer} is null.
      * 
      * @param tile The tile to get the bounds of.
      * @return The Rectangle2D object with the bounds of the tile, or null.
@@ -662,14 +667,14 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getTileBounds(int, int) 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see #tileToLocation(int, int) 
-     * @see #tileToLocation(snake.playfield.Tile) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #tileToLocation(Tile) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -693,17 +698,17 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @param row The row of the tile to get the location of.
      * @param column The column of the tile to get the location of.
      * @return The origin of the tile, or null.
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #tileToLocation(Tile) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #containsTile(int, int) 
      * @see #locationToTile(int, int) 
-     * @see #locationToTile(java.awt.Point) 
+     * @see #locationToTile(Point) 
      * @see #locationToTile2D(double, double) 
-     * @see #locationToTile2D(java.awt.geom.Point2D) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #locationToTile2D(Point2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -722,28 +727,28 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * 
      * This is equivalent to calling {@link #tileToLocation(int, int) 
      * tileToLocation} with the tile's {@link Tile#getRow() row} and {@link 
-     * Tile#getColumn() column} if this panel {@link 
-     * #containsTile(snake.playfield.Tile) contains} the tile. As such, this 
-     * will return null if either the play field does not contain the tile or if 
-     * the {@link #getRenderer() play field renderer} is null.
+     * Tile#getColumn() column} if this panel {@link #containsTile(Tile) 
+     * contains} the tile. As such, this will return null if either the play 
+     * field does not contain the tile or if the {@link #getRenderer() play 
+     * field renderer} is null.
      * 
      * @param tile The tile to get the location of.
      * @return The origin of the tile, or null.
      * @see #tileToLocation(int, int) 
      * @see #getTileBounds(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see #locationToTile(int, int) 
-     * @see #locationToTile(java.awt.Point) 
+     * @see #locationToTile(Point) 
      * @see #locationToTile2D(double, double) 
-     * @see #locationToTile2D(java.awt.geom.Point2D) 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #locationToTile2D(Point2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -759,33 +764,32 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This returns the tile that is closest to the given location in this 
      * panel's coordinate system. To determine if the tile actually contains the 
      * specified location, compare the point against the {@link 
-     * #getTileBounds(snake.playfield.Tile) tile's bounds}. This returns null if 
-     * there is no tile at the given location. <p> 
+     * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
+     * tile at the given location. <p> 
      * 
      * This method uses integer precision, and as such the tile returned may be 
      * a rough approximation for the tile closest to the given location. The 
      * {@link #locationToTile2D(double, double) locationToTile2D} method can be 
      * used to get a more accurate result if necessary. <p>
      * 
-     * This delegates to the {@link 
-     * PlayFieldRenderer#locationToTile locationToTile} method of the {@link 
-     * #getRenderer() play field renderer}. This will return null if the 
-     * renderer is null.
+     * This delegates to the {@link PlayFieldRenderer#locationToTile 
+     * locationToTile} method of the {@link #getRenderer() play field renderer}. 
+     * This will return null if the renderer is null.
      * 
      * @param x The x-coordinate of the point to get the tile at.
      * @param y The y-coordinate of the point to get the tile at.
      * @return The tile closest to the given location, or null.
-     * @see #locationToTile(java.awt.Point) 
+     * @see #locationToTile(Point) 
      * @see #locationToTile2D(double, double) 
-     * @see #locationToTile2D(java.awt.geom.Point2D) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #locationToTile2D(Point2D) 
+     * @see #tileToLocation(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getTileBounds(int, int) 
      * @see #getTile 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -801,13 +805,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This returns the tile that is closest to the given location in this 
      * panel's coordinate system. To determine if the tile actually contains the 
      * specified location, compare the point against the {@link 
-     * #getTileBounds(snake.playfield.Tile) tile's bounds}. This returns null if 
-     * there is no tile at the given location. <p> 
+     * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
+     * tile at the given location. <p> 
      * 
      * This method uses integer precision, and as such the tile returned may be 
      * a rough approximation for the tile closest to the given location. The 
-     * {@link #locationToTile2D(java.awt.geom.Point2D) locationToTile2D} method 
-     * can be used to get a more accurate result if necessary. <p>
+     * {@link #locationToTile2D(Point2D) locationToTile2D} method can be used to 
+     * get a more accurate result if necessary. <p>
      * 
      * This is equivalent to calling {@link #locationToTile locationToTile} with 
      * the given point's x and y coordinates. As such, this will return null if 
@@ -818,30 +822,30 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @throws NullPointerException If the point is null.
      * @see #locationToTile(int, int) 
      * @see #locationToTile2D(double, double) 
-     * @see #locationToTile2D(java.awt.geom.Point2D) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #locationToTile2D(Point2D) 
+     * @see #tileToLocation(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getTileBounds(int, int) 
      * @see #getTile 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
      * @see PlayFieldRenderer
      * @see PlayFieldRenderer#locationToTile 
      */
-    public Tile locationToTile(java.awt.Point point){
+    public Tile locationToTile(Point point){
         return locationToTile(point.x,point.y);
     }
     /**
      * This returns the tile that is closest to the given location in this 
      * panel's coordinate system. To determine if the tile actually contains the 
      * specified location, compare the point against the {@link 
-     * #getTileBounds(snake.playfield.Tile) tile's bounds}. This returns null if 
-     * there is no tile at the given location. <p> 
+     * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
+     * tile at the given location. <p> 
      * 
      * This delegates to the {@link PlayFieldRenderer#locationToTile2D 
      * locationToTile2D} method of the {@link #getRenderer() play field 
@@ -850,17 +854,17 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @param x The x-coordinate of the point to get the tile at.
      * @param y The y-coordinate of the point to get the tile at.
      * @return The tile closest to the given location, or null.
-     * @see #locationToTile2D(java.awt.geom.Point2D) 
+     * @see #locationToTile2D(Point2D) 
      * @see #locationToTile(int, int) 
-     * @see #locationToTile(java.awt.Point) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #locationToTile(Point) 
+     * @see #tileToLocation(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getTileBounds(int, int) 
      * @see #getTile 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -876,8 +880,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This returns the tile that is closest to the given location in this 
      * panel's coordinate system. To determine if the tile actually contains the 
      * specified location, compare the point against the {@link 
-     * #getTileBounds(snake.playfield.Tile) tile's bounds}. This returns null if 
-     * there is no tile at the given location. <p> 
+     * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
+     * tile at the given location. <p> 
      * 
      * This is equivalent to calling {@link #locationToTile2D(double, double) 
      * locationToTile2D} with the given point's x and y coordinates. As such, 
@@ -889,15 +893,15 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @throws NullPointerException If the point is null.
      * @see #locationToTile2D(double, double) 
      * @see #locationToTile(int, int) 
-     * @see #locationToTile(java.awt.Point) 
-     * @see #tileToLocation(snake.playfield.Tile) 
+     * @see #locationToTile(Point) 
+     * @see #tileToLocation(Tile) 
      * @see #tileToLocation(int, int) 
-     * @see #getTileBounds(snake.playfield.Tile) 
+     * @see #getTileBounds(Tile) 
      * @see #getTileBounds(int, int) 
      * @see #getTile 
-     * @see #getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getTileSize(Dimension2D) 
      * @see #getTileSize() 
-     * @see #getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see #getPlayFieldBounds(Rectangle2D) 
      * @see #getPlayFieldBounds() 
      * @see #getRenderer 
      * @see #setRenderer 
@@ -936,13 +940,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * 
      * @param g {@inheritDoc }
      * @see #paint 
-     * @see javax.swing.plaf.ComponentUI
+     * @see ComponentUI
      * @see PlayFieldRenderer
      * @see #getRenderer 
      * @see PlayFieldRenderer#paint 
      */
     @Override
-    protected void paintComponent(java.awt.Graphics g){
+    protected void paintComponent(Graphics g){
         super.paintComponent(g);
         int w = getWidth();             // Get the width of the component
         int h = getHeight();            // Get the height of the component
@@ -958,8 +962,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
             // This will get the Graphics2D object to render to.
         java.awt.Graphics2D g2D;        
             // If the graphics context is a Graphics2D object
-        if (g instanceof java.awt.Graphics2D)
-            g2D = (java.awt.Graphics2D) g;
+        if (g instanceof Graphics2D)
+            g2D = (Graphics2D) g;
         else if (g != null){            // If the graphics context is not null
             img = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
             g2D = img.createGraphics();
@@ -999,7 +1003,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see DefaultPlayFieldModel
      */
     public void setModel(PlayFieldModel model){
-        if (model == null)      // If the model is null
+        if (model == null)                      // If the model is null
             throw new NullPointerException("Model cannot be null");
         if (Objects.equals(model, this.model))  // If the model would not change
             return;
@@ -1122,7 +1126,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRandomTile 
      * @see Tile#getRow 
      * @see Tile#getColumn 
@@ -1145,13 +1149,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see #getRandomFilteredTile
      * @see #getRandomEmptyTile 
      */
-    public Tile getRandomTile(java.util.Random rand){
+    public Tile getRandomTile(Random rand){
         return getTile(rand.nextInt(getRowCount()),
                 rand.nextInt(getColumnCount()));
     }
@@ -1173,15 +1177,14 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
-     * @see #getRandomTile(java.util.Random) 
-     * @see #getRandomFilteredTile(java.util.Random, java.util.function.Predicate) 
-     * @see #getRandomEmptyTile(java.util.Random) 
+     * @see #getRandomTile(Random) 
+     * @see #getRandomFilteredTile(Random, Predicate) 
+     * @see #getRandomEmptyTile(Random) 
      */
-    protected Tile getRandomTile(java.util.Random rand, 
-            java.util.List<Tile> tiles){
+    protected Tile getRandomTile(Random rand, List<Tile> tiles){
             // If the list is null or empty, return null. Otherwise, return a 
             // random tile from the list
         return (tiles == null || tiles.isEmpty()) ? null : 
@@ -1207,7 +1210,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see #getRandomTile 
@@ -1216,8 +1219,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldModel#getFilteredTileList 
      * @see PlayFieldModel#getFilteredTileCount 
      */
-    public Tile getRandomFilteredTile(java.util.Random rand, 
-            java.util.function.Predicate<? super Tile> filter){
+    public Tile getRandomFilteredTile(Random rand,Predicate<? super Tile>filter){
         return getRandomTile(rand,getModel().getFilteredTileList(filter));
     }
     /**
@@ -1237,7 +1239,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      * @see Tile#isEmpty 
@@ -1246,7 +1248,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getEmptyTiles 
      * @see #getEmptyTileCount 
      */
-    public Tile getRandomEmptyTile(java.util.Random rand){
+    public Tile getRandomEmptyTile(Random rand){
         return getRandomTile(rand,getEmptyTiles());
     }
     /**
@@ -1259,7 +1261,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getModel 
      * @see #setModel 
      * @see PlayFieldModel#contains(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTile 
@@ -1269,13 +1271,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns whether the model contains the given tile. This delegates to 
-     * the {@link PlayFieldModel#contains(snake.playfield.Tile) contains} method 
-     * of the currently set {@link #getModel() model}.
+     * the {@link PlayFieldModel#contains(Tile) contains} method of the 
+     * currently set {@link #getModel() model}.
      * @param tile The tile to check for.
      * @return Whether the model contains the given tile.
      * @see #getModel 
      * @see #setModel 
-     * @see PlayFieldModel#contains(snake.playfield.Tile) 
+     * @see PlayFieldModel#contains(Tile) 
      * @see #containsTile(int, int) 
      * @see #getTile 
      * @see #getRowCount 
@@ -1372,8 +1374,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getColumnCount 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
-     * @see #getAdjacentTile(snake.playfield.Tile, int) 
+     * @see #containsTile(Tile) 
+     * @see #getAdjacentTile(Tile, int) 
      */
     public Tile getAdjacentTile(Tile tile, int direction, boolean wrapAround){
         return getModel().getAdjacentTile(tile, direction, wrapAround);
@@ -1385,8 +1387,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * whether this should wrap around when getting an adjacent tile that is out 
      * of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating that this 
      * should not wrap around. This delegates to the {@link 
-     * PlayFieldModel#getAdjacentTile(snake.playfield.Tile, int) 
-     * getAdjacentTile} method of the currently set {@link #getModel() model}.
+     * PlayFieldModel#getAdjacentTile(Tile, int) getAdjacentTile} method of the 
+     * currently set {@link #getModel() model}.
      * @param tile The tile to get the adjacent tile of (cannot be null).
      * @param direction The direction indicating which adjacent tile to return. 
      * This should be one of the following: 
@@ -1415,13 +1417,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see Tile#getColumn 
      * @see #getModel 
      * @see #setModel 
-     * @see PlayFieldModel#getAdjacentTile(snake.playfield.Tile, int) 
+     * @see PlayFieldModel#getAdjacentTile(Tile, int) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
-     * @see #getAdjacentTile(snake.playfield.Tile, int, boolean) 
+     * @see #containsTile(Tile) 
+     * @see #getAdjacentTile(Tile, int, boolean) 
      */
     public Tile getAdjacentTile(Tile tile, int direction){
         return getModel().getAdjacentTile(tile, direction);
@@ -1438,7 +1440,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldModel#getEmptyTiles 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1450,7 +1452,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #clearTiles() 
      * @see #clearTiles(int, int, int, int) 
      */
-    public java.util.List<Tile> getEmptyTiles(){
+    public List<Tile> getEmptyTiles(){
         return getModel().getEmptyTiles();
     }
     /**
@@ -1463,7 +1465,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldModel#getEmptyTileCount 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1490,7 +1492,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldModel#getAppleTiles 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1501,7 +1503,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see Tile#setApple 
      * @see Tile#setAppleIfEmpty 
      */
-    public java.util.List<Tile> getAppleTiles(){
+    public List<Tile> getAppleTiles(){
         return getModel().getAppleTiles();
     }
     /**
@@ -1515,7 +1517,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldModel#getAppleTileCount 
      * @see #getTile 
      * @see #containsTile(int, int) 
-     * @see #containsTile(snake.playfield.Tile) 
+     * @see #containsTile(Tile) 
      * @see #getRowCount 
      * @see #getColumnCount 
      * @see #getTileCount 
@@ -1554,7 +1556,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * You may want to use this directly if making a series of changes that 
      * should be considered part of a single change. <p>
      * 
-     * This delegates to the {@link PlayFieldModel#setTilesAreAdjusting(boolean) 
+     * This delegates to the {@link PlayFieldModel#setTilesAreAdjusting 
      * setTilesAreAdjusting} method of the currently set {@link #getModel() 
      * model}.
      * 
@@ -1628,7 +1630,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         if (paintTileBG == null)
                 // Return if the renderer is not null and the renderer says to 
                 // paint the tile background.
-            return getRenderer() != null && getRenderer().isTileBackgroundPainted(this);
+            return getRenderer()!=null&&getRenderer().isTileBackgroundPainted(this);
         return paintTileBG;
     }
     /**
@@ -2072,11 +2074,11 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * the listener is null, then this does nothing. Otherwise, this checks the 
      * given event's {@link PlayFieldEvent#getType() type} and invokes the 
      * listener's corresponding method. This is used by {@link 
-     * #firePlayFieldChange(snake.event.PlayFieldEvent) firePlayFieldChange} to 
-     * notify each listener of the event given to it.
+     * #firePlayFieldChange(PlayFieldEvent) firePlayFieldChange} to notify each 
+     * listener of the event given to it.
      * @param evt The event to notify the listener of (cannot be null).
      * @param l The listener to notify.
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see PlayFieldEvent#getType 
      * @see PlayFieldEvent#TILES_CHANGED
      * @see PlayFieldEvent#TILES_ADDED
@@ -2155,7 +2157,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getPlayFieldListeners 
      * @see #getRenderer 
      * @see #setRenderer 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see PlayFieldEvent
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
@@ -2189,7 +2191,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRenderer 
      * @see #setRenderer 
      * @see #fireTilesChanged(int, int) 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_CHANGED
@@ -2217,7 +2219,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getRenderer 
      * @see #setRenderer 
      * @see #fireTilesChanged 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_CHANGED
@@ -2250,7 +2252,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getPlayFieldListeners 
      * @see #getRenderer 
      * @see #setRenderer 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_ADDED
@@ -2287,7 +2289,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getPlayFieldListeners 
      * @see #getRenderer 
      * @see #setRenderer 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
      * @see PlayFieldEvent#TILES_REMOVED
@@ -2318,10 +2320,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see #getPlayFieldListeners 
      * @see #getRenderer 
      * @see #setRenderer 
-     * @see #firePlayFieldChange(snake.event.PlayFieldEvent) 
+     * @see #firePlayFieldChange(PlayFieldEvent) 
      * @see #firePlayFieldChange(int, int, int, int, int) 
      * @see PlayFieldEvent
-     * @see PlayFieldEvent#PlayFieldEvent(java.lang.Object, boolean) 
+     * @see PlayFieldEvent#PlayFieldEvent(Object, boolean) 
      * @see #setTilesAreAdjusting 
      * @see #getTilesAreAdjusting 
      * @see #getModel 

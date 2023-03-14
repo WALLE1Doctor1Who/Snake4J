@@ -5,9 +5,7 @@
 package snake.event;
 
 import java.util.EventObject;
-import snake.Snake;
-import snake.SnakeConstants;
-import snake.SnakeUtilities;
+import snake.*;
 
 /**
  * This is an event that indicates that a {@link Snake snake} has performed an 
@@ -95,10 +93,10 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @param when The timestamp for when the event occurred. It's recommended 
      * that this should be a positive non-zero value.
      * @throws IllegalArgumentException If the source Snake is null.
-     * @see #getSnake() 
-     * @see #getID() 
-     * @see #getDirection() 
-     * @see #getWhen() 
+     * @see #getSnake 
+     * @see #getID 
+     * @see #getDirection 
+     * @see #getWhen 
      */
     public SnakeEvent(Snake source, int id, int direction, long when){
         super(source);
@@ -116,9 +114,9 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @param direction The direction flag(s) for the event. This should be a 
      * value between 0 and {@link #ALL_DIRECTIONS}.
      * @throws IllegalArgumentException If the source Snake is null.
-     * @see #getSnake() 
-     * @see #getDirection() 
-     * @see #getID() 
+     * @see #getSnake 
+     * @see #getDirection 
+     * @see #getID 
      */
     public SnakeEvent(Snake source, int id, int direction){
         this(source,id,direction,System.currentTimeMillis());
@@ -127,9 +125,9 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * This returns the snake that originated this event.
      * @return The snake that originated the event, or null if the object is 
      * not a snake.
-     * @see #getID() 
-     * @see #getDirection() 
-     * @see #getWhen() 
+     * @see #getID 
+     * @see #getDirection 
+     * @see #getWhen 
      */
     public Snake getSnake(){
             // If the source is a snake, return it. Otherwise, return null.
@@ -138,9 +136,9 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
     /**
      * This returns the direction provided when this event was created.
      * @return The direction flag(s) provided when this event was created.
-     * @see #getSnake() 
-     * @see #getID() 
-     * @see #getWhen() 
+     * @see #getSnake 
+     * @see #getID 
+     * @see #getWhen 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -162,9 +160,9 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #SNAKE_REVIVED
      * @see #SNAKE_INITIALIZED
      * @see #SNAKE_RESET
-     * @see #getSnake() 
-     * @see #getDirection() 
-     * @see #getWhen() 
+     * @see #getSnake 
+     * @see #getDirection 
+     * @see #getWhen 
      */
     public int getID(){
         return id;
@@ -172,50 +170,18 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
     /**
      * This returns the timestamp for when this event occurred.
      * @return The timestamp for this event.
-     * @see #getSnake() 
-     * @see #getDirection() 
-     * @see #getID() 
+     * @see #getSnake 
+     * @see #getDirection 
+     * @see #getID 
      */
     public long getWhen(){
         return when;
     }
-//    /**
-//     * This returns the Tile that the {@link #getSnake() Snake} attempted to 
-//     * move or add. If the Snake {@link #SNAKE_FAILURE failed}, then this 
-//     * attempts to return the Tile {@link Snake#getAdjacentToHead(int) adjacent 
-//     * to the head} in the given {@link #getDirection() direction} unless there 
-//     * is more than one direction flag set, in which case, this will return 
-//     * null. Otherwise, this will assume that the Snake was successful, and 
-//     * returns the Snake's {@link Snake#getHead() head} if the Snake is not 
-//     * null.
-//     * @return The Tile which the Snake attempted to use, or null if the Snake 
-//     * is null or there are multiple directions set.
-//     * @see #getSnake() 
-//     * @see #getDirection() 
-//     * @see #getID() 
-//     * @see #getWhen() 
-//     * @see Snake#getHead() 
-//     * @see Snake#getAdjacentToHead(int) 
-//     */
-//    public Tile getTargetTile(){
-//        if (getSnake() == null)             // If there is no snake
-//            return null;
-//        else if (getID() == SNAKE_FAILED){  // If the snake failed in its attempt
-//            try{
-//                return getSnake().getAdjacentToHead(getDirection());
-//            }
-//            catch(Exception ex){
-//                return null;
-//            }
-//        }
-//        else
-//            return getSnake().getHead();
-//    }
     /**
      * This returns the String that identifies the event type.
      * @return The String corresponding to the event type, or null if the event 
      * is of an unknown type.
-     * @see #paramString() 
+     * @see #paramString 
      */
     protected String eventString(){
         switch(getID()){
@@ -255,6 +221,10 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
         return str + ","+SnakeUtilities.getDirectionString(getDirection())+
                 ",when="+when;
     }
+    /**
+     * This returns a String representation of this SnakeEvent.
+     * @return A String representation of this SnakeEvent.
+     */
     @Override
     public String toString(){
         Snake snake = getSnake();       // Gets the source snake

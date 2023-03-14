@@ -7,10 +7,9 @@ package snake.playfield;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.Objects;
-import javax.swing.SwingUtilities;
-import snake.JPlayField;
-import snake.SnakeUtilities;
-import snake.event.PlayFieldEvent;
+import javax.swing.*;
+import snake.*;
+import snake.event.*;
 
 /**
  * This is the default implementation of PlayFieldRenderer. This will render a 
@@ -69,7 +68,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param c {@inheritDoc }
      * @return {@inheritDoc }
      * @see JPlayField#getMinimumSize 
-     * @see javax.swing.JComponent#getMinimumSize 
+     * @see JComponent#getMinimumSize 
      * @see JPlayField#getModel 
      * @see JPlayField#getColumnCount 
      * @see JPlayField#getRowCount 
@@ -87,7 +86,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param c {@inheritDoc }
      * @return {@inheritDoc }
      * @see JPlayField#getMaximumSize 
-     * @see javax.swing.JComponent#getMaximumSize 
+     * @see JComponent#getMaximumSize 
      */
     @Override
     public Dimension getMaximumSize(JPlayField c){
@@ -106,7 +105,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param c {@inheritDoc }
      * @return {@inheritDoc }
      * @see JPlayField#getPreferredSize 
-     * @see javax.swing.JComponent#getPreferredSize 
+     * @see JComponent#getPreferredSize 
      * @see JPlayField#getModel 
      * @see JPlayField#getColumnCount 
      * @see JPlayField#getRowCount 
@@ -131,7 +130,6 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * {@inheritDoc } 
-     * @param evt {@inheritDoc }
      */
     @Override
     public void tilesAdded(PlayFieldEvent evt) {
@@ -139,7 +137,6 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * {@inheritDoc } 
-     * @param evt {@inheritDoc }
      */
     @Override
     public void tilesRemoved(PlayFieldEvent evt) {
@@ -147,13 +144,13 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * {@inheritDoc } 
-     * @param evt {@inheritDoc } 
      */
     @Override
     public void tilesChanged(PlayFieldEvent evt) {
         // TODO: Remove the commented out code if it turns out there is no 
         // significant downside to repainting the entire play field when a tile 
-        // changes
+        // changes. However, if there is a downside, rework the commented out 
+        // code to work with the current system.
 //            // If the play field has changed completely
 //        if (evt.getFirstRow() < 0 || evt.getFirstColumn() < 0){
 //            repaintField(evt.getSource());
@@ -197,7 +194,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * This forwards the call to {@link 
      * SnakeUtilities#calculateTileSize SnakeUtilities.calculateTileSize} with 
      * the given JPlayField's {@link JPlayField#getModel() model} and the size 
-     * of the {@link #getPlayFieldBounds(snake.JPlayField) play field bounds}.
+     * of the {@link #getPlayFieldBounds(JPlayField) play field bounds}.
      * 
      * @param c {@inheritDoc }
      * @param dim {@inheritDoc }
@@ -205,11 +202,11 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @throws NullPointerException If either {@code c} or its model are null.
      * @see SnakeUtilities#calculateTileSize
      * @see JPlayField#getModel 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see JPlayField#getTileSize(java.awt.geom.Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see JPlayField#getTileSize(Dimension2D) 
      * @see JPlayField#getTileSize() 
      */
     @Override
@@ -224,27 +221,26 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * {@inheritDoc } <p>
      * 
      * This forwards the call to {@link 
-     * SnakeUtilities#calculatePlayFieldBounds(snake.playfield.PlayFieldModel, 
-     * java.awt.geom.Rectangle2D, java.awt.geom.Rectangle2D) 
-     * SnakeUtilities.calculatePlayFieldBounds} with the given JPlayField's 
-     * {@link JPlayField#getModel() model} and {@link 
+     * SnakeUtilities#calculatePlayFieldBounds(PlayFieldModel, Rectangle2D, 
+     * Rectangle2D) SnakeUtilities.calculatePlayFieldBounds} with the given 
+     * JPlayField's {@link JPlayField#getModel() model} and {@link 
      * SwingUtilities#calculateInnerArea inner area}. 
      * 
      * @param c {@inheritDoc }
      * @param rect {@inheritDoc }
      * @return {@inheritDoc } 
      * @throws NullPointerException If either {@code c} or its model are null.
-     * @see SnakeUtilities#calculatePlayFieldBounds(snake.playfield.PlayFieldModel, 
-     * double, double, double, double, java.awt.geom.Rectangle2D) 
-     * @see SnakeUtilities#calculatePlayFieldBounds(snake.playfield.PlayFieldModel, 
-     * java.awt.geom.Rectangle2D, java.awt.geom.Rectangle2D) 
+     * @see SnakeUtilities#calculatePlayFieldBounds(PlayFieldModel, double, 
+     * double, double, double, Rectangle2D) 
+     * @see SnakeUtilities#calculatePlayFieldBounds(PlayFieldModel, Rectangle2D, 
+     * Rectangle2D) 
      * @see JPlayField#getModel 
      * @see SwingUtilities#calculateInnerArea 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see JPlayField#getPlayFieldBounds(java.awt.geom.Rectangle2D) 
+     * @see JPlayField#getPlayFieldBounds(Rectangle2D) 
      * @see JPlayField#getPlayFieldBounds() 
      */
     @Override
@@ -257,22 +253,16 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
      * {@inheritDoc }
      * 
-     * @param c {@inheritDoc }
-     * @param row0 {@inheritDoc }
-     * @param row1 {@inheritDoc }
-     * @param column0 {@inheritDoc }
-     * @param column1 {@inheritDoc }
-     * @return {@inheritDoc }
      * @throws NullPointerException If either {@code c} or its model are null.
-     * @see #tileToLocation(snake.JPlayField, int, int) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #tileToLocation(JPlayField, int, int) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#containsTile 
      * @see JPlayField#getTileBounds(int, int, int, int) 
      * @see JPlayField#getTileBounds(int, int) 
-     * @see JPlayField#getTileBounds(snake.playfield.Tile) 
+     * @see JPlayField#getTileBounds(Tile) 
      * @see JPlayField#getModel 
      */
     @Override
@@ -306,12 +296,12 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * Point2D object will be returned. If the given row and/or column are 
      * invalid, then this returns null. <p>
      * 
-     * The {@link #tileToLocation(snake.JPlayField, int, int) tileToLocation} 
-     * method delegates the task of getting the tile's origin to this method. 
-     * This method is also used to get the tile's origin when the {@link 
-     * #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) tile size} and 
-     * {@link #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * play field bounds} are known. 
+     * The {@link #tileToLocation(JPlayField, int, int) tileToLocation} method 
+     * delegates the task of getting the tile's origin to this method. This 
+     * method is also used to get the tile's origin when the {@link 
+     * #getTileSize(JPlayField, Dimension2D) tile size} and {@link 
+     * #getPlayFieldBounds(JPlayField, Rectangle2D) play field bounds} are 
+     * known. 
      * 
      * @param c The JPlayField which is being queried. This cannot be null.
      * @param row The row of the tile to get the location of.
@@ -323,22 +313,20 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @return The origin of the tile, or null.
      * @throws NullPointerException If either {@code c}, its model, {@code 
      * tileS}, or {@code fieldR} are null.
-     * @see #tileToLocation(snake.JPlayField, int, int) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #tileToLocation(JPlayField, int, int) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #getTileBounds 
      * @see JPlayField#getModel
      * @see JPlayField#containsTile
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, int, int, int, int, java.awt.geom.Dimension2D, 
-     * java.awt.geom.Rectangle2D, double, double, double, double, 
-     * java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, int, int, 
+     * int, int, Dimension2D, Rectangle2D, double, double, double, double, 
+     * Point2D, Point2D) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, Tile, Tile, 
+     * Dimension2D, Rectangle2D, double, double, double, double, Point2D, 
+     * Point2D) 
      */
     protected Point2D tileToLocation(JPlayField c, int row, int column, 
             Dimension2D tileS, Rectangle2D fieldR, Point2D point){
@@ -422,17 +410,16 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * specified tiles, or null.
      * @throws NullPointerException If either {@code c}, its model, {@code 
      * tileS}, or {@code fieldR} are null.
-     * @see #tileToLocation(snake.JPlayField, int, int, java.awt.geom.Dimension2D,
-     * java.awt.geom.Rectangle2D, java.awt.geom.Point2D) 
-     * @see #tileToLocation(snake.JPlayField, int, int) 
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #tileToLocation(JPlayField, int, int, Dimension2D, Rectangle2D, 
+     * Point2D) 
+     * @see #tileToLocation(JPlayField, int, int) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, Tile, Tile, 
+     * Dimension2D, Rectangle2D, double, double, double, double, Point2D, 
+     * Point2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #getTileBounds 
      * @see #getTileContentsOffset
      * @see JPlayField#containsTile
@@ -532,17 +519,16 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * specified tiles, or null.
      * @throws NullPointerException If either {@code c}, its model, {@code 
      * tileS}, or {@code fieldR} are null.
-     * @see #tileToLocation(snake.JPlayField, int, int, java.awt.geom.Dimension2D, 
-     * java.awt.geom.Rectangle2D, java.awt.geom.Point2D) 
-     * @see #tileToLocation(snake.JPlayField, int, int) 
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, int, int, int, int, java.awt.geom.Dimension2D, 
-     * java.awt.geom.Rectangle2D, double, double, double, double, 
-     * java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #tileToLocation(JPlayField, int, int, Dimension2D, Rectangle2D, 
+     * Point2D) 
+     * @see #tileToLocation(JPlayField, int, int) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, int, int, 
+     * int, int, Dimension2D, Rectangle2D, double, double, double, double, 
+     * Point2D, Point2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #getTileContentsOffset 
      * @see JPlayField#containsTile 
      * @see JPlayField#getTile 
@@ -573,13 +559,13 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see #getTileBounds 
      * @see #locationToTile 
      * @see #locationToTile2D 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#containsTile 
      * @see JPlayField#tileToLocation(int, int) 
-     * @see JPlayField#tileToLocation(snake.playfield.Tile) 
+     * @see JPlayField#tileToLocation(playfield.Tile) 
      * @see JPlayField#getModel 
      */
     @Override
@@ -591,10 +577,9 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * This returns the tile in the given JPlayField that is closest to the 
      * given location in the JPlayField's coordinate system. <p>
      * 
-     * The {@link #locationToTile(snake.JPlayField, int, int) locationToTile} 
-     * and {@link #locationToTile2D(snake.JPlayField, double, double) 
-     * locationToTile2D} methods delegate to this method to get the tile at a 
-     * given location.
+     * The {@link #locationToTile(JPlayField, int, int) locationToTile} and 
+     * {@link #locationToTile2D(JPlayField, double, double) locationToTile2D} 
+     * methods delegate to this method to get the tile at a given location.
      * 
      * @param c The JPlayField which is being queried. This cannot be null.
      * @param x The x-coordinate of the point to get the tile at.
@@ -607,10 +592,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see #locationToTile 
      * @see #locationToTile2D 
      * @see #getTileBounds 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      */
     private Tile locationToTile(JPlayField c,double x,double y,Rectangle2D fieldR){
             // Check if the component or its model are null
@@ -629,23 +614,19 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * {@inheritDoc }
-     * @param c {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
-     * @return {@inheritDoc }
      * @throws NullPointerException If either {@code c} or its model are null.
      * @see #locationToTile 
      * @see #tileToLocation 
      * @see #getTileBounds 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#getTile 
      * @see JPlayField#locationToTile(int, int) 
-     * @see JPlayField#locationToTile(java.awt.Point) 
+     * @see JPlayField#locationToTile(Point) 
      * @see JPlayField#locationToTile2D(double, double) 
-     * @see JPlayField#locationToTile2D(java.awt.geom.Point2D) 
+     * @see JPlayField#locationToTile2D(Point2D) 
      * @see JPlayField#getModel 
      * @see JPlayField#getRowCount 
      * @see JPlayField#getColumnCount 
@@ -656,23 +637,19 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * {@inheritDoc }
-     * @param c {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
-     * @return {@inheritDoc }
      * @throws NullPointerException If either {@code c} or its model are null.
      * @see #locationToTile2D 
      * @see #tileToLocation 
      * @see #getTileBounds 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see JPlayField#getTile 
      * @see JPlayField#locationToTile(int, int) 
-     * @see JPlayField#locationToTile(java.awt.Point) 
+     * @see JPlayField#locationToTile(Point) 
      * @see JPlayField#locationToTile2D(double, double) 
-     * @see JPlayField#locationToTile2D(java.awt.geom.Point2D) 
+     * @see JPlayField#locationToTile2D(Point2D) 
      * @see JPlayField#getModel 
      * @see JPlayField#getRowCount 
      * @see JPlayField#getColumnCount 
@@ -700,8 +677,8 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @return The offset for the contents of the tile.
      * @see SnakeUtilities#computeTileContentsOffset 
      * @see SnakeUtilities#computeTileContentsSize 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
      * @see Tile#isEmpty 
      * @see Tile#isApple 
      * @see Tile#isSnake 
@@ -774,10 +751,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @return The stroke to use to render the border, or null to use the 
      * default stroke.
      * @see SnakeUtilities#computeTileBorderThickness 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #paintTileBorder
      */
     protected Stroke getBorderStroke(JPlayField c, Dimension2D tileS, Rectangle2D fieldR){
@@ -803,10 +780,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param fieldR The bounds of the play field.
      * @return Whether this should render the tile border.
      * @see JPlayField#isTileBorderPainted 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #paintTileBorder
      */
     protected boolean getTileBorderShouldBePainted(JPlayField c, 
@@ -919,10 +896,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see JPlayField#isTileBackgroundPainted 
      * @see JPlayField#getTileBackground 
      * @see TILE_BACKGROUND_COLOR
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      */
     protected void paintTileBackground(Graphics2D g, JPlayField c, 
             Dimension2D tileS, Rectangle2D fieldR){
@@ -959,10 +936,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see #paint
      * @see #paintTile
      * @see #paintTileBorder
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      * @see #getTileBounds 
      * @see #tileToLocation
      * @see JPlayField#getRowCount 
@@ -1100,10 +1077,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see Tile#isFacingRight
      * @see Tile#getType 
      * @see JPlayField#getTile 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see #getTileBounds 
      */
     protected void paintTile(Graphics2D g, JPlayField c, Tile tile, 
@@ -1144,16 +1121,14 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * tile contents}. <p>
      * 
      * The {@code point1} and {@code point2} objects are scratch Point2D objects 
-     * to be used by {@link 
-     * #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * setFrameFromTileDiagonal} to calculate the diagonal to use to set the 
-     * ellipse's frame. These are provided to allow the reuse of Point2D objects 
-     * as opposed to creating new ones. However, {@code point1} and {@code 
-     * point2} must be two separate instances of Point2D. If either of the two 
-     * point objects are null, then new Point2D objects will be used instead. 
+     * to be used by {@link #setFrameFromTileDiagonal(RectangularShape, 
+     * JPlayField, Tile, Tile, Dimension2D, Rectangle2D, double, double, double, 
+     * double, Point2D, Point2D) setFrameFromTileDiagonal} to calculate the 
+     * diagonal to use to set the ellipse's frame. These are provided to allow 
+     * the reuse of Point2D objects as opposed to creating new ones. However, 
+     * {@code point1} and {@code point2} must be two separate instances of 
+     * Point2D. If either of the two point objects are null, then new Point2D 
+     * objects will be used instead. 
      * 
      * @param c The JPlayField being rendered.
      * @param tile The tile currently being rendered.
@@ -1169,15 +1144,14 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @return The ellipse to use to render the tile's center circle.
      * @see #paintTile
      * @see #getTileContentsOffset
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, Tile, Tile, 
+     * Dimension2D, Rectangle2D, double, double, double, double, Point2D, 
+     * Point2D) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      * @see #getSnakeSegment
      * @see #getSnakeSegmentRectangle
      */
@@ -1203,28 +1177,25 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * snake segment will start at either the top or middle of the first tile, 
      * depending on whether the first tile is facing {@link Tile#isFacingDown() 
      * down} or not, and will end at either the bottom or middle of the last 
-     * tile, depending on whether the last tile is facing {@link 
-     * Tile#isFacingUp() up} or not. When getting a horizontal snake segment, 
-     * the snake segment will start at either the left side or middle of the 
-     * first tile, depending on whether the first tile is facing to the {@link 
-     * Tile#isFacingRight() right} or not, and will end at either the right side 
-     * or middle of the last tile, depending on whether the last tile is facing 
-     * to the {@link Tile#isFacingLeft() left} or not. The given x offset is 
-     * only applied when getting a vertical snake segment, and the given y 
-     * offset is only applied when getting a horizontal snake segment. <p>
+     * tile, depending on whether the last tile is facing {@link Tile#isFacingUp 
+     * up} or not. When getting a horizontal snake segment, the snake segment 
+     * will start at either the left side or middle of the first tile, depending 
+     * on whether the first tile is facing to the {@link Tile#isFacingRight() 
+     * right} or not, and will end at either the right side or middle of the 
+     * last tile, depending on whether the last tile is facing to the {@link 
+     * Tile#isFacingLeft() left} or not. The given x offset is only applied when 
+     * getting a vertical snake segment, and the given y offset is only applied 
+     * when getting a horizontal snake segment. <p>
      * 
      * The {@code point1} and {@code point2} objects are scratch Point2D objects 
-     * to be used by {@link 
-     * #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
-     * setFrameFromTileDiagonal} to calculate the diagonal to use to set the 
-     * rectangle's frame. These are provided to allow the reuse of Point2D 
-     * objects as opposed to creating new ones. However, {@code point1} and 
-     * {@code point2} must be two separate instances of Point2D. If either of 
-     * the two point objects are null, then new Point2D objects will be used 
-     * instead. 
+     * to be used by {@link #setFrameFromTileDiagonal(RectangularShape, 
+     * JPlayField, Tile, Tile, Dimension2D, Rectangle2D, double, double, double, 
+     * double, Point2D, Point2D) setFrameFromTileDiagonal} to calculate the 
+     * diagonal to use to set the rectangle's frame. These are provided to allow 
+     * the reuse of Point2D objects as opposed to creating new ones. However, 
+     * {@code point1} and {@code point2} must be two separate instances of 
+     * Point2D. If either of the two point objects are null, then new Point2D 
+     * objects will be used instead. 
      * 
      * @param c The JPlayField being rendered.
      * @param tile0 The first tile in the range of tiles that the snake segment 
@@ -1248,19 +1219,18 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see #paintTile 
      * @see #getSnakeSegment 
      * @see #getTileContentsOffset 
-     * @see #setFrameFromTileDiagonal(java.awt.geom.RectangularShape, 
-     * snake.JPlayField, snake.playfield.Tile, snake.playfield.Tile, 
-     * java.awt.geom.Dimension2D, java.awt.geom.Rectangle2D, double, double, 
-     * double, double, java.awt.geom.Point2D, java.awt.geom.Point2D) 
+     * @see #setFrameFromTileDiagonal(RectangularShape, JPlayField, Tile, Tile, 
+     * Dimension2D, Rectangle2D, double, double, double, double, Point2D, 
+     * Point2D) 
      * @see Tile#isFacingUp 
      * @see Tile#isFacingDown 
      * @see Tile#isFacingLeft 
      * @see Tile#isFacingRight 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getTileSize(snake.JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getTileSize(JPlayField) 
      * @see #getTileBounds 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
      */
     protected Rectangle2D getSnakeSegmentRectangle(JPlayField c, Tile tile0, 
             Tile tile1, Dimension2D tileS, Rectangle2D fieldR, double xOff, 
@@ -1333,38 +1303,37 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * horizontal snake segment. Vertical snake segments depend on whether tiles 
      * are facing {@link Tile#isFacingUp() up} and/or {@link Tile#isFacingDown() 
      * down}, whereas horizontal snake segments depend on whether tiles are 
-     * facing {@link Tile#isFacingLeft() left} and/or {@link 
-     * Tile#isFacingRight() right}. If a tile is not facing at least one of the 
-     * directions listed for the snake segment that is being retrieved, then 
-     * this returns null since the tile does not contain a snake segment of the 
-     * requested orientation. Otherwise, this will get the tile in the {@code 
-     * startTiles} array at the index corresponding to the snake segment to 
-     * return. If this is getting a vertical snake segment, then the starting 
-     * tile for the segment will be at the index equal to the given tile's 
-     * {@link Tile#getColumn() column}. If this is getting a horizontal snake 
-     * segment, then the starting tile for the segment will be at the index 
-     * equal to the {@link JPlayField#getColumnCount() number of columns} in the 
-     * play field (i.e. the index will be {@code c.getColumnCount()}). If the 
-     * starting tile is null, then the given tile is the start of the current 
-     * snake segment. This will then get the tile {@link 
-     * JPlayField#getAdjacentTile adjacent} to the given tile that might be the 
-     * next tile in the snake segment. That is to say, this will get the tile 
-     * {@link #DOWN_DIRECTION under} the given tile if this is getting a 
-     * vertical snake segment, and the tile to the {@link #LEFT_DIRECTION left} 
-     * of the given tile if this getting a horizontal snake segment. If the 
-     * given tile is facing up (vertical) or to the left (horizontal) and the 
-     * next tile is a non-null snake tile that is facing down (vertical) or to 
-     * the right (horizontal) and that is the same {@link Tile#getType type} of 
-     * tile as the given tile, then the given tile is deemed to not be the end 
-     * of the current snake segment and if it's the start of the segment, then 
-     * it is placed into {@code startTiles} at the index corresponding to the 
-     * snake segment. If the tile is not the end of the current snake segment, 
-     * then this will return null. Otherwise, this will call {@link 
-     * #getSnakeSegmentRectangle getSnakeSegmentRectangle} with the starting 
-     * tile and the given tile to get the rectangle for the snake segment and 
-     * returns it. If the end of the snake segment has been reached, then the 
-     * tile at the index of the starting tile in the {@code startTiles} array 
-     * will be set to null. <p>
+     * facing {@link Tile#isFacingLeft() left} and/or {@link Tile#isFacingRight 
+     * right}. If a tile is not facing at least one of the directions listed for 
+     * the snake segment that is being retrieved, then this returns null since 
+     * the tile does not contain a snake segment of the requested orientation. 
+     * Otherwise, this will get the tile in the {@code startTiles} array at the 
+     * index corresponding to the snake segment to return. If this is getting a 
+     * vertical snake segment, then the starting tile for the segment will be at 
+     * the index equal to the given tile's {@link Tile#getColumn() column}. If 
+     * this is getting a horizontal snake segment, then the starting tile for 
+     * the segment will be at the index equal to the {@link 
+     * JPlayField#getColumnCount() number of columns} in the play field (i.e. 
+     * the index will be {@code c.getColumnCount()}). If the starting tile is 
+     * null, then the given tile is the start of the current snake segment. This 
+     * will then get the tile {@link JPlayField#getAdjacentTile adjacent} to the 
+     * given tile that might be the next tile in the snake segment. That is to 
+     * say, this will get the tile {@link #DOWN_DIRECTION under} the given tile 
+     * if this is getting a vertical snake segment, and the tile to the {@link 
+     * #LEFT_DIRECTION left} of the given tile if this getting a horizontal 
+     * snake segment. If the given tile is facing up (vertical) or to the left 
+     * (horizontal) and the next tile is a non-null snake tile that is facing 
+     * down (vertical) or to the right (horizontal) and that is the same {@link 
+     * Tile#getType type} of tile as the given tile, then the given tile is 
+     * deemed to not be the end of the current snake segment and if it's the 
+     * start of the segment, then it is placed into {@code startTiles} at the 
+     * index corresponding to the snake segment. If the tile is not the end of 
+     * the current snake segment, then this will return null. Otherwise, this 
+     * will call {@link #getSnakeSegmentRectangle getSnakeSegmentRectangle} with 
+     * the starting tile and the given tile to get the rectangle for the snake 
+     * segment and returns it. If the end of the snake segment has been reached, 
+     * then the tile at the index of the starting tile in the {@code startTiles} 
+     * array will be set to null. <p>
      * 
      * The {@code point1} and {@code point2} objects are scratch Point2D objects 
      * to be used by {@link #getSnakeSegmentRectangle getSnakeSegmentRectangle} 
@@ -1494,10 +1463,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see JPlayField#getTileBorder 
      * @see TILE_BORDER_COLOR
      * @see #getBorderStroke 
-     * @see #getTileSize(snake.JPlayField) 
-     * @see #getTileSize(snake.JPlayField, java.awt.geom.Dimension2D) 
-     * @see #getPlayFieldBounds(snake.JPlayField) 
-     * @see #getPlayFieldBounds(snake.JPlayField, java.awt.geom.Rectangle2D) 
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
      */
     protected void paintTileBorder(Graphics2D g,JPlayField c,Dimension2D tileS, 
             Rectangle2D fieldR, Path2D borderP){
