@@ -1384,9 +1384,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This returns the tile in this model that is adjacent to the given tile in 
      * the given direction. This version uses whether the {@link 
      * #ALTERNATE_TYPE_FLAG} flag is set on the {@code direction} to determine 
-     * whether this should wrap around when getting an adjacent tile that is out 
-     * of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating that this 
-     * should not wrap around. This delegates to the {@link 
+     * whether this should wrap around when getting an adjacent tile that would 
+     * be out of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating 
+     * that this should not wrap around. This delegates to the {@link 
      * PlayFieldModel#getAdjacentTile(Tile, int) getAdjacentTile} method of the 
      * currently set {@link #getModel() model}.
      * @param tile The tile to get the adjacent tile of (cannot be null).

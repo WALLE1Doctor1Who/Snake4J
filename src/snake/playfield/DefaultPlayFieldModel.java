@@ -31,7 +31,7 @@ import snake.*;
  * Tile} objects that this model creates. <p>
  * 
  * The iterators returned by this class's {@code iterator} method are fail-fast,
- * i.e. if this PlayFieldModel is structurally modified in any way at any time 
+ * i.e. if the PlayFieldModel is structurally modified in any way at any time 
  * after the iterator is created, such as changing the number of rows and/or 
  * columns, the iterator will throw a {@link ConcurrentModificationException 
  * ConcurrentModificationException}. This way, when faced with concurrent 

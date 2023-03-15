@@ -194,15 +194,16 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
      * #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. The {@code 
      * wrapAround} value will determine how the tiles at the edges of the play 
-     * field are treated. If {@code wrapAround} is true and the adjacent tile is 
-     * beyond the bounds of the model, then this will wrap around and get a tile 
-     * from the other side of the model. Otherwise, this will return null. For 
-     * example, when given a tile at {@link Tile#getRow() row 2}, {@link 
-     * Tile#getColumn() column 0}, attempting to get the tile above will return 
-     * the tile at row 1, column 0. If this is given the same tile as before but 
-     * this is attempting to get the tile to the left, then this would return 
-     * the tile at row 2, column {@code (}{@link #getColumnCount() }{@code -1)} 
-     * if {@code wrapAround} is true and null if {@code wrapAround} is false.
+     * field are treated. If {@code wrapAround} is {@code true} and the adjacent 
+     * tile  would be beyond the bounds of the model, then this will wrap around 
+     * and get a tile from the other side of the model. Otherwise, this will 
+     * return null. For example, when given a tile at {@link Tile#getRow() row 
+     * 2}, {@link Tile#getColumn() column 0}, attempting to get the tile above 
+     * will return the tile at row 1, column 0. If this is given the same tile 
+     * as before but this is attempting to get the tile to the left, then this 
+     * would return the tile at row 2, column {@code (}{@link #getColumnCount() 
+     * }{@code -1)} if {@code wrapAround} is {@code true} and null if {@code 
+     * wrapAround} is {@code false}.
      * 
      * @param tile The tile to get the adjacent tile of (cannot be null).
      * @param direction The direction indicating which adjacent tile to return. 
@@ -239,9 +240,9 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * This returns the tile in this model that is adjacent to the given tile in 
      * the given direction. This version uses whether the {@link 
      * #ALTERNATE_TYPE_FLAG} flag is set on the {@code direction} to determine 
-     * whether this should wrap around when getting an adjacent tile that is out 
-     * of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating that this 
-     * should not wrap around. This is equivalent to calling {@link 
+     * whether this should wrap around when getting an adjacent tile that would 
+     * be out of bounds, with the {@code ALTERNATE_MODE_FLAG} flag indicating 
+     * that this should not wrap around. This is equivalent to calling {@link 
      * #getAdjacentTile(Tile, int, boolean) getAdjacentTile}{@code (tile, 
      * direction&~ALTERNATE_MODE_FLAG, !}{@link SnakeUtilities#getFlag 
      * SnakeUtilities.getFlag}{@code (direction, ALTERNATE_MODE_FLAG))}. As 

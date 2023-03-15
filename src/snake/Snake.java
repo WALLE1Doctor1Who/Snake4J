@@ -14,9 +14,188 @@ import snake.event.*;
 import snake.playfield.*;
 
 /**
- * This is a collection of {@link Tile tiles} used to represent a snake in the 
- * game Snake. A snake is displayed on and moves around on a play field 
- * represented by a {@link PlayFieldModel PlayFieldModel}. 
+ * This is a group of {@link Tile tiles} used to represent a snake in the game 
+ * Snake. A snake is displayed on and moves around on a play field represented 
+ * by a {@link PlayFieldModel PlayFieldModel}. When a snake is first constructed 
+ * or when the {@code PlayFieldModel} for a snake changes, then the snake will 
+ * need to be {@link #initialize(Tile) initialized} with a tile from the {@code 
+ * PlayFieldModel} before it can be used. When a snake is initialized, the tile 
+ * provided to it will be used as the snake's {@link #getHead head}. Once a 
+ * snake has been initialized, it will be in a {@link #isValid() valid} state. 
+ * For a snake to be in a valid state, the snake must not be {@link #isEmpty() 
+ * empty}, its head must be a non-null tile {@link PlayFieldModel#contains(Tile) 
+ * contained} within its {@code PlayFieldModel}, and the snake must be facing a 
+ * single direction. A snake must be in a valid state for most of the snake's 
+ * methods to work. If a method requires the snake to be in a valid state, then 
+ * the method will typically throw an {@link IllegalStateException 
+ * IllegalStateException} when the calling snake is not in a valid state. <p>
+ * 
+ * Snakes are treated as and are internally represented by a queue of tiles, 
+ * with the {@link #getHead() head} and the {@link #getTail() tail} of the snake 
+ * corresponding to either end of the queue. Technically speaking, the head of 
+ * the snake is treated as the tail of the queue and the tail of the snake is 
+ * treated as the head of the queue. When a tile is added to the snake, it 
+ * becomes the new head of the snake, and when a tile is removed from the snake, 
+ * the tile removed will be the snake's tail. If a snake is less than two tiles 
+ * long, then the snake will not have a tail. In other words, the snake's {@link 
+ * #getTail() getTail} method will return null. When this is the case, no tiles 
+ * can be removed from the snake. When a snake is {@link #flip() flipped}, the 
+ * order of the tiles in the snake will be reversed. This will result in the 
+ * snake's head becoming the snake's tail and vice versa. <p>
+ * 
+ * Some of the operations provided by snakes are direction based. These methods 
+ * are primarily involved with adding tiles to and moving a snake. Each of these 
+ * methods comes in two forms: one that takes in an integer representing a 
+ * direction, and the other uses the direction the snake is {@link 
+ * #getDirectionFaced() facing}. The former form will typically require the 
+ * value for the direction to be either zero or one of the four direction flags: 
+ * {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and 
+ * {@link #RIGHT_DIRECTION}. These methods will typically interpret a direction 
+ * of zero as the direction that the snake is facing. In other words, these 
+ * methods will substitute a direction of zero with the direction returned by 
+ * the {@link #getDirectionFaced() getDirectionFaced} method. The latter form of 
+ * these methods will typically invoke their respective former form with the 
+ * direction the snake is facing. In other words, the latter form of the methods 
+ * are equivalent to calling their respective former form with the direction 
+ * returned by the {@code getDirectionFaced} method. A summary of the direction 
+ * based methods can be found in the table below:
+ * 
+ * <table class="striped">
+ * <caption>Summary of direction based Snake methods</caption>
+ * <thead>
+ *  <tr>
+ *      <td></td>
+ *          <th scope="col" style="font-weight:normal; font-style:italic">
+ *              Uses given direction</th>
+ *          <th scope="col" style="font-weight:normal; font-style:italic">
+ *              Uses {@link #getDirectionFaced() direction faced}</th>
+ *  </tr>
+ *  </thead>
+ *  <tbody>
+ *      <tr>
+ *          <th scope="row">Get adjacent tile</th>
+ *          <td>{@link #getAdjacentToHead(int) getAdjacentToHead(int)}</td>
+ *          <td>{@link #getTileBeingFaced() getTileBeingFaced()}</td>
+ *      </tr>
+ *      <tr>
+ *          <th scope="row">Can move/add tile</th>
+ *          <td>{@link #canMoveInDirection(int) canMoveInDirection(int)}</td>
+ *          <td>{@link #canMoveForward() canMoveForward()}</td>
+ *      </tr>
+ *      <tr>
+ *          <th scope="row">Add tile</th>
+ *          <td>{@link #add(int) add(int)}</td>
+ *          <td>{@link #add() add()}</td>
+ *      </tr>
+ *      <tr>
+ *          <th scope="row">Move snake</th>
+ *          <td>{@link #move(int) move(int)}</td>
+ *          <td>{@link #move() move()}</td>
+ *      </tr>
+ *  </tbody>
+ * </table>
+ * <p>
+ * 
+ * The {@link #add(int) add(int)} and {@link #add() add()} methods are used to 
+ * add tiles that are adjacent to a snake's head, and will return whether the 
+ * tile was successfully added to the snake. The {@link #move(int) move(int)} 
+ * and {@link #move() move()} methods are used to move a snake, and will return 
+ * whether the snake was successfully moved. The main difference between adding 
+ * tiles to a snake and moving a snake is that when a snake moves, its current 
+ * tail is removed so as to maintain the snake's length after adding a tile to 
+ * the snake. <p>
+ * 
+ * The {@link #getAdjacentToHead getAdjacentToHead} and {@link 
+ * #getTileBeingFaced getTileBeingFaced} methods are used to provide the tile to 
+ * be added to the snake from the {@code PlayFieldModel} by using the model's 
+ * {@link PlayFieldModel#getAdjacentTile getAdjacentTile} method to get a tile 
+ * adjacent to the snake's head. A snake that is configured to {@link 
+ * #isWrapAroundEnabled() wrap around} will be able to get tiles from the other 
+ * side of the play field when the adjacent tile would otherwise be out of 
+ * bounds. If the snake is not configured to wrap around, then attempting to get 
+ * an out of bounds adjacent tile would return null. As such, when a snake 
+ * attempts to add or move to a tile that would be out of bounds, it will either 
+ * wrap around and use a tile from the other side of the play field or the snake 
+ * will fail to add or move to a tile, depending on whether the snake is 
+ * configured to wrap around. <p>
+ * 
+ * Snakes can only add or move to a tile if it is a non-null tile that is either 
+ * {@link Tile#isEmpty() empty} or an {@link Tile#isApple() apple tile}. Snakes 
+ * are only able to add or move to apple tiles if they can {@link 
+ * #isAppleConsumptionEnabled eat apples}. If a snake cannot eat apples, then 
+ * the snake will only be able to add or move to empty tiles. When a snake adds 
+ * or moves to an apple tile, the snake will fire a {@code SnakeEvent} 
+ * indicating that the {@link SnakeEvent#SNAKE_CONSUMED_APPLE snake ate an 
+ * apple} and the snake's {@link #hasConsumedApple hasConsumedApple} method will 
+ * return {@code true}. The {@link #canMoveInDirection canMoveInDirection} and 
+ * {@link #canMoveForward canMoveForward} methods can be used to check to see if 
+ * a snake can add or move in a given direction based off the tile the snake 
+ * would be attempting to add or move to. Additionally, a snake can only add or 
+ * move to tiles if it has not {@link #isCrashed() crashed}. A snake will crash 
+ * if it has {@link #getFailCount() repeatedly failed} to add or move to a tile 
+ * more times than it is {@link #getAllowedFails() allowed to}. This does not 
+ * include any attempt to add or move a snake backwards when it has a tail (i.e. 
+ * when the snake is at least two tiles long, or when {@code getTail} returns a 
+ * non-null tile). When the allowed number of failures is set to a negative 
+ * number, then the snake cannot crash. A crashed snake cannot be moved or added 
+ * to until it has been {@link #revive() revived}. <p>
+ * 
+ * The {@link #removeTail() removeTail} method will remove and return the 
+ * snake's tail. If the snake does not have a tail, then the {@code removeTail} 
+ * method will do nothing and return null.<p>
+ * 
+ * A snake's {@link #getPlayerType() player type} indicates what {@link 
+ * Tile#getType() type} of {@link Tile#isSnake() snake tiles} a snake will be 
+ * comprised of and whether a snake represents player one (i.e. a primary snake) 
+ * or player two (i.e. a secondary snake). A snake does not necessarily need to 
+ * represent an actual player, and multiple snakes may use the same player type. 
+ * When a tile is added to a snake, the tile will have its type flag set to the 
+ * snake's player type. <p>
+ * 
+ * Snakes have an {@link #getActionQueue() action queue} that can be used to 
+ * store {@code Consumer}s to be performed later. The {@link 
+ * #offerAction(Consumer) offerAction(Consumer)} method is used to add {@code 
+ * Consumer}s to the action queue, and any non-null {@code Consumer} can be 
+ * added as long as it accepts {@code Snake}s as an argument. Additionally, 
+ * {@link SnakeCommand SnakeCommands} can also be added to the action queue 
+ * using the {@link #offerAction(SnakeCommand) offerAction(SnakeCommand)} 
+ * method, which will add a {@link SnakeActionCommand SnakeActionCommand} to the 
+ * action queue which will cause the snake to perform the action associated with 
+ * the command. When a snake's {@link #doNextAction doNextAction} method is 
+ * invoked, it will first check to see if the snake has any {@code Consumer}s in 
+ * its action queue. If there are any, then the {@code doNextAction} method will 
+ * check to see whether the action should be performed or skipped (i.e. 
+ * discarded). Refer to the documentation for the {@link #doNextAction 
+ * doNextAction} method for information on how it decides which actions to 
+ * perform and which actions to skip. If either the action queue is {@link 
+ * #isActionQueueEmpty() empty} or all the actions in the action queue have been 
+ * skipped, then the {@code doNextAction} will perform the snake's default 
+ * action. <p>
+ * 
+ * A snake's {@link #getDefaultAction() default action} is a {@code Consumer} 
+ * that the snake can invoke to perform some action. When the default action is 
+ * set to a non-null value and is {@link #isDefaultActionEnabled() enabled}, the 
+ * {@link #doDefaultAction doDefaultAction} method can be used to have the snake 
+ * perform it's default action. If the default action is either null or 
+ * disabled, then {@code doDefaultAction} will do nothing. The default action 
+ * can be set either with a {@code Consumer} or with a {@code SnakeCommand}, 
+ * the latter of which will result in the default action being set to a {@code 
+ * SnakeActionCommand} that will perform the command. The {@code doNextAction} 
+ * method will invoke the {@code doDefaultAction} method when it has run out of 
+ * actions from the action queue to perform. <p>
+ * 
+ * The iterators returned by this class's {@code iterator} method are fail-fast,
+ * i.e. if the snake is structurally modified in any way at any time after the 
+ * iterator is created, such as adding or removing tiles from the snake or 
+ * flipping the snake, the iterator will throw a {@link 
+ * ConcurrentModificationException ConcurrentModificationException}. This way, 
+ * when faced with concurrent modification, the iterator will fail quickly and 
+ * cleanly instead of risking arbitrary, non-deterministic behavior. However, 
+ * the fail-fast behavior of the iterator cannot be guaranteed, especially when 
+ * dealing with unsynchronized concurrent modifications. The fail-fast iterators 
+ * throw {@code ConcurrentModificationExceptions} on a best-effort basis. As 
+ * such the fail-fast behavior should not be depended on for its correctness and 
+ * should only be used to detect bugs.
  * 
  * @author Milo Steier
  * @see Tile
@@ -48,7 +227,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * snake will fail to add or move when reaching the edge of the play field 
      * instead of wrapping around to the other side.
      */
-    protected static final int WRAP_AROUND_FLAG = 0x008;
+    protected static final int WRAP_AROUND_ENABLED_FLAG = 0x008;
     /**
      * This is the flag used to set which player a snake represents. This does 
      * not necessarily have to be an actual player, since it could be used for 
@@ -59,7 +238,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see Tile#isSnake()
      * @see Tile#getType()
      */
-    protected static final int PLAYER_FLAG = SnakeConstants.ALTERNATE_TYPE_FLAG;
+    protected static final int PLAYER_TYPE_FLAG = SnakeConstants.ALTERNATE_TYPE_FLAG;
     /**
      * This is the flag used to indicate whether a snake is flipped around.
      */
@@ -83,14 +262,15 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     /**
      * This stores the flags that are set initially when a snake is constructed.
      */
-    private static final int DEFAULT_FLAG_SETTINGS = APPLE_CONSUMPTION_ENABLED_FLAG | 
-            APPLE_GROWTH_ENABLED_FLAG | WRAP_AROUND_FLAG | DEFAULT_ACTION_ENABLED_FLAG | 
+    private static final int DEFAULT_FLAG_SETTINGS = 
+            APPLE_CONSUMPTION_ENABLED_FLAG | APPLE_GROWTH_ENABLED_FLAG | 
+            WRAP_AROUND_ENABLED_FLAG | DEFAULT_ACTION_ENABLED_FLAG | 
             SKIPS_REPEATED_ACTIONS_FLAG;
     /**
      * This stores the flags that are cleared when a snake is reset.
      */
     private static final int RESET_AFFECTED_FLAGS = APPLE_CONSUMED_FLAG | 
-            FLIPPED_FLAG | CRASHED_FLAG;// | RECENTLY_FAILED_FLAG;
+            FLIPPED_FLAG | CRASHED_FLAG;
     /**
      * This identifies the play field model for a snake has changed.
      */
@@ -305,8 +485,8 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #APPLE_CONSUMED_FLAG
      * @see #APPLE_CONSUMPTION_ENABLED_FLAG
      * @see #APPLE_GROWTH_ENABLED_FLAG
-     * @see #WRAP_AROUND_FLAG
-     * @see #PLAYER_FLAG
+     * @see #WRAP_AROUND_ENABLED_FLAG
+     * @see #PLAYER_TYPE_FLAG
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
@@ -325,8 +505,8 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #APPLE_CONSUMED_FLAG
      * @see #APPLE_CONSUMPTION_ENABLED_FLAG
      * @see #APPLE_GROWTH_ENABLED_FLAG
-     * @see #WRAP_AROUND_FLAG
-     * @see #PLAYER_FLAG
+     * @see #WRAP_AROUND_ENABLED_FLAG
+     * @see #PLAYER_TYPE_FLAG
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
@@ -348,8 +528,8 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #APPLE_CONSUMED_FLAG
      * @see #APPLE_CONSUMPTION_ENABLED_FLAG
      * @see #APPLE_GROWTH_ENABLED_FLAG
-     * @see #WRAP_AROUND_FLAG
-     * @see #PLAYER_FLAG
+     * @see #WRAP_AROUND_ENABLED_FLAG
+     * @see #PLAYER_TYPE_FLAG
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
@@ -372,8 +552,8 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #APPLE_CONSUMED_FLAG
      * @see #APPLE_CONSUMPTION_ENABLED_FLAG
      * @see #APPLE_GROWTH_ENABLED_FLAG
-     * @see #WRAP_AROUND_FLAG
-     * @see #PLAYER_FLAG
+     * @see #WRAP_AROUND_ENABLED_FLAG
+     * @see #PLAYER_TYPE_FLAG
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
@@ -1085,7 +1265,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * be out of bounds. If the snake can wrap around, then this will wrap 
      * around and get a tile from the other side of the model when the adjacent 
      * tile would be out of bounds. Otherwise, this will return null when the 
-     * adjacent tile is out of bounds. <p>
+     * adjacent tile would be out of bounds. <p>
      * 
      * This calls the {@link PlayFieldModel#getAdjacentTile getAdjacentTile} 
      * method of the {@link #getModel() model}, providing it with the {@link 
@@ -1135,14 +1315,12 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     /**
      * This returns the tile {@link #getDirectionFaced() in front} of the {@link 
      * #getHead() head} of this snake. This is equivalent to calling {@link 
-     * #getAdjacentToHead(int) getAdjacentToHead}{@code (0)}, which is 
-     * equivalent to calling {@link #getAdjacentToHead(int) 
-     * getAdjacentToHead}{@code (}{@link #getDirectionFaced() 
+     * #getAdjacentToHead getAdjacentToHead}{@code (}{@link #getDirectionFaced 
      * getDirectionFaced()}{@code )}. As such, the head should be facing a 
      * single direction, which it must be for the snake to be {@link #isValid() 
      * valid}. If the tile being faced is out of bounds, then this will either 
-     * wrap around and return the tile on the other side of the {@link 
-     * #getModel() model} or return null, depending on whether the snake {@link 
+     * wrap around and return the tile on the other side of the {@link #getModel 
+     * model} or return null, depending on whether the snake {@link 
      * #isWrapAroundEnabled() wraps around}.
      * 
      * @return The tile in front of the head, or null if the head is facing a 
@@ -1168,7 +1346,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getAdjacentToHead 
      */
     public Tile getTileBeingFaced(){
-        return getAdjacentToHead(0);
+        return getAdjacentToHead(getDirectionFaced());
     }
     /**
      * This returns the name for this snake. The default value for this is null. 
@@ -1210,7 +1388,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #ALTERNATE_TYPE_FLAG
      */
     public boolean getPlayerType(){
-        return getFlag(PLAYER_FLAG);
+        return getFlag(PLAYER_TYPE_FLAG);
     }
     /**
      * This sets which player this snake represents. Refer to the documentation 
@@ -1229,7 +1407,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see ALTERNATE_TYPE_FLAG
      */
     public Snake setPlayerType(boolean value){
-        if (setFlag(PLAYER_FLAG,value)){    // If the flag has changed
+        if (setFlag(PLAYER_TYPE_FLAG,value)){    // If the flag has changed
             firePropertyChange(PLAYER_TYPE_PROPERTY_CHANGED,value);
             if (!isEmpty()){    // If this snake is not empty
                     // Get whether the tiles in the model are currently 
@@ -1308,12 +1486,12 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * play field when it reaches the boundaries of the {@link #getModel() 
      * model}. If this is {@code true} and this snake has reached the edge of 
      * the play field, then attempting to {@link #getAdjacentToHead get}, {@link 
-     * #add(int) add}, or {@link #move(int) move to} a tile that is out of 
+     * #add(int) add}, or {@link #move(int) move to} a tile that would be out of 
      * bounds will result in the snake wrapping around and getting, adding, or 
      * moving to a tile on the other side of the play field. If this is {@code 
-     * false}, then attempting to get a tile that is out of bounds will return 
-     * null and any attempt to add or move to a tile that is out of bounds will 
-     * fail. The default value for this is {@code true}. 
+     * false}, then attempting to get a tile that would be out of bounds will 
+     * return null and any attempt to add or move to a tile that would be out of 
+     * bounds will fail. The default value for this is {@code true}. 
      * @return Whether this snake will wrap around when it reaches the 
      * boundaries of the model.
      * @see #setWrapAroundEnabled 
@@ -1329,7 +1507,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see PlayFieldModel#getAdjacentTile
      */
     public boolean isWrapAroundEnabled(){
-        return getFlag(WRAP_AROUND_FLAG);
+        return getFlag(WRAP_AROUND_ENABLED_FLAG);
     }
     /**
      * This sets whether this snake will wrap around when it reaches the 
@@ -1354,7 +1532,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      */
     public Snake setWrapAroundEnabled(boolean enabled){
             // If the wrap around flag has changed
-        if (setFlag(WRAP_AROUND_FLAG,enabled))  
+        if (setFlag(WRAP_AROUND_ENABLED_FLAG,enabled))  
             firePropertyChange(WRAP_AROUND_ENABLED_PROPERTY_CHANGED,enabled);
         return this;
     }
@@ -1947,12 +2125,12 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * dependent on whether the snake {@link #isAppleConsumptionEnabled() can 
      * eat apples}. If a snake cannot eat apples, then it cannot add or move to 
      * apple tiles. If a snake can {@link #isWrapAroundEnabled() wrap around}, 
-     * then it will be able to add or move past the bounds of the {@link 
-     * #getModel() play field} and to the tiles on the other side of said play 
-     * field. If the snake cannot wrap around, then it will be stopped by the 
-     * bounds of the play field. Refer to the documentation for the {@link 
-     * #getAdjacentToHead getAdjacentToHead} method for more information on how 
-     * this gets the tile adjacent to the head.
+     * then attempting to add or move beyond the bounds of the {@link #getModel 
+     * play field} would result in the snake adding or moving to the tiles on 
+     * the other side of the play field. If the snake cannot wrap around, then 
+     * it will be stopped by the bounds of the play field. Refer to the 
+     * documentation for the {@link #getAdjacentToHead getAdjacentToHead} method 
+     * for more information on how this gets the tile adjacent to the head.
      * @param direction The direction in which to check for whether this snake 
      * can move. 
      * This should be one of the following: 
@@ -2006,16 +2184,15 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * apple tile}, with the latter being dependent on whether the snake {@link 
      * #isAppleConsumptionEnabled() can eat apples}. If a snake cannot eat 
      * apples, then it cannot add or move to apple tiles. If a snake can {@link 
-     * #isWrapAroundEnabled() wrap around}, then it will be able to add or move 
-     * past the bounds of the {@link #getModel() play field} and to the tiles on 
-     * the other side of said play field. If the snake cannot wrap around, then 
-     * it will be stopped by the bounds of the play field. Refer to the 
-     * documentation for the {@link #getTileBeingFaced() getTileBeingFaced} 
-     * method for more information on how this gets the tile in front of the 
-     * snake. <p> 
+     * #isWrapAroundEnabled() wrap around}, then attempting to add or move 
+     * beyond the bounds of the {@link #getModel play field} would result in the 
+     * snake adding or moving to the tiles on the other side of the play field. 
+     * If the snake cannot wrap around, then it will be stopped by the bounds of 
+     * the play field. Refer to the documentation for the {@link 
+     * #getTileBeingFaced() getTileBeingFaced} method for more information on 
+     * how this gets the tile in front of the snake. <p> 
      * 
      * This is equivalent to calling {@link #canMoveInDirection(int) 
-     * canMoveInDirection}{@code (0)} or {@link #canMoveInDirection(int) 
      * canMoveInDirection}{@code (}{@link #getDirectionFaced() 
      * getDirectionFaced()}{@code )}. 
      * 
@@ -2048,7 +2225,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #canMoveInDirection 
      */
     public boolean canMoveForward(){
-        return canMoveInDirection(0);
+        return canMoveInDirection(getDirectionFaced());
     }
     /**
      * This attempts to add a tile to or move this snake in the given direction, 
@@ -2086,10 +2263,10 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * #incrementFailCount() increment} the {@link #getFailCount() fail count} 
      * and call {@link #updateCrashed updateCrashed} to update whether this 
      * snake has crashed based off whether the fail count has exceeded a 
-     * non-negative {@link #getAllowedFails() allowed number of failures}. If 
-     * this snake has crashed as a result, then a {@link 
-     * SnakeEvent#SNAKE_CRASHED SNAKE_CRASHED} {@code SnakeEvent} will be fired. 
-     * <p>
+     * non-negative {@link #getAllowedFails allowed number of failures}. If this 
+     * snake has crashed as a result, then a {@link SnakeEvent#SNAKE_CRASHED 
+     * SNAKE_CRASHED} {@code SnakeEvent} will be fired. <p>
+     * 
      * If this can add the tile, then this will check to see if the tile is an 
      * {@link Tile#isApple() apple tile} before setting the tile to be a {@link 
      * Tile#isSnake() snake tile} facing the given direction (or faced direction 
@@ -2248,9 +2425,9 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * Refer to the documentation for the {@link #getAdjacentToHead 
      * getAdjacentToHead} method for more information about how this gets the 
      * tile adjacent to the head, and to the documentation for the {@link 
-     * #canMoveInDirection(int) canMoveInDirection} method for more information 
-     * about how this checks to see if this snake can move in a given direction. 
-     * <p>
+     * #canMoveInDirection canMoveInDirection} method for more information about 
+     * how this checks to see if this snake can move in a given direction. <p>
+     * 
      * If the tile is successfully added to this snake, then this snake will 
      * grow in length by one tile, the tile that was added will become the new 
      * head, and this will fire a {@code SnakeEvent} indicating that a {@link 
@@ -2258,29 +2435,29 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
      * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
-     * {@code true}. Snakes can only add apple tiles if they are allowed to 
-     * {@link #isAppleConsumptionEnabled() eat apples}. If the snake failed to 
-     * add the tile, then this will fire a {@code SnakeEvent} indicating that 
-     * the snake {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake 
-     * will crash if the {@link #getFailCount() amount of times it has 
-     * consecutively failed} to move or add a tile exceeds its {@link 
-     * #getAllowedFails() allowed number of failures}. Attempting and failing to 
-     * add or move the snake backwards does not contribute to a snake crashing 
-     * unless the snake is just a head (i.e. the snake must be at least two 
-     * tiles long for attempting to add or move the snake backwards to not count 
-     * towards the fail count). If the allowed number of failures is negative, 
-     * then the snake can fail to add or move to a tile an unlimited amount of 
-     * times without crashing. In other words, if the allowed number of failures 
-     * is negative, then the snake cannot crash by failing to add or move to a 
-     * tile. If this snake crashes, then this will fire a {@code SnakeEvent} 
-     * indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. 
-     * If a snake has crashed, it will be unable to add or move to a tile until 
-     * it has been {@link #revive() revived}. <p>
+     * {@code true}. Snakes can only add apple tiles if they are able to {@link 
+     * #isAppleConsumptionEnabled() eat apples}. If the snake failed to add the 
+     * tile, then this will fire a {@code SnakeEvent} indicating that the snake 
+     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake will crash 
+     * if the {@link #getFailCount amount of times it has consecutively failed} 
+     * to move or add a tile exceeds its {@link #getAllowedFails allowed number 
+     * of failures}. Attempting and failing to add or move the snake backwards 
+     * does not contribute to a snake crashing unless the snake does not have a 
+     * tail (i.e. the snake must be at least two tiles long for attempting to 
+     * add or move the snake backwards to not count towards the fail count). If 
+     * the allowed number of failures is negative, then the snake can fail to 
+     * add or move to a tile an unlimited amount of times without crashing. In 
+     * other words, if the allowed number of failures is negative, then the 
+     * snake cannot crash by failing to add or move to a tile. If this snake 
+     * crashes, then this will fire a {@code SnakeEvent} indicating that the 
+     * snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has 
+     * crashed, it will be unable to add or move to a tile until it has been 
+     * {@link #revive() revived}. <p>
      * 
      * The {@link #move(int) move} method works similarly to this, with the 
-     * exception that this snake will remain the same length unless an apple is 
-     * eaten and {@link #getApplesCauseGrowth() eating apples causes the snake 
-     * to grow}.
+     * exception being that this snake will remain the same length unless an 
+     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth() 
+     * grow when it eats an apple}.
      * 
      * @param direction The direction in which to get the tile to add to this 
      * snake. 
@@ -2370,31 +2547,30 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
      * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
-     * {@code true}. Snakes can only add apple tiles if they are allowed to 
-     * {@link #isAppleConsumptionEnabled() eat apples}. If the snake failed to 
-     * add the tile, then this will fire a {@code SnakeEvent} indicating that 
-     * the snake {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake 
-     * will crash if the {@link #getFailCount() amount of times it has 
-     * consecutively failed} to move or add a tile exceeds its {@link 
-     * #getAllowedFails() allowed number of failures}, excluding attempts to add 
-     * or move the snake backwards when the snake is at least two tiles long. If 
-     * the allowed number of failures is negative, then the snake can fail to 
-     * add or move to a tile an unlimited amount of times without crashing. In 
-     * other words, if the allowed number of failures is negative, then the 
-     * snake cannot crash by failing to add or move to a tile. If this snake 
-     * crashes, then this will fire a {@code SnakeEvent} indicating that the 
-     * snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. If a snake has 
-     * crashed, it will be unable to add or move to a tile until it has been 
-     * {@link #revive() revived}. <p>
+     * {@code true}. Snakes can only add apple tiles if they are able to {@link 
+     * #isAppleConsumptionEnabled() eat apples}. If the snake failed to add the 
+     * tile, then this will fire a {@code SnakeEvent} indicating that the snake 
+     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake will crash 
+     * if the {@link #getFailCount amount of times it has consecutively failed} 
+     * to move or add a tile exceeds its {@link #getAllowedFails allowed number 
+     * of failures}, excluding attempts to add or move the snake backwards when 
+     * the snake is at least two tiles long. If the allowed number of failures 
+     * is negative, then the snake can fail to add or move to a tile an 
+     * unlimited amount of times without crashing. In other words, if the 
+     * allowed number of failures is negative, then the snake cannot crash by 
+     * failing to add or move to a tile. If this snake crashes, then this will 
+     * fire a {@code SnakeEvent} indicating that the snake has {@link 
+     * SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has crashed, it will be 
+     * unable to add or move to a tile until it has been {@link #revive() 
+     * revived}. <p>
      * 
      * The {@link #move() move} method works similarly to this, with the 
-     * exception that this snake will remain the same length unless an apple is 
-     * eaten and {@link #getApplesCauseGrowth() eating apples causes the snake 
-     * to grow}. <p>
+     * exception being that this snake will remain the same length unless an 
+     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth() 
+     * grow when it eats an apple}. <p>
      * 
-     * This is equivalent to calling {@link #add(int) add}{@code (0)} or {@link 
-     * #add(int) add}{@code (}{@link #getDirectionFaced 
-     * getDirectionFaced()}{@code )}.
+     * This is equivalent to calling {@link #add(int) add}{@code (}{@link 
+     * #getDirectionFaced getDirectionFaced()}{@code )}.
      * 
      * @return Whether the tile in front of this snake was successfully added to 
      * this snake.
@@ -2450,56 +2626,56 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #removeTail 
      */
     public boolean add(){
-        return add(0);
+        return add(getDirectionFaced());
     }
     /**
      * This attempts to move this snake in the given direction. This will return 
      * {@code true} if this snake has successfully moved, and {@code false} if 
      * this fails to move the snake. Snakes can only move if they have not 
-     * {@link #isCrashed() crashed} and {@link #canMoveInDirection(int) can 
-     * move} in the given direction. The direction must be either zero or one of 
-     * the four direction flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, 
-     * {@link #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction 
-     * is zero, then this will attempt to move the snake {@link 
-     * #getDirectionFaced forward}. Refer to the documentation for the {@link 
-     * #canMoveInDirection canMoveInDirection} method for more information about 
-     * how this checks to see if this snake can move in a given direction. <p>
+     * {@link #isCrashed() crashed} and {@link #canMoveInDirection can move} in 
+     * the given direction. The direction must be either zero or one of the four 
+     * direction flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
+     * #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction is zero, 
+     * then this will attempt to move the snake {@link #getDirectionFaced 
+     * forward}. Refer to the documentation for the {@link #canMoveInDirection 
+     * canMoveInDirection} method for more information about how this checks to 
+     * see if this snake can move in a given direction. <p>
      * 
      * If this snake successfully moved, then the tile {@link #getAdjacentToHead 
      * adjacent} to the {@link #getHead() head} of this snake will become the 
-     * new head, the {@link #getTail() tail} will be moved to the next tile in 
-     * this snake, and this will fire a {@code SnakeEvent} indicating that this 
-     * snake has {@link SnakeEvent#SNAKE_MOVED moved}. Refer to the 
-     * documentation for the {@link #getAdjacentToHead getAdjacentToHead} method 
-     * for more information about how this gets the tile adjacent to the head. 
-     * If the tile was an {@link Tile#isApple() apple tile}, then this will also 
-     * fire a {@code SnakeEvent} indicating that an {@link 
-     * SnakeEvent#SNAKE_CONSUMED_APPLE apple was consumed} and {@link 
-     * #hasConsumedApple() hasConsumedApple} will return {@code true}. If this 
-     * snake {@link #getApplesCauseGrowth() grows when it eats apples}, then 
-     * eating an apple will cause a tile to be {@link #add(int) added} to this 
-     * snake instead of moving this snake. Snakes can only move to apple tiles 
-     * if they are allowed to {@link #isAppleConsumptionEnabled() eat apples}. 
-     * If the snake failed to move, then this will fire a {@code SnakeEvent} 
-     * indicating that the snake {@link SnakeEvent#SNAKE_FAILED failed} to move. 
-     * A snake will crash if the {@link #getFailCount() amount of times it has 
-     * consecutively failed} to move or add a tile exceeds its {@link 
-     * #getAllowedFails() allowed number of failures}. Attempting and failing to 
-     * add or move the snake backwards does not contribute to a snake crashing 
-     * unless the snake is just a head (i.e. the snake must be at least two 
-     * tiles long for attempting to add or move the snake backwards to not count 
-     * towards the fail count). If the allowed number of failures is negative, 
-     * then the snake can fail to add or move to a tile an unlimited amount of 
-     * times without crashing. In other words, if the allowed number of failures 
-     * is negative, then the snake cannot crash by failing to add or move to a 
-     * tile. If this snake crashes, then this will fire a {@code SnakeEvent} 
-     * indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. 
-     * If a snake has crashed, it will be unable to add or move to a tile until 
-     * it has been {@link #revive() revived}. <p>
+     * new head, the current {@link #getTail() tail} (or the current head if 
+     * this snake does not have a tail) will be removed from this snake, and 
+     * this will fire a {@code SnakeEvent} indicating that this snake has {@link 
+     * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
+     * #getAdjacentToHead getAdjacentToHead} method for more information about 
+     * how this gets the tile adjacent to the head. If the tile was an {@link 
+     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
+     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
+     * {@code true}. If this snake {@link #getApplesCauseGrowth() grows when it 
+     * eats apples}, then eating an apple will cause a tile to be {@link #add 
+     * added} to this snake instead of moving this snake. Snakes can only move 
+     * to apple tiles if they are able to {@link #isAppleConsumptionEnabled eat 
+     * apples}. If the snake failed to move, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake {@link SnakeEvent#SNAKE_FAILED 
+     * failed} to move. A snake will crash if the {@link #getFailCount amount of 
+     * times it has consecutively failed} to move or add a tile exceeds its 
+     * {@link #getAllowedFails allowed number of failures}. Attempting and 
+     * failing to add or move the snake backwards does not contribute to a snake 
+     * crashing unless the snake does not have a tail (i.e. the snake must be at 
+     * least two tiles long for attempting to add or move the snake backwards to 
+     * not count towards the fail count). If the allowed number of failures is 
+     * negative, then the snake can fail to add or move to a tile an unlimited 
+     * amount of times without crashing. In other words, if the allowed number 
+     * of failures is negative, then the snake cannot crash by failing to add or 
+     * move to a tile. If this snake crashes, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED 
+     * crashed}. Once a snake has crashed, it will be unable to add or move to a 
+     * tile until it has been {@link #revive() revived}. <p>
      * 
      * The {@link #add(int) add} method works similarly to this, with the 
-     * exception that this snake will become longer regardless of whether the 
-     * snake ate an apple and grows because of it.
+     * exception being that this snake will become longer regardless of whether 
+     * the snake ate an apple and would grow when it does.
      * 
      * @param direction The direction in which to move this snake. 
      * This should be one of the following: 
@@ -2576,43 +2752,42 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * #canMoveForward() canMoveForward} method for more information about how 
      * this checks to see if this snake can move forward. <p>
      * 
-     * If this snake successfully moved, then the tile {@link 
-     * #getTileBeingFaced() in front} of the {@link #getHead() head} of this 
-     * snake will become the new head, the {@link #getTail() tail} will be moved 
-     * to the next tile in this snake, and this will fire a {@code SnakeEvent} 
-     * indicating that this snake has {@link SnakeEvent#SNAKE_MOVED moved}. 
-     * Refer to the documentation for the {@link #getTileBeingFaced 
-     * getTileBeingFaced} method for more information about how this gets the 
-     * tile in front of the head. If the tile was an {@link Tile#isApple() 
-     * apple tile}, then this will also fire a {@code SnakeEvent} indicating 
-     * that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was consumed} and 
-     * {@link #hasConsumedApple() hasConsumedApple} will return {@code true}. If 
-     * this snake {@link #getApplesCauseGrowth() grows when it eats apples}, 
-     * then eating an apple will cause a tile to be {@link #add() added} to this 
-     * snake instead of moving this snake. Snakes can only move to apple tiles 
-     * if they are allowed to {@link #isAppleConsumptionEnabled() eat apples}. 
-     * If the snake failed to move, then this will fire a {@code SnakeEvent} 
-     * indicating that the snake {@link SnakeEvent#SNAKE_FAILED failed} to move. 
-     * A snake will crash if the {@link #getFailCount() amount of times it has 
-     * consecutively failed} to move or add a tile exceeds its {@link 
-     * #getAllowedFails() allowed number of failures}, excluding attempts to add 
-     * or move the snake backwards when the snake is at least two tiles long. If 
-     * the allowed number of failures is negative, then the snake can fail to 
-     * add or move to a tile an unlimited amount of times without crashing. In 
-     * other words, if the allowed number of failures is negative, then the 
-     * snake cannot crash by failing to add or move to a tile. If this snake 
-     * crashes, then this will fire a {@code SnakeEvent} indicating that the 
-     * snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. If a snake has 
+     * If this snake successfully moved, then the tile {@link #getTileBeingFaced
+     * in front} of the {@link #getHead() head} of this snake will become the 
+     * new head, the current {@link #getTail() tail} (or the current head if 
+     * this snake does not have a tail) will be removed from this snake, and 
+     * this will fire a {@code SnakeEvent} indicating that this snake has {@link 
+     * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
+     * #getTileBeingFaced getTileBeingFaced} method for more information about 
+     * how this gets the tile in front of the head. If the tile was an {@link 
+     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
+     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
+     * {@code true}. If this snake {@link #getApplesCauseGrowth() grows when it 
+     * eats apples}, then eating an apple will cause a tile to be {@link #add() 
+     * added} to this snake instead of moving this snake. Snakes can only move 
+     * to apple tiles if they are able to {@link #isAppleConsumptionEnabled eat 
+     * apples}. If the snake failed to move, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake {@link SnakeEvent#SNAKE_FAILED 
+     * failed} to move. A snake will crash if the {@link #getFailCount amount of 
+     * times it has consecutively failed} to move or add a tile exceeds its 
+     * {@link #getAllowedFails() allowed number of failures}, excluding attempts 
+     * to add or move the snake backwards when the snake is at least two tiles 
+     * long. If the allowed number of failures is negative, then the snake can 
+     * fail to add or move to a tile an unlimited amount of times without 
+     * crashing. In other words, if the allowed number of failures is negative, 
+     * then the snake cannot crash by failing to add or move to a tile. If this 
+     * snake crashes, then this will fire a {@code SnakeEvent} indicating that 
+     * the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. If a snake has 
      * crashed, it will be unable to add or move to a tile until it has been 
      * {@link #revive revived}. <p>
      * 
      * The {@link #add() add} method works similarly to this, with the exception 
-     * that this snake will become longer regardless of whether the snake ate an 
-     * apple and grows because of it. <p>
+     * being that this snake will become longer regardless of whether the snake 
+     * ate an apple and would grow when it does. <p>
      * 
-     * This is equivalent to calling {@link #move(int) move}{@code (0)} or 
-     * {@link #move(int) move}{@code (}{@link #getDirectionFaced() 
-     * getDirectionFaced()}{@code )}.
+     * This is equivalent to calling {@link #move(int) move}{@code (}{@link 
+     * #getDirectionFaced() getDirectionFaced()}{@code )}.
      * 
      * @return Whether this snake successfully moved forward.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
@@ -2668,7 +2843,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #removeTail 
      */
     public boolean move(){
-        return move(0);
+        return move(getDirectionFaced());
     }
     /**
      * This removes and returns the {@link #getTail() tail} of this snake. If 
@@ -3611,7 +3786,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * disabled}. <p>
      * 
      * If an action does not fit any of the above criteria for being skipped, 
-     * then it will be performed.
+     * then it will be performed by this snake.
      * 
      * @throws IllegalStateException If this snake is not in a {@link #isValid 
      * valid} state.
