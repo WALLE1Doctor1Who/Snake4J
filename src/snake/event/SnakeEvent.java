@@ -5,7 +5,9 @@
 package snake.event;
 
 import java.util.EventObject;
+import java.util.Objects;
 import snake.*;
+import snake.playfield.*;
 
 /**
  * This is an event that indicates that a {@link Snake snake} has performed an 
@@ -14,7 +16,11 @@ import snake.*;
  * The {@code id} parameter is used to indicate the type of event that occurred. 
  * An {@code id} that is out of the range from {@link #SNAKE_FIRST} to {@link 
  * #SNAKE_LAST}, inclusive, may result in an unspecified behavior. The {@code 
- * direction} parameter stores the direction flag(s) for the event.
+ * direction} parameter stores the direction flag(s) for the event. The {@code 
+ * target} parameter stores the tile that was or would have been affected. This 
+ * could be the tile that was added, removed, moved to, or that the snake failed 
+ * to add or move to. The {@code target} may be null if no tile was affected.
+ * 
  * @author Milo Steier
  * @see Snake
  * @see SnakeListener
@@ -83,8 +89,62 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      */
     private long when;
     /**
+     * This stores the tile that was the target for the snake.
+     */
+    private Tile target;
+    /**
      * This constructs a SnakeEvent with the given source, event ID, direction 
-     * flag(s), and timestamp.
+     * flag(s), target tile, and timestamp.
+     * @param source The snake that originated the event.
+     * @param id An integer indicating the type of event. This should be between 
+     * {@link SNAKE_FIRST} and {@link SNAKE_LAST}.
+     * @param direction The direction flag(s) for the event. This should be a 
+     * value between 0 and {@link #ALL_DIRECTIONS}.
+     * @param target The target tile for the event, or null. This should be the 
+     * tile that was or would have been affected by the snake, such as the tile 
+     * that was added or removed. If no tile was affected, then this should be 
+     * null.
+     * @param when The timestamp for when the event occurred. It's recommended 
+     * that this should be a positive non-zero value.
+     * @throws IllegalArgumentException If the source Snake is null.
+     * @see #getSnake 
+     * @see #getID 
+     * @see #getDirection 
+     * @see #getTarget 
+     * @see #getWhen 
+     */
+    public SnakeEvent(Snake source,int id,int direction,Tile target,long when){
+        super(source);
+        this.id = id;
+        this.dir = SnakeUtilities.getDirections(direction);
+        this.target = target;
+        this.when = when;
+    }
+    /**
+     * This constructs a SnakeEvent with the given source, event ID, direction 
+     * flag(s), and target tile. The timestamp will be derived from the {@link 
+     * System#currentTimeMillis() current system time}.
+     * @param source The snake that originated the event.
+     * @param id An integer indicating the type of event. This should be between 
+     * {@link SNAKE_FIRST} and {@link SNAKE_LAST}.
+     * @param direction The direction flag(s) for the event. This should be a 
+     * value between 0 and {@link #ALL_DIRECTIONS}.
+     * @param target The target tile for the event, or null. This should be the 
+     * tile that was or would have been affected by the snake, such as the tile 
+     * that was added or removed. If no tile was affected, then this should be 
+     * null.
+     * @throws IllegalArgumentException If the source Snake is null.
+     * @see #getSnake 
+     * @see #getDirection 
+     * @see #getID 
+     * @see #getTarget 
+     */
+    public SnakeEvent(Snake source, int id, int direction, Tile target){
+        this(source,id,direction,target,System.currentTimeMillis());
+    }
+    /**
+     * This constructs a SnakeEvent with the given source, event ID, direction 
+     * flag(s), and timestamp. The target tile will be null.
      * @param source The snake that originated the event.
      * @param id An integer indicating the type of event. This should be between 
      * {@link SNAKE_FIRST} and {@link SNAKE_LAST}.
@@ -99,15 +159,13 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #getWhen 
      */
     public SnakeEvent(Snake source, int id, int direction, long when){
-        super(source);
-        this.id = id;
-        this.dir = SnakeUtilities.getDirections(direction);
-        this.when = when;
+        this(source,id,direction,null,when);
     }
     /**
      * This constructs a SnakeEvent with the given source, event ID, and 
      * direction flag(s). The timestamp will be derived from the {@link 
-     * System#currentTimeMillis() current system time}.
+     * System#currentTimeMillis() current system time}. The target tile will be 
+     * null.
      * @param source The snake that originated the event.
      * @param id An integer indicating the type of event. This should be between 
      * {@link SNAKE_FIRST} and {@link SNAKE_LAST}.
@@ -119,7 +177,7 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #getID 
      */
     public SnakeEvent(Snake source, int id, int direction){
-        this(source,id,direction,System.currentTimeMillis());
+        this(source,id,direction,null);
     }
     /**
      * This returns the snake that originated this event.
@@ -127,6 +185,7 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * not a snake.
      * @see #getID 
      * @see #getDirection 
+     * @see #getTarget 
      * @see #getWhen 
      */
     public Snake getSnake(){
@@ -138,6 +197,7 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @return The direction flag(s) provided when this event was created.
      * @see #getSnake 
      * @see #getID 
+     * @see #getTarget 
      * @see #getWhen 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
@@ -162,10 +222,24 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #SNAKE_RESET
      * @see #getSnake 
      * @see #getDirection 
+     * @see #getTarget 
      * @see #getWhen 
      */
     public int getID(){
         return id;
+    }
+    /**
+     * This returns the tile that was the snake's target when this event 
+     * occurred. This is the tile that was or would have been affected by the 
+     * event. If no tile was affected or provided, then this will return null.
+     * @return The target tile for this event, or null.
+     * @see #getSnake 
+     * @see #getDirection 
+     * @see #getID 
+     * @see #getWhen 
+     */
+    public Tile getTarget(){
+        return target;
     }
     /**
      * This returns the timestamp for when this event occurred.
@@ -173,6 +247,7 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #getSnake 
      * @see #getDirection 
      * @see #getID 
+     * @see #getTarget 
      */
     public long getWhen(){
         return when;
@@ -215,11 +290,10 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @return A String identifying this event.
      */
     public String paramString(){
-        String str = eventString(); // This gets the event type string
-        if (str == null)            // If this event is an unknown type
-            str = "unknown type ("+getID()+")";
-        return str + ","+SnakeUtilities.getDirectionString(getDirection())+
-                ",when="+when;
+        return Objects.toString(eventString(), "unknown type ("+getID()+")")+
+                ","+SnakeUtilities.getDirectionString(getDirection())+
+                ",target="+Objects.toString(getTarget(), "")+
+                ",when="+getWhen();
     }
     /**
      * This returns a String representation of this SnakeEvent.
@@ -227,11 +301,10 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      */
     @Override
     public String toString(){
-        Snake snake = getSnake();       // Gets the source snake
-            // Gets the name of the snake if there is one
+        Snake snake = getSnake();       // Get the source snake
+            // Get the name of the snake if there is one
         String name = (snake != null) ? snake.getName() : null;
         return getClass().getName() + "["+paramString()+"] on " + 
-                    // If the snake has a name, use it. Otherwise, use the source
-                ((name != null) ? name : source);
+                Objects.toString(name, Objects.toString(source));
     }
 }

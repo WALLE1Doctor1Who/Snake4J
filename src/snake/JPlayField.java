@@ -959,8 +959,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         g = g.create(0, 0, w, h);
             // An image to render to if the given graphics context is not a 
         BufferedImage img = null;       // Graphics2D object
-            // This will get the Graphics2D object to render to.
-        java.awt.Graphics2D g2D;        
+        Graphics2D g2D; // This will get the Graphics2D object to render to.
             // If the graphics context is a Graphics2D object
         if (g instanceof Graphics2D)
             g2D = (Graphics2D) g;
@@ -2016,6 +2015,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         firePropertyChange(APPLE_COLOR_PROPERTY_CHANGED,old,color);
         repaint();
     }
+    
+    
     /**
      * This returns a String representation of this JPlayField. This method is 
      * primarily intended to be used only for debugging purposes, and the 

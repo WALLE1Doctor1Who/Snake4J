@@ -7,8 +7,8 @@ package snake;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
-import java.util.function.Consumer;
-import javax.swing.event.EventListenerList;
+import java.util.function.*;
+import javax.swing.event.*;
 import snake.action.*;
 import snake.event.*;
 import snake.playfield.*;
@@ -207,7 +207,7 @@ import snake.playfield.*;
  * @see SnakeActionCommand
  * @see DefaultSnakeActionCommand
  */
-public class Snake implements SnakeConstants, Iterable<Tile>{
+public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This is the flag used to indicate that a snake has consumed an apple.
      */
@@ -380,7 +380,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * This is a queue storing actions for the snake to perform. This is 
      * initially null, and will be initialized when it is first requested.
      */
-    private ArrayDeque<Consumer<Snake>> actionQueue = null;
+    private SnakeActionQueue actionQueue = null;
     /**
      * This constructs a Snake that will be displayed on the given model. The 
      * snake will be able to wrap around and eat apples and will grow when it 
@@ -475,6 +475,10 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         this(model);
         Snake.this.initialize(row, column);
     }
+    
+    protected SnakeActionQueue createActionQueue(){
+        return new SnakeActionQueue(this);
+    }
     /**
      * This returns an integer storing the flags used to store the settings for 
      * this snake and control its state.
@@ -564,16 +568,263 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         return flags != old;
     }
     /**
-     * This {@link Tile#clear() clears} and removes all the tiles from this 
-     * snake.
-     * @see #reset
-     * @see Tile#clear 
+     * This returns the length of this snake. In other words, this returns how 
+     * many tiles make up the body of this snake.
+     * @return The number of tiles in this snake.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #isEmpty 
      */
-    protected void clear(){
-            // A for loop to go through the body of this snake and clear each 
-        for (Tile tile : snakeBody) // tile
+    @Override
+    public int size(){
+        return snakeBody.size();
+    }
+    /**
+     * This returns whether this snake is empty. In other words, this returns 
+     * whether this snake contains no tiles. 
+     * @return Whether this snake is empty.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #isValid 
+     */
+    @Override
+    public boolean isEmpty(){
+        return snakeBody.isEmpty();
+    }
+//    /**
+//     * This returns whether this snake contains the given tile. In other words, 
+//     * this returns whether this snake contains at least one tile which {@link 
+//     * Tile#equals equals} the given tile.
+//     * @param o The tile to check for.
+//     * @return Whether the given tile is in this snake.
+//     * @see #contains(int, int) 
+//     */
+    @Override
+    public boolean contains(Object o){
+        return snakeBody.contains(o);
+    }
+    /**
+     * This returns whether this snake contains the tile at the given row and 
+     * column. In other words, this returns whether the tile at the given row 
+     * and column of the {@link #getModel() model} matches one of the tiles in 
+     * this snake.
+     * @param row The row of the tile to check for.
+     * @param column The column of the tile
+     * @return Whether the tile at the given row and column is in this snake.
+     * @see #contains(Tile) 
+     * @see #getModel 
+     * @see PlayFieldModel#contains(int, int) 
+     * @see PlayFieldModel#getTile(int, int) 
+     */
+    public boolean contains(int row, int column){
+            // If the model contains the given row and column, check to see if 
+            // this snake contains the tile at the given row and column
+        return model.contains(row,column)&&contains(model.getTile(row,column));
+    }
+    /**
+     * This adds the given tile to the body of this snake as the new head. This 
+     * assumes that the given tile has a direction set for it. The given tile 
+     * will have its {@link Tile#setType type} set to the {@link #getPlayerType 
+     * player type} of this snake and will be used to {@link 
+     * Tile#alterDirection(Tile) alter the direction} of the previous head if 
+     * there is one.
+     * @param tile The new head for this snake (cannot be null).
+     * @throws NullPointerException If the given tile is null.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #getPlayerType 
+     * @see #isFlipped 
+     * @see Tile#setType 
+     * @see Tile#clear 
+     * @see Tile#setState 
+     * @see Tile#alterDirection(Tile) 
+     * @see #pollTail 
+     */
+    protected void addHead(Tile tile){
+        Objects.requireNonNull(tile);   // Check if the tile is not null
+        if (!isEmpty()){                // If there is currently a head
+            if (getTail() == null)      // If there is no tail yet
+                    // Clear the old head since it's about to become the tail
+                getHead().clear().setType(getPlayerType());
+            getHead().alterDirection(tile);
+        }
+        tile.setType(getPlayerType());
+        if (isFlipped())            // If the snake is flipped
+            snakeBody.addLast(tile);
+        else
+            snakeBody.addFirst(tile);
+    }
+    /**
+     * This removes and returns the tile at the end of the snake body which 
+     * represents the tail of the snake. This ignores whether the snake actually 
+     * has a {@link #getTail() tail} (i.e. that the snake is at least 2 tiles 
+     * long), and will remove the head if there is only one tile in the snake. 
+     * If the snake still has a tail after the current tail has been removed, 
+     * then the new tail will have its {@link Tile#alterDirection(Tile) 
+     * directions altered} based off the now removed tail. The removed tile will 
+     * then be {@link Tile#clear() cleared} and returned.
+     * @return The tile that was removed, or null if the snake is {@link 
+     * #isEmpty() empty}.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see Tile#clear 
+     * @see Tile#alterDirection(Tile) 
+     * @see #addHead(Tile) 
+     * @see #removeTail 
+     */
+    protected Tile pollTail(){
+            // Remove the tail of the snake. If the snake is flipped, this will 
+            // be the first tile in the queue. Otherwise, this will be the last 
+            // tile in the queue
+        Tile tile = (isFlipped()) ? snakeBody.pollFirst():snakeBody.pollLast();
+        if (getTail() != null){ // If there is still a tail
+            getTail().alterDirection(tile);
+        }
+        if (tile != null)   // If the old tail is not null
             tile.clear();
-        snakeBody.clear();
+        return tile;
+    }
+    
+    @Override
+    public boolean offer(Tile tile){
+        if (contains(tile))
+            return false;
+        if (tile == null)
+            throw new NullPointerException();
+        else if (!model.contains(tile))
+            throw new IllegalArgumentException("Tile is not in model");
+        else if (!tile.isEmpty())
+            throw new IllegalArgumentException("Tile is not empty");
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        if (isEmpty())
+            tile.setFacingLeft(true);
+        else{
+            Tile head = getHead();
+            boolean vertical = ((head.isFacingUp() || head.isFacingDown()) && 
+                    tile.getColumn() == head.getColumn()) || tile.getRow() != 
+                    head.getRow();
+            tile.setFacingUp(vertical && tile.getRow() < head.getRow());
+            tile.setFacingDown(vertical && !tile.isFacingUp());
+            tile.setFacingLeft(!vertical && tile.getColumn() < head.getColumn());
+            tile.setFacingRight(!vertical && !tile.isFacingRight());
+        }
+        addHead(tile);
+        model.setTilesAreAdjusting(adjusting);
+        fireSnakeChange(SnakeEvent.SNAKE_ADDED_TILE,tile);
+        return true;
+    }
+    
+    @Override
+    public boolean add(Tile tile){
+        if (contains(tile))
+            return false;
+        return super.add(tile);
+    }
+    
+    @Override
+    public boolean addAll(Collection<? extends Tile> c){
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        try{
+            boolean modified = super.addAll(c);
+            model.setTilesAreAdjusting(adjusting);
+            return modified;
+        }
+        catch(RuntimeException ex){
+            model.setTilesAreAdjusting(adjusting);
+            throw ex;
+        }
+    }
+    
+    @Override
+    public Tile peek(){
+            // If the snake is flipped, return the first tile in the queue. 
+            // Otherwise, return the last tile in the queue.
+        return (isFlipped()) ? snakeBody.peekFirst() : snakeBody.peekLast();
+    }
+    
+    @Override
+    public Tile element(){
+        return super.element();
+    }
+    
+    @Override
+    public Tile poll(){
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        Tile tile = pollTail();
+        model.setTilesAreAdjusting(adjusting);
+        if (tile != null)
+            fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tile);
+        return tile;
+    }
+    
+    @Override
+    public Tile remove(){
+        return super.remove();
+    }
+    
+    @Override
+    public boolean removeAll(Collection<?> c){
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        try{
+            boolean modified = super.removeAll(c);
+            model.setTilesAreAdjusting(adjusting);
+            return modified;
+        }
+        catch(RuntimeException ex){
+            model.setTilesAreAdjusting(adjusting);
+            throw ex;
+        }
+    }
+    
+    @Override
+    public boolean retainAll(Collection<?> c){
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        try{
+            boolean modified = super.retainAll(c);
+            model.setTilesAreAdjusting(adjusting);
+            return modified;
+        }
+        catch(RuntimeException ex){
+            model.setTilesAreAdjusting(adjusting);
+            throw ex;
+        }
+    }
+    
+    @Override
+    public boolean removeIf(Predicate<? super Tile> filter){
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+        try{
+            boolean modified = super.removeIf(filter);
+            model.setTilesAreAdjusting(adjusting);
+            return modified;
+        }
+        catch(RuntimeException ex){
+            model.setTilesAreAdjusting(adjusting);
+            throw ex;
+        }
     }
     /**
      * This resets this snake by {@link #resetFailCount() resetting} the {@link 
@@ -590,7 +841,6 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * model}. This is mainly provided so as to allow this snake to tell the 
      * model that the {@link PlayFieldModel#setTilesAreAdjusting tiles will be 
      * adjusting}.
-     * @return This snake.
      * @see #resetFailCount 
      * @see #clearActionQueue 
      * @see #setFlag 
@@ -603,9 +853,9 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #clear 
      * @see SnakeEvent#SNAKE_RESET
      */
-    protected Snake reset(PlayFieldModel model){
+    protected void reset(PlayFieldModel model){
         resetFailCount();
-        clearActionQueue();
+        getActionQueue().clear();
             // Reset the flags that are affected when resetting a snake and get 
             // whether they changed
         boolean reset = setFlag(RESET_AFFECTED_FLAGS,false);
@@ -618,15 +868,93 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
                 adjusting = model.getTilesAreAdjusting();
                     // The tiles will be adjusting
                 model.setTilesAreAdjusting(true);
-            }
-            clear();
+            }    // A for loop to go through the body of this snake and clear 
+            for (Tile tile : snakeBody) // each tile
+                tile.clear();
+            snakeBody.clear();           
             if (model != null)  // If the model is not null
                 model.setTilesAreAdjusting(adjusting);
         }
         if (reset)  // If this snake was reset
             fireSnakeChange(SnakeEvent.SNAKE_RESET,0);
-        return this;
     }
+    /**
+     * This {@link Tile#clear() clears} and removes all the tiles from this 
+     * snake.
+     * @see #reset
+     * @see Tile#clear 
+     */
+    @Override
+    public void clear(){
+        reset(model);
+    }
+    
+    
+    
+    /**
+     * This returns an array containing the tiles in this snake in the order in 
+     * which they appear, starting at the {@link #getHead() head} and ending at 
+     * the {@link #getTail() tail} of this snake. <p>
+     * 
+     * The returned array will be "safe" in that no references to the array will 
+     * be maintained by this snake. (In other words, this method must allocate a 
+     * new array). The caller is thus free to modify the returned array. 
+     * 
+     * @return An array containing the tiles in this snake.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see #flip 
+     * @see #contains(Tile) 
+     * @see #contains(int, int) 
+     * @see #toList 
+     * @see #toQueue 
+     */
+    @Override
+    public Object[] toArray(){
+        return super.toArray();
+    }
+    
+    @Override
+    public <T> T[] toArray(T[] a){
+        return super.toArray(a);
+    }
+    /**
+     * This returns an iterator over the tiles in this snake in the order in 
+     * which they appear in this snake. The iterator starts at the {@link 
+     * #getHead() head} of the snake and ends at the {@link #getTail() tail} of 
+     * the snake. <p>
+     * 
+     * Please note that tiles store their corresponding row and column, and thus 
+     * the location of each tile can be retrieved by using the tile's {@link 
+     * Tile#getRow() getRow} and {@link Tile#getColumn() getColumn} methods. <p>
+     * 
+     * The returned iterator is fail-fast. That is to say, if the structure of
+     * this snake changes at any time after the iterator is created, then the 
+     * iterator will throw a {@link ConcurrentModificationException 
+     * ConcurrentModificationException}.
+     * 
+     * @return An iterator over the tiles in this snake.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see #flip 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     */
+    @Override
+    public Iterator<Tile> iterator() {
+        return new SnakeIterator();
+    }
+    
+    
+    
+    
+    
     /**
      * This returns the model that this snake is displayed on and uses to get 
      * its {@link Tile tiles} from.
@@ -673,8 +1001,10 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         this.model = model;
         firePropertyChange(MODEL_PROPERTY_CHANGED,old,model);
             // If the old model is not null, reset this snake. (The old model 
-            // should only be null when the snake is first being constructed)
-        return (old != null) ? reset(old) : this;
+            // will only ever be null when the snake is first being constructed)
+        if (old != null)
+            reset(old);
+        return this;
     }
     /**
      * This initializes this snake and sets the given tile to be the snake's 
@@ -732,14 +1062,14 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         if (!head.isEmpty() && !contains(head))
             throw new IllegalArgumentException("Head tile is not empty");
             // Get whether the tiles in the model are currently adjusting, so as 
-            // to restore this once done
+            // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
         reset(model);   // Reset the snake
             // Clear the new head, set it to be facing left, and set it to be 
         addHead(head.clear().setFacingLeft(true));  // the snake's head
         model.setTilesAreAdjusting(adjusting);
-        fireSnakeChange(SnakeEvent.SNAKE_INITIALIZED);
+        fireSnakeChange(SnakeEvent.SNAKE_INITIALIZED,head);
         return this;
     }
     /**
@@ -834,6 +1164,13 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
             throw new IllegalStateException("Snake "+((name!=null)?name+" ":"")+
                     "is not in a valid state");
     }
+    
+    
+    
+    
+    
+//    public boolean addAll()
+    
     /**
      * This returns the tile that represents the head of this snake. If this 
      * snake has no head as a result of being {@link #isEmpty() empty}, then 
@@ -873,126 +1210,9 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #removeTail 
      */
     public Tile getTail(){
-        if (size() < 2)         // If the snake is less than two tiles long
-            return null;
-        else if (isFlipped())   // If the snake is flipped
-            return snakeBody.peekFirst();
-        else
-            return snakeBody.peekLast();
-    }
-    /**
-     * This returns the length of this snake. In other words, this returns how 
-     * many tiles make up the body of this snake.
-     * @return The number of tiles in this snake.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #isEmpty 
-     */
-    public int size(){
-        return snakeBody.size();
-    }
-    /**
-     * This returns whether this snake is empty. In other words, this returns 
-     * whether this snake contains no tiles. 
-     * @return Whether this snake is empty.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isValid 
-     */
-    public boolean isEmpty(){
-        return snakeBody.isEmpty();
-    }
-    /**
-     * This returns whether this snake contains the given tile. In other words, 
-     * this returns whether this snake contains at least one tile which {@link 
-     * Tile#equals equals} the given tile.
-     * @param tile The tile to check for.
-     * @return Whether the given tile is in this snake.
-     * @see #contains(int, int) 
-     */
-    public boolean contains(Tile tile){
-        return snakeBody.contains(tile);
-    }
-    /**
-     * This returns whether this snake contains the tile at the given row and 
-     * column. In other words, this returns whether the tile at the given row 
-     * and column of the {@link #getModel() model} matches one of the tiles in 
-     * this snake.
-     * @param row The row of the tile to check for.
-     * @param column The column of the tile
-     * @return Whether the tile at the given row and column is in this snake.
-     * @see #contains(Tile) 
-     * @see #getModel 
-     * @see PlayFieldModel#contains(int, int) 
-     * @see PlayFieldModel#getTile(int, int) 
-     */
-    public boolean contains(int row, int column){
-            // If the model contains the given row and column, check to see if 
-            // this snake contains the tile at the given row and column
-        return model.contains(row,column)&&contains(model.getTile(row,column));
-    }
-    /**
-     * This returns an iterator over the tiles in this snake in the order in 
-     * which they appear in this snake. The iterator starts at the {@link 
-     * #getHead() head} of the snake and ends at the {@link #getTail() tail} of 
-     * the snake. <p>
-     * 
-     * Please note that tiles store their corresponding row and column, and thus 
-     * the location of each tile can be retrieved by using the tile's {@link 
-     * Tile#getRow() getRow} and {@link Tile#getColumn() getColumn} methods. <p>
-     * 
-     * The returned iterator is fail-fast. That is to say, if the structure of
-     * this snake changes at any time after the iterator is created, then the 
-     * iterator will throw a {@link ConcurrentModificationException 
-     * ConcurrentModificationException}.
-     * 
-     * @return An iterator over the tiles in this snake.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see #flip 
-     * @see Tile#getRow 
-     * @see Tile#getColumn 
-     */
-    @Override
-    public Iterator<Tile> iterator() {
-        return new SnakeIterator();
-    }
-    /**
-     * This returns an array containing the tiles in this snake in the order in 
-     * which they appear, starting at the {@link #getHead() head} and ending at 
-     * the {@link #getTail() tail} of this snake. <p>
-     * 
-     * The returned array will be "safe" in that no references to the array will 
-     * be maintained by this snake. (In other words, this method must allocate a 
-     * new array). The caller is thus free to modify the returned array. 
-     * 
-     * @return An array containing the tiles in this snake.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see #flip 
-     * @see #contains(Tile) 
-     * @see #contains(int, int) 
-     * @see #toList 
-     * @see #toQueue 
-     */
-    public Tile[] toArray(){
-        Tile[] tiles = new Tile[size()];    // An array to get the tiles
-        int i = 0;                          // The current index in the array
-            // A for loop to go through the tiles in this snake
-        for (Tile tile : this){
-            tiles[i++] = tile;
-                // If the index is somehow at the end of the array before the 
-            if (i >= tiles.length)      // end of the snake has been reached
-                break;
-        }
-        return tiles;
+            // If the snake is less than two tiles long, return null. Otherwise
+            // peek at the queue to get the snake's tail
+        return (size() < 2) ? null : peek();
     }
     /**
      * This is used to add the tiles in this snake to the given collection.
@@ -1065,73 +1285,6 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         ArrayList<Tile> tiles = new ArrayList<>();
         addToCollection(tiles); // Add the tiles to the list
         return tiles;
-    }
-    /**
-     * This adds the given tile to the body of this snake as the new head. This 
-     * assumes that the given tile has a direction set for it. The given tile 
-     * will have its {@link Tile#setType type} set to the {@link #getPlayerType 
-     * player type} of this snake and will be used to {@link 
-     * Tile#alterDirection(Tile) alter the direction} of the previous head if 
-     * there is one.
-     * @param tile The new head for this snake (cannot be null).
-     * @throws NullPointerException If the given tile is null.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #getPlayerType 
-     * @see #isFlipped 
-     * @see Tile#setType 
-     * @see Tile#clear 
-     * @see Tile#setState 
-     * @see Tile#alterDirection(Tile) 
-     * @see #pollTail 
-     */
-    protected void addHead(Tile tile){
-        Objects.requireNonNull(tile);   // Check if the tile is not null
-        if (getHead() != null){         // If there is currently a head
-            if (getTail() == null)      // If there is no tail yet
-                    // Clear the old head since it's about to become the tail
-                getHead().clear().setType(getPlayerType());
-            getHead().alterDirection(tile);
-        }
-        tile.setType(getPlayerType());
-        if (isFlipped())            // If the snake is flipped
-            snakeBody.addLast(tile);
-        else
-            snakeBody.addFirst(tile);
-    }
-    /**
-     * This removes and returns the tile at the end of the snake body which 
-     * represents the tail of the snake. This ignores whether the snake actually 
-     * has a {@link #getTail() tail} (i.e. that the snake is at least 2 tiles 
-     * long), and will remove the head if there is only one tile in the snake. 
-     * If the snake still has a tail after the current tail has been removed, 
-     * then the new tail will have its {@link Tile#alterDirection(Tile) 
-     * directions altered} based off the now removed tail. The removed tile will 
-     * then be {@link Tile#clear() cleared} and returned.
-     * @return The tile that was removed, or null if the snake is {@link 
-     * #isEmpty() empty}.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see Tile#clear 
-     * @see Tile#alterDirection(Tile) 
-     * @see #addHead(Tile) 
-     * @see #removeTail 
-     */
-    protected Tile pollTail(){
-            // Remove the tail of the snake. If the snake is flipped, this will 
-            // be the first tile in the queue. Otherwise, this will be the last 
-            // tile in the queue
-        Tile tile = (isFlipped()) ? snakeBody.pollFirst():snakeBody.pollLast();
-        if (getTail() != null){ // If there is still a tail
-            getTail().alterDirection(tile);
-        }
-        if (tile != null)   // If the old tail is not null
-            tile.clear();
-        return tile;
     }
     /**
      * This returns whether this snake is facing up. This is equivalent to 
@@ -1651,18 +1804,19 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     public boolean hasConsumedApple(){
         return getFlag(APPLE_CONSUMED_FLAG);
     }
+    
+//    protected void setConsumedApple(boolean value, int direction)
     /**
      * This sets whether this snake has eaten an apple. This ignores whether 
      * this snake {@link #isAppleConsumptionEnabled() can even eat apples}. If 
      * the given {@code value} is {@code true}, then this will fire a {@link 
      * SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} {@code SnakeEvent} 
-     * with the given direction. If the direction is null, then the event will 
-     * use the {@link #getDirectionFaced() direction being faced}.
+     * with the given direction. 
      * @param value Whether this snake ate an apple. If this is {@code true}, 
      * then a {@link SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} will 
      * be fired.
      * @param direction The direction to use for the event fired if {@code 
-     * value} is {@code true}, or null to use the direction being faced.
+     * value} is {@code true}.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #hasConsumedApple 
@@ -1681,7 +1835,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getDirectionFaced 
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      */
-    protected void setConsumedApple(boolean value, Integer direction){
+    protected void setConsumedApple(boolean value, int direction){
         checkIfInvalid();                   // Check if this snake is invalid
         setFlag(APPLE_CONSUMED_FLAG,value);
         if (value)                          // If the value is true
@@ -1699,7 +1853,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #hasConsumedApple 
-     * @see #setConsumedApple(boolean, Integer) 
+     * @see #setConsumedApple(boolean, int) 
      * @see #isAppleConsumptionEnabled 
      * @see #setAppleConsumptionEnabled 
      * @see #getApplesCauseGrowth 
@@ -1715,7 +1869,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      */
     protected void setConsumedApple(boolean value){
-        setConsumedApple(value,null);
+        setConsumedApple(value,getDirectionFaced());
     }
     /**
      * This returns whether this snake has crashed. A snake will crash when it 
@@ -1840,7 +1994,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see SnakeEvent#SNAKE_REVIVED
      */
     protected void setCrashed(boolean value){
-        setCrashed(value,null);
+        setCrashed(value,getDirectionFaced());
     }
     /**
      * This updates whether this snake has crashed based off whether the {@link 
@@ -2873,7 +3027,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
             fireSnakeFailed(0);
             return null;
         }   // Get whether the tiles in the model are currently adjusting, so as 
-            // to restore this once done
+            // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
         Tile tile = pollTail(); // Poll the tail
@@ -2881,7 +3035,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
         if (tile == null)       // If a tile was not removed
             fireSnakeFailed(0);
         else
-            fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0);
+            fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tile);
         return tile;
     }
     /**
@@ -3396,10 +3550,10 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #clearActionQueue 
      * @see #doNextAction 
      */
-    public Deque<Consumer<Snake>> getActionQueue(){
+    public SnakeActionQueue getActionQueue(){
             // If the action queue has not been initialized yet
         if (actionQueue == null)    
-            actionQueue = new ArrayDeque<>();
+            actionQueue = Snake.this.createActionQueue();
         return actionQueue;
     }
     /**
@@ -3428,9 +3582,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      */
     public boolean offerAction(Consumer<Snake> action){
         Objects.requireNonNull(action); // Check if the action is null
-            // Get the initialized action queue
-        Deque<Consumer<Snake>> queue = getActionQueue();
-        return queue != null && queue.offer(action);
+        return getActionQueue().offer(action);
     }
     /**
      * This attempts to insert a {@link SnakeActionCommand SnakeActionCommand} 
@@ -3492,7 +3644,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     public Consumer<Snake> pollAction(){
             // If the action queue is initialized, remove the next action in the 
             // queue. Otherwise, return null.
-        return (actionQueue != null) ? actionQueue.poll() : null;
+        return getActionQueue().poll();
     }
     /**
      * This returns, but does not remove, the {@code Consumer} at the head of 
@@ -3514,9 +3666,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see Deque#peekFirst 
      */
     public Consumer<Snake> peekFirstAction(){
-            // If the action queue is initialized, peek the next action in the 
-            // queue. Otherwise, return null.
-        return (actionQueue != null) ? actionQueue.peekFirst() : null;
+        return getActionQueue().peekFirst();
     }
     /**
      * This returns, but does not remove, the last {@code Consumer} in the 
@@ -3538,9 +3688,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see Deque#peekLast 
      */
     public Consumer<Snake> peekLastAction(){
-            // If the action queue is initialized, peek the last action. 
-            // Otherwise, return null.
-        return (actionQueue != null) ? actionQueue.peekLast() : null;
+        return getActionQueue().peekLast();
     }
     /**
      * This returns the number of actions currently in the {@link 
@@ -3557,8 +3705,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #doNextAction 
      */
     public int getActionQueueSize(){
-            // If the action queue is initialized, return its size. Otherwise, 
-        return (actionQueue != null) ? actionQueue.size() : 0;  // return 0
+        return getActionQueue().size();
     }
     /**
      * This returns whether the {@link #getActionQueue() action queue} is empty. 
@@ -3569,7 +3716,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #doNextAction 
      */
     public boolean isActionQueueEmpty(){
-        return actionQueue == null || actionQueue.isEmpty();
+        return getActionQueue().isEmpty();
     }
     /**
      * This removes all the actions currently in the {@link #getActionQueue() 
@@ -3580,8 +3727,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #doNextAction 
      */
     public void clearActionQueue(){
-        if (actionQueue != null)    // If the action queue has been initialized
-            actionQueue.clear();
+        getActionQueue().clear();
     }
     /**
      * This returns whether this snake should skip the given action. This is 
@@ -3729,15 +3875,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see Consumer#accept 
      */
     protected Consumer<? super Snake> pollNextAction(){
-        Consumer<Snake> action;     // This will get the next action to perform
-        do{ // A do while loop to get the next action to perform
-            action = pollAction();  // Poll the next action in the queue
-        }   // While the action queue is not empty and the action should be 
-        while (!isActionQueueEmpty() && willSkipAction(action));    // skipped
-            // If the retrieved action should be skipped, return null. 
-            // Otherwise, return the action to perform (this accounts for 
-            // whether the action was the last action in the queue, yet should 
-        return (willSkipAction(action)) ? null : action;    // still be skipped)
+        return getActionQueue().pollNext();
     }
     /**
      * This performs the next action in the {@link #getActionQueue() action 
@@ -3917,6 +4055,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake of the given event if the event is not null.
      * @param evt The {@code SnakeEvent} to be fired.
+     * @see #fireSnakeChange(int, Integer, Tile) 
      * @see #fireSnakeChange(int, Integer) 
      * @see #fireSnakeChange(int) 
      * @see #fireSnakeFailed(Integer) 
@@ -3936,13 +4075,40 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
+     * snake of an event with the given event ID, direction, and target tile. If 
+     * the given direction is null, then the {@link #getDirectionFaced() 
+     * direction currently being faced} will be used.
+     * @param id The event ID indicating what type of event occurred.
+     * @param direction The direction for the event, or null to use the 
+     * direction that the snake is facing.
+     * @param target The tile that was the target for the event, or null.
+     * @see #fireSnakeChange(SnakeEvent) 
+     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int) 
+     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed() 
+     * @see SnakeEvent
+     * @see #getDirectionFaced 
+     * @see #addSnakeListener 
+     * @see #removeSnakeListener 
+     * @see #getSnakeListeners 
+     */
+    protected void fireSnakeChange(int id, Integer direction,Tile target){
+        fireSnakeChange(new SnakeEvent(this,id,
+                    // If the direction is not null, use it. Otherwise, use the 
+                    // direction being faced by this snake
+                (direction!=null)?direction:getDirectionFaced(),target));
+    }
+    /**
+     * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake of an event with the given event ID and direction. If the given 
      * direction is null, then the {@link #getDirectionFaced() direction 
-     * currently being faced} will be used.
+     * currently being faced} will be used. The target tile will be null.
      * @param id The event ID indicating what type of event occurred.
      * @param direction The direction for the event, or null to use the 
      * direction that the snake is facing.
      * @see #fireSnakeChange(SnakeEvent) 
+     * @see #fireSnakeChange(int, Integer, Tile) 
      * @see #fireSnakeChange(int) 
      * @see #fireSnakeFailed(Integer) 
      * @see #fireSnakeFailed() 
@@ -3953,15 +4119,32 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getSnakeListeners 
      */
     protected void fireSnakeChange(int id, Integer direction){
-        fireSnakeChange(new SnakeEvent(this,id,
-                    // If the direction is not null, use it. Otherwise, use the 
-                    // direction being faced by this snake
-                (direction!=null)?direction:getDirectionFaced()));
+        fireSnakeChange(id,direction,null);
+    }
+    /**
+     * This notifies all the {@code SnakeListener}s that have been added to this 
+     * snake of an event with the given event ID, the direction that this snake 
+     * is {@link #getDirectionFaced() currently facing}, and the target tile.
+     * @param id The event ID indicating what type of event occurred.
+     * @param target The tile that was the target for the event, or null.
+     * @see #fireSnakeChange(SnakeEvent) 
+     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed() 
+     * @see SnakeEvent
+     * @see #getDirectionFaced 
+     * @see #addSnakeListener 
+     * @see #removeSnakeListener 
+     * @see #getSnakeListeners 
+     */
+    protected void fireSnakeChange(int id, Tile target){
+        fireSnakeChange(id,getDirectionFaced(),target);
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake of an event with the given event ID and the direction that this 
-     * snake is {@link #getDirectionFaced() currently facing}.
+     * snake is {@link #getDirectionFaced() currently facing}. The target tile 
+     * will be null.
      * @param id The event ID indicating what type of event occurred.
      * @see #fireSnakeChange(SnakeEvent) 
      * @see #fireSnakeChange(int, Integer) 
@@ -3974,13 +4157,37 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getSnakeListeners 
      */
     protected void fireSnakeChange(int id){
-        fireSnakeChange(id,null);
+        fireSnakeChange(id,getDirectionFaced(),null);
+    }
+    /**
+     * This notifies all the {@code SnakeListener}s that have been added to this 
+     * snake that this snake has failed to perform an action in the given 
+     * direction and with the given target tile. If the given direction is null, 
+     * then the {@link #getDirectionFaced() direction currently being faced} 
+     * will be used.
+     * @param direction The direction for the event, or null to use the 
+     * direction that the snake is facing.
+     * @param target The tile that was the target for the event, or null.
+     * @see #fireSnakeFailed() 
+     * @see #fireSnakeChange(SnakeEvent) 
+     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int) 
+     * @see SnakeEvent
+     * @see SnakeEvent#SNAKE_FAILED
+     * @see #getDirectionFaced 
+     * @see #addSnakeListener 
+     * @see #removeSnakeListener 
+     * @see #getSnakeListeners 
+     */
+    protected void fireSnakeFailed(Integer direction, Tile target){
+        fireSnakeChange(SnakeEvent.SNAKE_FAILED,direction,target);
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake that this snake has failed to perform an action in the given 
      * direction. If the given direction is null, then the {@link 
-     * #getDirectionFaced() direction currently being faced} will be used.
+     * #getDirectionFaced() direction currently being faced} will be used. The 
+     * target tile will be null.
      * @param direction The direction for the event, or null to use the 
      * direction that the snake is facing.
      * @see #fireSnakeFailed() 
@@ -3995,12 +4202,33 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getSnakeListeners 
      */
     protected void fireSnakeFailed(Integer direction){
-        fireSnakeChange(SnakeEvent.SNAKE_FAILED,direction);
+        fireSnakeFailed(direction,null);
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake that this snake has failed to perform an action in the {@link 
-     * #getDirectionFaced() direction currently being faced} by the snake.
+     * #getDirectionFaced() direction currently being faced} by the snake and 
+     * with the given target tile.
+     * @param target The tile that was the target for the event, or null.
+     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeChange(SnakeEvent) 
+     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int) 
+     * @see SnakeEvent
+     * @see SnakeEvent#SNAKE_FAILED
+     * @see #getDirectionFaced 
+     * @see #addSnakeListener 
+     * @see #removeSnakeListener 
+     * @see #getSnakeListeners 
+     */
+    protected void fireSnakeFailed(Tile target){
+        fireSnakeFailed(getDirectionFaced(),target);
+    }
+    /**
+     * This notifies all the {@code SnakeListener}s that have been added to this 
+     * snake that this snake has failed to perform an action in the {@link 
+     * #getDirectionFaced() direction currently being faced} by the snake. The 
+     * target tile will be null.
      * @see #fireSnakeFailed(Integer) 
      * @see #fireSnakeChange(SnakeEvent) 
      * @see #fireSnakeChange(int, Integer) 
@@ -4013,7 +4241,7 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
      * @see #getSnakeListeners 
      */
     protected void fireSnakeFailed(){
-        fireSnakeFailed(null);
+        fireSnakeFailed(getDirectionFaced(),null);
     }
     /**
      * This adds a {@code PropertyChangeListener} to this snake. This listener 
@@ -4238,6 +4466,10 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
          * was constructed.
          */
         private final boolean flipped;
+        
+        private Tile previous = null;
+        
+        private Tile current = null;
         /**
          * This constructs a SnakeIterator.
          */
@@ -4257,7 +4489,13 @@ public class Snake implements SnakeConstants, Iterable<Tile>{
                 // If the snake has been flipped since this iterator's 
             if (flipped != isFlipped()) // construction
                 throw new ConcurrentModificationException();
-            return iterator.next();
+            previous = current;
+            current = iterator.next();
+            return current;
         }
+        
+//        public void remove(){
+//            // Remove tile, then try to heal the snake by ensuring the previous tile will join up with the next
+//        }
     }
 }

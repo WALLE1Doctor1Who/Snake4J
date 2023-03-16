@@ -30,3 +30,5 @@ Development_Stuff/
 
 # Windows desktop.imi files
 **/desktop.ini
+/src/snake/SnakeGame4J.form
+/src/snake/SnakeGame4J.java

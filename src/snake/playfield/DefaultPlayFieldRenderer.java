@@ -20,6 +20,11 @@ import snake.event.*;
  */
 public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
+     * This is the color used to render the disabled overlay used to show that a 
+     * JPlayField is disabled. This color is a translucent black.
+     */
+    public static final Color DISABLED_OVERLAY_COLOR=new Color(0x60000000,true);
+    /**
      * This constructs a DefaultPlayFieldRenderer.
      */
     public DefaultPlayFieldRenderer(){
@@ -719,14 +724,14 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             return null;
         else if (tile.isApple())    // If the tile is an apple tile
                 // Return the play field's apple color, or the default apple 
-                // color if its null
+                // color if it's null
             return Objects.requireNonNullElse(c.getAppleColor(),APPLE_COLOR);
         else if (tile.isSnake()){   // If the tile is a snake tile
                 // If the snake tile has its type flag set, return the play 
                 // field's secondary snake color (or the default secondary snake 
-                // color if its null). Otherwise, return the play field's 
+                // color if it's null). Otherwise, return the play field's 
                 // primary snake color (or the default primary snake color if 
-            return (tile.getType()) ? // its null)
+            return (tile.getType()) ? // it's null)
                     Objects.requireNonNullElse(c.getSecondarySnakeColor(),
                             SECONDARY_SNAKE_COLOR) : 
                     Objects.requireNonNullElse(c.getPrimarySnakeColor(),
@@ -795,14 +800,16 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * {@inheritDoc } <p>
      * 
      * This method actually delegates the work of rendering the play field to 
-     * four protected methods: {@code configureGraphics}, {@code 
-     * paintTileBackground}, {@code paintTiles}, and {@code paintTileBorder}. 
-     * They are called in the order listed to ensure that the given graphics 
-     * context is configured before anything is rendered, the tiles appear on 
-     * top of the tile background, and the tile border appears on top of the 
-     * tiles. The {@code paintTiles} method is also responsible for outlining 
-     * and returning the path {@code paintTileBorder} will take when rendering 
-     * the tile border.
+     * five protected methods: {@code configureGraphics}, {@code 
+     * paintTileBackground}, {@code paintTiles}, {@code paintTileBorder}, and 
+     * {@code paintDisabledOverlay}. They are called in the order listed to 
+     * ensure that the given graphics context is configured before anything is 
+     * rendered, the tiles appear on top of the tile background, the tile border 
+     * appears on top of the tiles, and the disabled overlay appears above all. 
+     * The {@code paintDisabledOverlay} method is only called if the given 
+     * JPlayField is disabled. The {@code paintTiles} method is also responsible 
+     * for outlining and returning the path {@code paintTileBorder} will take 
+     * when rendering the tile border.
      * 
      * @param g {@inheritDoc }
      * @param c {@inheritDoc }
@@ -812,10 +819,12 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see #paintTileBackground 
      * @see #paintTiles 
      * @see #paintTileBorder 
+     * @see #paintDisabledOverlay
      * @see JPlayField#paintComponent 
      * @see JPlayField#getWidth 
      * @see JPlayField#getHeight 
      * @see JPlayField#getModel 
+     * @see JPlayField#isEnabled 
      */
     @Override
     public void paint(Graphics2D g, JPlayField c, int width, int height) {
@@ -841,6 +850,9 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             Path2D borderP = paintTiles(g,c,tileS,fieldR);
                 // Paint the border
             paintTileBorder(g,c,tileS,fieldR,borderP);
+            if (!c.isEnabled())     // If the play field is disabled
+                    // Paint the disabled overlay
+                paintDisabledOverlay(g,c,tileS,fieldR); 
         }
         catch(NullPointerException ex) {}
     }
@@ -906,7 +918,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             // If the tile background is to be painted
         if (c.isTileBackgroundPainted()){
             g = (Graphics2D) g.create();
-                // Use the play field's tile background color if its not null.
+                // Use the play field's tile background color if it's not null.
                 // Otherwise, use the default tile background color
             g.setColor(Objects.requireNonNullElse(c.getTileBackground(),
                     TILE_BACKGROUND_COLOR));
@@ -1475,7 +1487,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             g = (Graphics2D) g.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                     RenderingHints.VALUE_ANTIALIAS_OFF);
-                // Use the play field's tile border color if its not null.
+                // Use the play field's tile border color if it's not null.
                 // Otherwise, use the default tile border color
             g.setColor(Objects.requireNonNullElse(c.getTileBorder(),
                     TILE_BORDER_COLOR));
@@ -1487,5 +1499,34 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             g.draw(borderP);
             g.dispose();
         }
+    }
+    /**
+     * This is used to render the disabled overlay when the JPlayField is 
+     * {@link JPlayField#isEnabled() disabled}. This is only called by {@link 
+     * paint paint} when it is given a disabled JPlayField. If the JPlayField is 
+     * disabled, then this will fill the play field area (the area defined by 
+     * {@code fieldR}) with the {@link DISABLED_OVERLAY_COLOR disabled overlay 
+     * color}. This renders to a copy of the given graphics context, so as to 
+     * protect the rest of the paint code from changes made to the graphics 
+     * context while rendering the disabled overlay.
+     * @param g The graphics context to render to.
+     * @param c The JPlayField being rendered.
+     * @param tileS The size of the tiles.
+     * @param fieldR The bounds of the play field.
+     * @see #paint 
+     * @see JPlayField#isEnabled 
+     * @see JPlayField#setEnabled 
+     * @see DISABLED_OVERLAY_COLOR
+     * @see #getTileSize(JPlayField) 
+     * @see #getTileSize(JPlayField, Dimension2D) 
+     * @see #getPlayFieldBounds(JPlayField) 
+     * @see #getPlayFieldBounds(JPlayField, Rectangle2D) 
+     */
+    protected void paintDisabledOverlay(Graphics2D g, JPlayField c, 
+            Dimension2D tileS, Rectangle2D fieldR){
+        g = (Graphics2D) g.create();
+        g.setColor(DISABLED_OVERLAY_COLOR);
+        g.fill(fieldR);
+        g.dispose();
     }
 }

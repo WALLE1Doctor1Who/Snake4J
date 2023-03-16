@@ -4,6 +4,7 @@
  */
 package snake;
 
+import java.awt.*;
 import java.awt.geom.*;
 import java.util.Collection;
 import java.util.Objects;
@@ -192,13 +193,14 @@ public class SnakeUtilities implements SnakeConstants{
     public static int requireSingleDirection(int value){
             // Gets the amount of direction flags set
         int count = getDirectionCount(value);
-        if (count < 1)      // If there are no direction flags set
-            throw new IllegalArgumentException("No direction set");
-        else if (count > 1) // If there are more than 1 direction flags set
-            throw new IllegalArgumentException("Too many directions set "
-                    + "(Expected: 1, Actual: "+count+")");
-        else
+        if (count == 1)     // If there is exactly one direction set
             return getDirections(value);
+            // Throw an IllegalArgumentException stating the issue
+        throw new IllegalArgumentException(String.format(
+                "%s directions set on %d (Expected: 1, Actual: %d)", 
+                    // If there are no directions set, say that there are no 
+                    // directions set. Otherwise, say there are too many 
+                (count == 0)?"No":"Too many",value,count)); // directions set
     }
     /**
      * This inverts which directions are set for the given value. In other 
@@ -520,4 +522,144 @@ public class SnakeUtilities implements SnakeConstants{
         }
     }
     
+    public static Polygon getTriangle(int x,int y,int w,int h,int direction){
+        Polygon triangle = new Polygon(new int[3],new int[3],3);
+        switch(direction){
+            case(UP_DIRECTION):
+            case(DOWN_DIRECTION):
+                triangle.xpoints[0] = 0;
+                triangle.xpoints[1] = w;
+                triangle.xpoints[2] = Math.floorDiv(w, 2);
+                break;
+            case(LEFT_DIRECTION):
+            case(RIGHT_DIRECTION):
+                triangle.ypoints[0] = 0;
+                triangle.ypoints[1] = h;
+                triangle.ypoints[2] = Math.floorDiv(h, 2);
+                break;
+            case(UP_LEFT_DIRECTION):
+            case(UP_RIGHT_DIRECTION):
+            case(DOWN_LEFT_DIRECTION):
+                triangle.ypoints[0] = 0;
+            case(DOWN_RIGHT_DIRECTION):
+                triangle.xpoints[0] = triangle.ypoints[2] = 0;
+                triangle.xpoints[2] = w;
+                triangle.ypoints[1] = h;
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Cannot get triangle for direction " + direction);
+        }
+        switch(direction){
+            case(UP_DIRECTION):
+                triangle.ypoints[0] = triangle.ypoints[1] = h;
+                triangle.ypoints[2] = 0;
+                break;
+            case(DOWN_DIRECTION):
+                triangle.ypoints[0] = triangle.ypoints[1] = 0;
+                triangle.ypoints[2] = h;
+                break;
+            case(LEFT_DIRECTION):
+                triangle.xpoints[0] = triangle.xpoints[1] = w;
+                triangle.xpoints[2] = 0;
+                break;
+            case(RIGHT_DIRECTION):
+                triangle.xpoints[0] = triangle.xpoints[1] = 0;
+                triangle.xpoints[2] = w;
+                break;
+            case(DOWN_LEFT_DIRECTION):
+                triangle.ypoints[2] = h;
+            case(UP_LEFT_DIRECTION):
+                triangle.xpoints[1] = 0;
+                break;
+            case(DOWN_RIGHT_DIRECTION):
+                triangle.ypoints[0] = h;
+            case(UP_RIGHT_DIRECTION):
+                triangle.xpoints[1] = w;
+        }
+        triangle.invalidate();
+        triangle.translate(x, y);
+        return triangle;
+    }
+    
+    public static void drawRectangularPrism(Graphics g,int x,int y,int w,int h,
+            int bevel){
+        int bW = w - Math.abs(bevel);
+        int bH = h - Math.abs(bevel);
+        g.drawRect(x, y, w, h);
+        if (bevel < 0){
+            g.drawRect(x-bevel, y-bevel, bW, bH);
+            g.drawLine(x, y, x-bevel, y-bevel);
+        }
+        else if (bevel > 0){
+            g.drawRect(x, y, bW, bH);
+            g.drawLine(x+bW, y+bH, x+w, y+h);
+        }
+    }
+    
+    public static void fillRectangularPrism(Graphics g,int x,int y,int w,int h,
+            int bevel){
+        g.fillRect(x, y, w, h);
+        if (bevel == 0)
+            return;
+        boolean raised = bevel > 0;
+        bevel = Math.abs(bevel);
+        Color c = g.getColor();
+        if (raised){
+            g.setColor(c.darker());
+            g.fillRect(x, y+h-bevel, w, bevel);
+            g.setColor(g.getColor().darker());
+            g.fillPolygon(new int[]{x+w-bevel,x+w,x+w,x+w-bevel}, 
+                    new int[]{y,y,y+h,y+h-bevel}, 4);
+        }
+        else{
+            g.setColor(c.brighter());
+            g.fillRect(x, y, w, bevel);
+            g.setColor(g.getColor().brighter());
+            g.fillPolygon(new int[]{x,x+bevel,x+bevel,x}, 
+                    new int[]{y,y+bevel,y+h,y+h}, 4);
+        }
+        g.setColor(c);
+    }
+    
+    public static void drawBeveledRectangle(Graphics g,int x,int y,int w,int h,
+            int bevel){
+        g.drawRect(x, y, w, h);
+        if (bevel == 0)
+            return;
+        bevel = Math.abs(bevel);
+        int bX = x+bevel;
+        int bY = y+bevel;
+        int bW = w-bevel-bevel;
+        int bH = h-bevel-bevel;
+        g.drawRect(bX, bY, bW, bH);
+        for (int i = 0; i < 4; i++){
+            g.drawLine(x+(w*(i%2)),y+(h*(i>>1)),bX+(bW*(i%2)),bY+(bH*(i>>1)));
+        }
+    }
+    
+    public static void fillBeveledRectangle(Graphics g,int x,int y,int w,int h,
+            int bevel){
+        g.fillRect(x, y, w, h);
+        if (bevel == 0)
+            return;
+        Color c = g.getColor();
+        Color[] colors = new Color[4];
+        boolean raised = bevel > 0;
+        colors[(raised)?0:2] = c.brighter();
+        colors[(raised)?1:3] = colors[(raised)?0:2].brighter();
+        colors[(raised)?2:0] = c.darker();
+        colors[(raised)?3:1] = colors[(raised)?2:0].darker();
+        bevel = Math.abs(bevel);
+        g.setColor(colors[0]);
+        g.fillRect(x, y, w, bevel);
+        g.setColor(colors[2]);
+        g.fillRect(x, y+h-bevel, w, bevel);
+        int[] yPoints = new int[]{y, y+bevel, y+h-bevel, y+h};
+        g.setColor(colors[1]);
+        g.fillPolygon(new int[]{x, x+bevel, x+bevel, x}, yPoints, 4);
+        g.setColor(colors[3]);
+        g.fillPolygon(new int[]{x+w, x+w-bevel, x+w-bevel, x+w}, yPoints, 4);
+        g.setColor(c);
+    }
 }
