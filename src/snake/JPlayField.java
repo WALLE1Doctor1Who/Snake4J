@@ -58,8 +58,17 @@ import snake.playfield.*;
  * play field renderer is provided by the protected {@code getDefaultRenderer} 
  * method. This will typically be a shared instance of a {@link 
  * DefaultPlayFieldRenderer DefaultPlayFieldRenderer}, which is an 
- * implementation of {@code PlayFieldRenderer} which uses simple geometry to 
- * make up the play field.
+ * implementation of {@code PlayFieldRenderer} that uses simple geometry to 
+ * render the play field. <p>
+ * 
+ * While {@code JPlayField} does not react to input events, it's easy to add a 
+ * {@code MouseListener} if you wish to take action on mouse events. The {@code 
+ * locationToTile} and {@code locationToTile2D} methods can be used to determine 
+ * what tile was clicked. The {@code locationToTile} methods use integer 
+ * precision whereas the {@code locationToTile2D} methods use floating point 
+ * precision. As such, the {@code locationToTile2D} methods are generally 
+ * preferable over the {@code locationToTile} methods when getting the tile at 
+ * an exact location. 
  * 
  * @author Milo Steier
  * @see Tile
@@ -245,7 +254,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         this(new DefaultPlayFieldModel());
     }
     /**
-     * This returns the minimum size for this panel. If the minimum size has 
+     * This returns the minimum size for this component. If the minimum size has 
      * been set to a non-null value, then that is what is returned. Otherwise, 
      * this will query the {@link #getRenderer() play field renderer}'s {@link 
      * PlayFieldRenderer#getMinimumSize getMinimumSize} method and returns that 
@@ -253,7 +262,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * delegate's {@code getMinimumSize} method and returning that if it returns 
      * a non-null value, and deferring to the component's layout manager if it 
      * does returns null.
-     * @return {@inheritDoc }
+     * @return The minimum size for this component.
      * @see #setMinimumSize 
      * @see #getRenderer 
      * @see PlayFieldRenderer#getMinimumSize 
@@ -273,12 +282,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return (dim != null) ? dim : super.getMinimumSize();
     }
     /**
-     * This sets the minimum size of this label. Any subsequent call to {@code 
-     * getMinimumSize} will return this value, and neither the {@link 
+     * This sets the minimum size for this component. Any subsequent call to 
+     * {@code getMinimumSize} will return this value, and neither the {@link 
      * #getRenderer() play field renderer} nor the component's UI will be asked 
      * to compute it. Setting the minimum size to null will reset it back to the 
      * default behavior.
-     * @param minimumSize {@inheritDoc }
+     * @param minimumSize The new minimum size for this component, or null.
      * @see #getMinimumSize 
      */
     @Override
@@ -286,7 +295,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         super.setMinimumSize(minimumSize);
     }
     /**
-     * This returns the maximum size for this panel. If the maximum size has 
+     * This returns the maximum size for this component. If the maximum size has 
      * been set to a non-null value, then that is what is returned. Otherwise, 
      * this will query the {@link #getRenderer() play field renderer}'s {@link 
      * PlayFieldRenderer#getMaximumSize getMaximumSize} method and returns that 
@@ -294,7 +303,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * delegate's {@code getMaximumSize} method and returning that if it returns 
      * a non-null value, and deferring to the component's layout manager if it 
      * does returns null.
-     * @return {@inheritDoc }
+     * @return The maximum size for this component.
      * @see #setMaximumSize 
      * @see #getRenderer 
      * @see PlayFieldRenderer#getMaximumSize 
@@ -314,12 +323,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return (dim != null) ? dim : super.getMaximumSize();
     }
     /**
-     * This sets the maximum size of this label. Any subsequent call to {@code 
-     * getMaximumSize} will return this value, and neither the {@link 
+     * This sets the maximum size for this component. Any subsequent call to 
+     * {@code getMaximumSize} will return this value, and neither the {@link 
      * #getRenderer() play field renderer} nor the component's UI will be asked 
      * to compute it. Setting the maximum size to null will reset it back to the 
      * default behavior.
-     * @param maximumSize {@inheritDoc }
+     * @param maximumSize The new maximum size for this component, or null.
      * @see #getMaximumSize 
      */
     @Override
@@ -327,15 +336,15 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         super.setMaximumSize(maximumSize);
     }
     /**
-     * This returns the preferred size for this panel. If the preferred size has 
-     * been set to a non-null value, then that is what is returned. Otherwise, 
-     * this will query the {@link #getRenderer() play field renderer}'s {@link 
-     * PlayFieldRenderer#getPreferredSize getPreferredSize} method and returns 
-     * that if it's not null. Otherwise, this will fall back on querying the UI 
-     * delegate's {@code getPreferredSize} method and returning that if it 
-     * returns a non-null value, and deferring to the component's layout manager 
-     * if it does returns null.
-     * @return {@inheritDoc }
+     * This returns the preferred size for this component. If the preferred size 
+     * has been set to a non-null value, then that is what is returned. 
+     * Otherwise, this will query the {@link #getRenderer() play field 
+     * renderer}'s {@link PlayFieldRenderer#getPreferredSize getPreferredSize} 
+     * method and returns that if it's not null. Otherwise, this will fall back 
+     * on querying the UI delegate's {@code getPreferredSize} method and 
+     * returning that if it returns a non-null value, and deferring to the 
+     * component's layout manager if it does returns null.
+     * @return The preferred size for this component.
      * @see #setPreferredSize
      * @see #getRenderer 
      * @see PlayFieldRenderer#getPreferredSize 
@@ -355,12 +364,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return (dim != null) ? dim : super.getPreferredSize();
     }
     /**
-     * This sets the preferred size of this label. Any subsequent call to {@code 
-     * getPreferredSize} will return this value, and neither the {@link 
+     * This sets the preferred size for this component. Any subsequent call to 
+     * {@code getPreferredSize} will return this value, and neither the {@link 
      * #getRenderer() play field renderer} nor the component's UI will be asked 
      * for it. Setting the preferred size to null will reset it back to the 
      * default behavior.
-     * @param preferredSize {@inheritDoc }
+     * @param preferredSize The new preferred size for this component, or null.
      * @see #getPreferredSize 
      */
     @Override
@@ -368,7 +377,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         super.setPreferredSize(preferredSize);
     }
     /**
-     * {@inheritDoc }
+     * This sets whether this component will paint every pixel within its 
+     * bounds. If this is {@code false}, then the component may not paint some 
+     * or all of its pixels, allowing the underlying pixels to show through. The 
+     * default value for this is {@code false}.
+     * @param isOpaque {@code true} if this component should be opaque, {@code 
+     * false} otherwise.
      * @see #isOpaque 
      */
     @Override
@@ -938,7 +952,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * identity transform applied to it. If this is the case, then you might get 
      * unexpected results if you cumulatively apply another transform.
      * 
-     * @param g {@inheritDoc }
+     * @param g The {@code Graphics} object to render to.
      * @see #paint 
      * @see ComponentUI
      * @see PlayFieldRenderer
@@ -1002,8 +1016,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see DefaultPlayFieldModel
      */
     public void setModel(PlayFieldModel model){
-        if (model == null)                      // If the model is null
-            throw new NullPointerException("Model cannot be null");
+            // Check if the model is null
+        Objects.requireNonNull(model, "Model cannot be null");
         if (Objects.equals(model, this.model))  // If the model would not change
             return;
         PlayFieldModel old = this.model;        // Get the old model
@@ -1358,7 +1372,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * wrapAround} is false, then this will return null. 
      * @throws NullPointerException If the given tile is null.
      * @throws IllegalArgumentException If the given direction is not one of the 
-     * direction flags.
+     * four direction flags.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -1403,7 +1417,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * will return null. 
      * @throws NullPointerException If the given tile is null.
      * @throws IllegalArgumentException If the given direction is not one of the 
-     * direction flags with or without the {@link #ALTERNATE_TYPE_FLAG} set.
+     * four direction flags with or without the {@link #ALTERNATE_TYPE_FLAG} 
+     * set.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -1581,12 +1596,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldRenderer#isHighQuality 
      */
     public boolean isHighQuality(){
-            // If the high quality setting has not been set yet
-        if (hqEnabled == null)  
-                // Return if the renderer is not null and the renderer says to 
-                // render this in high quality.
-            return getRenderer() != null && getRenderer().isHighQuality(this);
-        return hqEnabled;
+        Boolean value = hqEnabled;  // Get whether this renders in high quality
+            // If the value has not been set and the renderer is not null
+        if (value == null && getRenderer() != null)
+                //Get whether the renderer says this is rendered in high quality
+            value = getRenderer().isHighQuality(this);
+            // If the high quality property is not null, return it. Otherwise, 
+        return (value != null) ? value : true;  // return true.
     }
     /**
      * This sets whether the play field will be rendered in high quality. What 
@@ -1625,12 +1641,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldRenderer#isTileBackgroundPainted 
      */
     public boolean isTileBackgroundPainted(){
-            // If the paint tile background setting has not been set yet
-        if (paintTileBG == null)
-                // Return if the renderer is not null and the renderer says to 
-                // paint the tile background.
-            return getRenderer()!=null&&getRenderer().isTileBackgroundPainted(this);
-        return paintTileBG;
+        Boolean value = paintTileBG;  // Get whether this paints the background
+            // If the value has not been set and the renderer is not null
+        if (value == null && getRenderer() != null)
+                //Get whether the renderer says the background is rendererd
+            value = getRenderer().isTileBackgroundPainted(this);
+            // If the paint background property is not null, return it. 
+        return (value != null) ? value : true;  // Otherwise, return true.
     }
     /**
      * This sets whether the tile background will be painted. If this is true, 
@@ -1668,12 +1685,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldRenderer#isTileBorderPainted 
      */
     public boolean isTileBorderPainted(){
-            // If the paint tile border setting has not been set yet
-        if (paintTileBorder == null)
-                // Return if the renderer is not null and the renderer says to 
-                // paint the tile border.
-            return getRenderer()!=null&&getRenderer().isTileBorderPainted(this);
-        return paintTileBorder;
+        Boolean value = paintTileBorder;   // Get whether this paints the border
+            // If the value has not been set and the renderer is not null
+        if (value == null && getRenderer() != null)
+                //Get whether the renderer says the border is rendererd
+            value = getRenderer().isTileBorderPainted(this);
+            // If the paint border property is not null, return it. Otherwise, 
+        return (value != null) ? value : true;  // return true.
     }
     /**
      * This sets whether the tile border will be painted. It is up to the {@link 

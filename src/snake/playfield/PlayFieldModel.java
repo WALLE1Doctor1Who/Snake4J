@@ -220,7 +220,7 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * wrapAround} is false, then this will return null. 
      * @throws NullPointerException If the given tile is null.
      * @throws IllegalArgumentException If the given direction is not one of the 
-     * direction flags.
+     * four direction flags.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -268,7 +268,8 @@ public interface PlayFieldModel extends Iterable<Tile>, SnakeConstants{
      * will return null. 
      * @throws NullPointerException If the given tile is null.
      * @throws IllegalArgumentException If the given direction is not one of the 
-     * direction flags with or without the {@link #ALTERNATE_TYPE_FLAG} set.
+     * four direction flags with or without the {@link #ALTERNATE_TYPE_FLAG} 
+     * set.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION

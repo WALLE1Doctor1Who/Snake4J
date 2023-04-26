@@ -47,21 +47,28 @@ public class DoubleDimension2D extends Dimension2D{
         this(0,0);
     }
     /**
-     * {@inheritDoc }
+     * This returns the width of this {@code DoubleDimension2D} in double 
+     * precision.
+     * @return The width of this dimension.
      */
     @Override
     public double getWidth() {
         return width;
     }
     /**
-     * {@inheritDoc }
+     * This returns the height of this {@code DoubleDimension2D} in double 
+     * precision.
+     * @return The height of this dimension.
      */
     @Override
     public double getHeight() {
         return height;
     }
     /**
-     * {@inheritDoc }
+     * This sets the size of this {@code DoubleDimension2D} to the specified 
+     * width and height.
+     * @param width The new width for this dimension.
+     * @param height The new height for this dimension.
      */
     @Override
     public void setSize(double width, double height) {

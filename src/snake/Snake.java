@@ -14,76 +14,107 @@ import snake.event.*;
 import snake.playfield.*;
 
 /**
- * This is a group of {@link Tile tiles} used to represent a snake in the game 
- * Snake. A snake is displayed on and moves around on a play field represented 
- * by a {@link PlayFieldModel PlayFieldModel}. When a snake is first constructed 
- * or when the {@code PlayFieldModel} for a snake changes, then the snake will 
- * need to be {@link #initialize(Tile) initialized} with a tile from the {@code 
- * PlayFieldModel} before it can be used. When a snake is initialized, the tile 
- * provided to it will be used as the snake's {@link #getHead head}. Once a 
- * snake has been initialized, it will be in a {@link #isValid() valid} state. 
- * For a snake to be in a valid state, the snake must not be {@link #isEmpty() 
- * empty}, its head must be a non-null tile {@link PlayFieldModel#contains(Tile) 
- * contained} within its {@code PlayFieldModel}, and the snake must be facing a 
- * single direction. A snake must be in a valid state for most of the snake's 
- * methods to work. If a method requires the snake to be in a valid state, then 
- * the method will typically throw an {@link IllegalStateException 
- * IllegalStateException} when the calling snake is not in a valid state. <p>
+ * This is a collection of {@link Tile tiles} used to represent a snake in the 
+ * game Snake. Snakes are displayed on and move around on a play field 
+ * represented by a {@link PlayFieldModel PlayFieldModel}. Snakes implement the 
+ * {@link Queue Queue} and {@link Set Set} interfaces, inheriting the element 
+ * order from {@code Queue} and the stipulations on duplicate elements from 
+ * {@code Set}. As such, snakes order tiles in a FIFO (first-in-first-out) 
+ * manner like a queue, and snakes contain no duplicate tiles like a set. Null 
+ * tiles and tiles not contained within the snake's {@code PlayFieldModel} are 
+ * prohibited. <p>
  * 
- * Snakes are treated as and are internally represented by a queue of tiles, 
- * with the {@link #getHead() head} and the {@link #getTail() tail} of the snake 
- * corresponding to either end of the queue. Technically speaking, the head of 
- * the snake is treated as the tail of the queue and the tail of the snake is 
- * treated as the head of the queue. When a tile is added to the snake, it 
- * becomes the new head of the snake, and when a tile is removed from the snake, 
- * the tile removed will be the snake's tail. If a snake is less than two tiles 
- * long, then the snake will not have a tail. In other words, the snake's {@link 
- * #getTail() getTail} method will return null. When this is the case, no tiles 
- * can be removed from the snake. When a snake is {@link #flip() flipped}, the 
- * order of the tiles in the snake will be reversed. This will result in the 
- * snake's head becoming the snake's tail and vice versa. <p>
+ * Tiles are inserted at the front of the snake (the <em>tail</em> of the 
+ * queue), and the last tile in the snake is the <em>head</em> of the queue (the 
+ * tile which would be removed by {@link #remove() remove} or {@link #poll 
+ * poll}). However, since the <em>head</em> of the snake is the tile at the 
+ * front of the snake, and the <em>tail</em> of the snake is the tile at the end 
+ * of the snake, this means that snakes act as though they a queue but in 
+ * reverse. As such, the <em>head</em> of the <em>snake</em> is the 
+ * <em>tail</em> of the <em>queue</em>, and the <em>tail</em> of the 
+ * <em>snake</em> is the <em>head</em> of the <em>queue</em>. Unless otherwise 
+ * specified, the first tile in the snake will be referred to as the 
+ * <em>head</em>, and the last tile in the snake as the <em>tail</em>. This 
+ * includes the {@link #getHead getHead} and {@link #getTail getTail} methods, 
+ * which return the first and last tiles in the snake, respectively. However, if 
+ * the snake is less than two tiles long, then the snake is said to not have a 
+ * tail and {@code getTail} method will return null. When the snake is two or 
+ * more tiles long, then the snake is said to have a tail and the {@code 
+ * getTail} method is equivalent to calling {@link #peek peek}. The iterators 
+ * returned by the snake's {@link #iterator iterator} method iterates through 
+ * the tiles in the snake starting at the head of the <em>snake</em> and ending 
+ * at the <em>tail</em> of the snake. Snakes can be {@link #flip flipped}. When 
+ * a snake is flipped, the order of the tiles in the snake will be reversed. <p>
+ * 
+ * A snake must be initialized with a tile from the {@code PlayFieldModel} 
+ * before it can be used. A snake will need to be initialized after it is 
+ * constructed if no tile was provided to the constructor. A snake will need to 
+ * be reinitialized if it ever becomes {@link #isEmpty empty}, such as when the 
+ * {@code PlayFieldModel} for the snake changes. A snake can be initialized via 
+ * either the {@code Snake} constructors that take in either a tile or a row and 
+ * column, the {@link #initialize(Tile) initialize} methods, or by adding a tile 
+ * to an empty snake via the {@link #add(Tile) add(Tile)} and {@link #offer 
+ * offer(Tile)} methods. When a snake is initialized, the snake will be reset 
+ * and the tile provided to it will be used as the snake's head. When a snake is 
+ * {@link #clear reset}, all the tiles currently in the snake are removed and 
+ * {@link Tile#clear cleared}, the status for the snake will be reset, and the 
+ * snake's fail count will be reset to zero. <p>
+ * 
+ * Once a snake has been initialized, it will be in a {@link #isValid valid} 
+ * state. For a snake to be in a valid state, the snake must not be empty, its 
+ * head must be a non-null tile {@link PlayFieldModel#contains(Tile) contained} 
+ * within its {@code PlayFieldModel}, and the snake must be facing a single 
+ * direction. A snake must be in a valid state for certain methods to work, such 
+ * as status changing methods like {@link #flip flip} and {@link #revive 
+ * revive}, methods that get tiles adjacent to the snake's head like {@link 
+ * #getAdjacentToHead getAdjacentToHead} and {@link #getTileBeingFaced 
+ * getTileBeingFaced}, methods involved with moving the snake like {@link 
+ * #add(int) add(int)} and {@link #move(int) move(int)}, and methods involved 
+ * with performing actions like {@link #doCommand doCommand}, {@link 
+ * #doDefaultAction doDefaultAction}, and {@link #doNextAction doNextAction}. If 
+ * a method requires the snake to be in a valid state, then the method will 
+ * typically throw an {@link IllegalStateException IllegalStateException} when 
+ * the calling snake is not in a valid state. <p>
  * 
  * Some of the operations provided by snakes are direction based. These methods 
  * are primarily involved with adding tiles to and moving a snake. Each of these 
  * methods comes in two forms: one that takes in an integer representing a 
- * direction, and the other uses the direction the snake is {@link 
- * #getDirectionFaced() facing}. The former form will typically require the 
- * value for the direction to be either zero or one of the four direction flags: 
- * {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and 
- * {@link #RIGHT_DIRECTION}. These methods will typically interpret a direction 
- * of zero as the direction that the snake is facing. In other words, these 
- * methods will substitute a direction of zero with the direction returned by 
- * the {@link #getDirectionFaced() getDirectionFaced} method. The latter form of 
- * these methods will typically invoke their respective former form with the 
- * direction the snake is facing. In other words, the latter form of the methods 
- * are equivalent to calling their respective former form with the direction 
+ * direction, and the other uses the direction the snake is facing. The former 
+ * form will typically require the value for the direction to be either zero or 
+ * one of the four direction flags: {@link #UP_DIRECTION}, {@link 
+ * #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. 
+ * These methods will typically interpret a direction of zero as the direction 
+ * that the snake is facing. In other words, these methods will substitute a 
+ * direction of zero with the direction returned by the {@link 
+ * #getDirectionFaced getDirectionFaced} method. The latter form of these 
+ * methods will typically invoke their respective former form with the direction 
+ * the snake is facing. In other words, the latter form of the methods are 
+ * equivalent to calling their respective former form with the direction 
  * returned by the {@code getDirectionFaced} method. A summary of the direction 
  * based methods can be found in the table below:
  * 
  * <table class="striped">
- * <caption>Summary of direction based Snake methods</caption>
+ * <caption>Summary of direction based {@code Snake} methods</caption>
  * <thead>
  *  <tr>
- *      <td></td>
- *          <th scope="col" style="font-weight:normal; font-style:italic">
- *              Uses given direction</th>
- *          <th scope="col" style="font-weight:normal; font-style:italic">
- *              Uses {@link #getDirectionFaced() direction faced}</th>
+ *      <th></th>
+ *      <th>Uses given direction</th>
+ *      <th>Uses direction faced</th>
  *  </tr>
  *  </thead>
  *  <tbody>
  *      <tr>
  *          <th scope="row">Get adjacent tile</th>
- *          <td>{@link #getAdjacentToHead(int) getAdjacentToHead(int)}</td>
- *          <td>{@link #getTileBeingFaced() getTileBeingFaced()}</td>
+ *          <td>{@link #getAdjacentToHead getAdjacentToHead(int)}</td>
+ *          <td>{@link #getTileBeingFaced getTileBeingFaced()}</td>
  *      </tr>
  *      <tr>
  *          <th scope="row">Can move/add tile</th>
- *          <td>{@link #canMoveInDirection(int) canMoveInDirection(int)}</td>
- *          <td>{@link #canMoveForward() canMoveForward()}</td>
+ *          <td>{@link #canMoveInDirection canMoveInDirection(int)}</td>
+ *          <td>{@link #canMoveForward canMoveForward()}</td>
  *      </tr>
  *      <tr>
- *          <th scope="row">Add tile</th>
+ *          <th scope="row">Add adjacent tile</th>
  *          <td>{@link #add(int) add(int)}</td>
  *          <td>{@link #add() add()}</td>
  *      </tr>
@@ -96,32 +127,30 @@ import snake.playfield.*;
  * </table>
  * <p>
  * 
- * The {@link #add(int) add(int)} and {@link #add() add()} methods are used to 
- * add tiles that are adjacent to a snake's head, and will return whether the 
- * tile was successfully added to the snake. The {@link #move(int) move(int)} 
- * and {@link #move() move()} methods are used to move a snake, and will return 
- * whether the snake was successfully moved. The main difference between adding 
- * tiles to a snake and moving a snake is that when a snake moves, its current 
- * tail is removed so as to maintain the snake's length after adding a tile to 
- * the snake. <p>
+ * The {@code add(int)} and {@code add()} methods are used to add tiles that are 
+ * adjacent to a snake's head, and will return whether the tile was successfully 
+ * added to the snake. The {@code move(int)} and {@code move()} methods are used 
+ * to move a snake, and will return whether the snake was successfully moved. 
+ * The main difference between adding tiles to a snake and moving a snake is 
+ * that when a snake moves, its current tail is removed so as to maintain the 
+ * snake's length after adding a tile to the snake. <p>
  * 
- * The {@link #getAdjacentToHead getAdjacentToHead} and {@link 
- * #getTileBeingFaced getTileBeingFaced} methods are used to provide the tile to 
- * be added to the snake from the {@code PlayFieldModel} by using the model's 
- * {@link PlayFieldModel#getAdjacentTile getAdjacentTile} method to get a tile 
- * adjacent to the snake's head. A snake that is configured to {@link 
- * #isWrapAroundEnabled() wrap around} will be able to get tiles from the other 
- * side of the play field when the adjacent tile would otherwise be out of 
- * bounds. If the snake is not configured to wrap around, then attempting to get 
- * an out of bounds adjacent tile would return null. As such, when a snake 
- * attempts to add or move to a tile that would be out of bounds, it will either 
- * wrap around and use a tile from the other side of the play field or the snake 
- * will fail to add or move to a tile, depending on whether the snake is 
- * configured to wrap around. <p>
+ * The {@code getAdjacentToHead} and {@code getTileBeingFaced} methods are used 
+ * to provide the tile to be added to the snake from the {@code PlayFieldModel} 
+ * by using the model's {@link PlayFieldModel#getAdjacentTile getAdjacentTile} 
+ * method to get a tile adjacent to the snake's head. A snake that is configured 
+ * to {@link #isWrapAroundEnabled wrap around} will be able to get tiles from 
+ * the other side of the play field when the adjacent tile would otherwise be 
+ * out of bounds. If the snake is not configured to wrap around, then attempting 
+ * to get an out of bounds adjacent tile would return null. As such, when a 
+ * snake attempts to add or move to a tile that would be out of bounds, it will 
+ * either wrap around and use a tile from the other side of the play field or 
+ * the snake will fail to add or move to a tile, depending on whether the snake 
+ * is configured to wrap around. <p>
  * 
  * Snakes can only add or move to a tile if it is a non-null tile that is either 
- * {@link Tile#isEmpty() empty} or an {@link Tile#isApple() apple tile}. Snakes 
- * are only able to add or move to apple tiles if they can {@link 
+ * {@link Tile#isEmpty empty} or an {@link Tile#isApple apple tile}. Snakes are 
+ * only able to add or move to apple tiles if they can {@link 
  * #isAppleConsumptionEnabled eat apples}. If a snake cannot eat apples, then 
  * the snake will only be able to add or move to empty tiles. When a snake adds 
  * or moves to an apple tile, the snake will fire a {@code SnakeEvent} 
@@ -131,71 +160,100 @@ import snake.playfield.*;
  * {@link #canMoveForward canMoveForward} methods can be used to check to see if 
  * a snake can add or move in a given direction based off the tile the snake 
  * would be attempting to add or move to. Additionally, a snake can only add or 
- * move to tiles if it has not {@link #isCrashed() crashed}. A snake will crash 
- * if it has {@link #getFailCount() repeatedly failed} to add or move to a tile 
- * more times than it is {@link #getAllowedFails() allowed to}. This does not 
- * include any attempt to add or move a snake backwards when it has a tail (i.e. 
- * when the snake is at least two tiles long, or when {@code getTail} returns a 
- * non-null tile). When the allowed number of failures is set to a negative 
- * number, then the snake cannot crash. A crashed snake cannot be moved or added 
- * to until it has been {@link #revive() revived}. <p>
+ * move to tiles if it has not {@link #isCrashed crashed}. A snake will crash if 
+ * its {@link #getFailCount fail count} exceeds a set {@link #getAllowedFails 
+ * allowed number of failures}. If a snakes allowed number of failures is 
+ * negative, then the snake will be allowed to fail an unlimited number of times 
+ * without crashing. A snake's fail count will be incremented whenever it fails 
+ * to add or move to a tile, excluding attempts to add or move the snake 
+ * backwards (i.e. in the direction opposite to the direction the snake is 
+ * facing) when the snake has a tail and attempts to add or move the snake when 
+ * it has crashed. A snake's fail count is reset when either the snake 
+ * successfully adds or moves to a tile, the snake is reset, or when the snake 
+ * is revived. A crashed snake cannot be moved or added to until it has been 
+ * revived. This does not apply to the {@code add(Tile)} and {@code offer(Tile)} 
+ * methods, for which cannot add apple tiles and ignore whether the snake has 
+ * crashed. They will, however, reset the fail count but this will not revive 
+ * the snake if it has crashed. <p>
  * 
- * The {@link #removeTail() removeTail} method will remove and return the 
- * snake's tail. If the snake does not have a tail, then the {@code removeTail} 
- * method will do nothing and return null.<p>
+ * The {@link #removeTail removeTail} method is similar to the {@link #poll 
+ * poll} method in that it will remove and return the last tile (the snake's 
+ * tail). However, unlike the {@code poll} method, if the snake does not have a 
+ * tail, then the {@code removeTail} method will do nothing and return null. <p>
  * 
- * A snake's {@link #getPlayerType() player type} indicates what {@link 
- * Tile#getType() type} of {@link Tile#isSnake() snake tiles} a snake will be 
+ * A snake's {@link #getPlayerType player type} indicates what {@link 
+ * Tile#getType type} of {@link Tile#isSnake snake tiles} a snake will be 
  * comprised of and whether a snake represents player one (i.e. a primary snake) 
  * or player two (i.e. a secondary snake). A snake does not necessarily need to 
  * represent an actual player, and multiple snakes may use the same player type. 
  * When a tile is added to a snake, the tile will have its type flag set to the 
  * snake's player type. <p>
  * 
- * Snakes have an {@link #getActionQueue() action queue} that can be used to 
- * store {@code Consumer}s to be performed later. The {@link 
- * #offerAction(Consumer) offerAction(Consumer)} method is used to add {@code 
- * Consumer}s to the action queue, and any non-null {@code Consumer} can be 
- * added as long as it accepts {@code Snake}s as an argument. Additionally, 
- * {@link SnakeCommand SnakeCommands} can also be added to the action queue 
- * using the {@link #offerAction(SnakeCommand) offerAction(SnakeCommand)} 
- * method, which will add a {@link SnakeActionCommand SnakeActionCommand} to the 
- * action queue which will cause the snake to perform the action associated with 
- * the command. When a snake's {@link #doNextAction doNextAction} method is 
- * invoked, it will first check to see if the snake has any {@code Consumer}s in 
- * its action queue. If there are any, then the {@code doNextAction} method will 
- * check to see whether the action should be performed or skipped (i.e. 
- * discarded). Refer to the documentation for the {@link #doNextAction 
- * doNextAction} method for information on how it decides which actions to 
- * perform and which actions to skip. If either the action queue is {@link 
- * #isActionQueueEmpty() empty} or all the actions in the action queue have been 
- * skipped, then the {@code doNextAction} will perform the snake's default 
- * action. <p>
+ * Snakes make certain assumptions about the tiles they are comprised of. Snakes 
+ * assume that they are continuous. That is to say, when there are more than one 
+ * tile in the snake, then each tile in the snake will lead into the tiles 
+ * before and after it. For this to be the case, the direction(s) set on each 
+ * tile in the snake should result in it joining up with the tiles before and 
+ * after it. For two tiles, {@code tile1} and {@code tile2}, to join up, {@code 
+ * tile1} must have at least one direction set on it that is opposite to a 
+ * direction set on {@code tile2}, or equivalently {@code tile1} must have at 
+ * least one direction set on it for which invoking {@code tile1.}{@link 
+ * Tile#alterDirection(Tile) alterDirection}{@code (tile2)} would result in 
+ * {@code tile1} no longer having that direction set. Snakes also assume that, 
+ * with the exception of the first and last tiles, all tiles contained within 
+ * the snake have two directions set, and that the first and last tiles only 
+ * have one direction set. Another assumption snakes make is that, after a tile 
+ * has been added to the snake, the tile will remain present within the snake's 
+ * {@code PlayFieldModel} for the entire duration that it is a part of the 
+ * snake, and will not be removed from the {@code PlayFieldModel} before being 
+ * removed from the snake. If these assumptions turn out to be wrong, then a 
+ * snake may exhibit undefined and unpredictable behavior. The {@link #repair 
+ * repair} method of a snake can be used at any time to correct this and ensure 
+ * that these assumptions reign true for all the tiles in the snake. <p>
  * 
- * A snake's {@link #getDefaultAction() default action} is a {@code Consumer} 
- * that the snake can invoke to perform some action. When the default action is 
- * set to a non-null value and is {@link #isDefaultActionEnabled() enabled}, the 
+ * Snakes have an {@link Snake.ActionQueue action queue} that can be used to 
+ * store {@code Consumer}s to be performed later. It is intended to be used for 
+ * when the actions to be performed by a snake can be generated faster than a 
+ * snake is allowed to act upon them. For example, if a player controlled snake 
+ * is set up to perform an action only when a repeating timer has elapsed, then 
+ * the action queue can be used to store the actions generated by the player 
+ * before said timer has elapsed. This way, these actions can be performed by 
+ * the snake even if they are generated too early or too late, or if they are 
+ * generated at a rate faster than they can be performed. <p>
+ * 
+ * The action queue for a snake can be accessed via the {@link #getActionQueue 
+ * getActionQueue} method. The {@link #doNextAction doNextAction} method is used 
+ * to have a snake perform the next action in its action queue. When invoked, 
+ * the {@code doNextAction} method will invoke the action queue's {@link 
+ * ActionQueue#pollNext pollNext} method to get the next action to perform. If 
+ * the action queue's {@code pollNext} method returns null, then the {@code 
+ * doNextAction} method will perform the snake's default action.  <p>
+ * 
+ * A snake's {@link #getDefaultAction default action} is a {@code Consumer} that 
+ * the snake can invoke to perform some action. When the default action is set 
+ * to a non-null value and is {@link #isDefaultActionEnabled enabled}, the 
  * {@link #doDefaultAction doDefaultAction} method can be used to have the snake 
  * perform it's default action. If the default action is either null or 
  * disabled, then {@code doDefaultAction} will do nothing. The default action 
- * can be set either with a {@code Consumer} or with a {@code SnakeCommand}, 
- * the latter of which will result in the default action being set to a {@code 
- * SnakeActionCommand} that will perform the command. The {@code doNextAction} 
- * method will invoke the {@code doDefaultAction} method when it has run out of 
- * actions from the action queue to perform. <p>
+ * can be set either with a {@code Consumer} or with a {@link SnakeCommand 
+ * SnakeCommand}, the latter of which will result in the default action being 
+ * set to a {@link SnakeActionCommand SnakeActionCommand} that will perform the 
+ * command. The {@code doNextAction} method will invoke the {@code 
+ * doDefaultAction} method when the action queue's {@code pollNext} method 
+ * returns null. <p>
  * 
  * The iterators returned by this class's {@code iterator} method are fail-fast,
  * i.e. if the snake is structurally modified in any way at any time after the 
- * iterator is created, such as adding or removing tiles from the snake or 
- * flipping the snake, the iterator will throw a {@link 
- * ConcurrentModificationException ConcurrentModificationException}. This way, 
- * when faced with concurrent modification, the iterator will fail quickly and 
- * cleanly instead of risking arbitrary, non-deterministic behavior. However, 
- * the fail-fast behavior of the iterator cannot be guaranteed, especially when 
- * dealing with unsynchronized concurrent modifications. The fail-fast iterators 
- * throw {@code ConcurrentModificationExceptions} on a best-effort basis. As 
- * such the fail-fast behavior should not be depended on for its correctness and 
- * should only be used to detect bugs.
+ * iterator is created except via the iterator's own {@code remove} method, then 
+ * the iterator will generally throw a {@link ConcurrentModificationException 
+ * ConcurrentModificationException}. This way, when faced with concurrent 
+ * modification, the iterator will fail quickly and cleanly instead of risking 
+ * arbitrary, non-deterministic behavior. However, the fail-fast behavior of the 
+ * iterator cannot be guaranteed, especially when dealing with unsynchronized 
+ * concurrent modifications. The fail-fast iterators throw {@code 
+ * ConcurrentModificationExceptions} on a best-effort basis. As such the 
+ * fail-fast behavior should not be depended on for its correctness and should 
+ * only be used to detect bugs.
  * 
  * @author Milo Steier
  * @see Tile
@@ -206,8 +264,10 @@ import snake.playfield.*;
  * @see SnakeCommand
  * @see SnakeActionCommand
  * @see DefaultSnakeActionCommand
+ * @see ActionQueue
  */
-public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
+public class Snake extends AbstractQueue<Tile> implements SnakeConstants, 
+        Set<Tile>{
     /**
      * This is the flag used to indicate that a snake has consumed an apple.
      */
@@ -344,7 +404,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * snake. Snakes act as queues of tiles, with the front of the queue being 
      * the tail, and the end of the queue being the head. Snakes take advantage 
      * of this being a double ended queue by switching the front and end of the 
-     * queue when a snake is "{@link #isFlipped() flipped}".
+     * queue when a snake is "{@link #isFlipped() flipped}". There should be no 
+     * duplicate tiles in this queue.
      */
     protected ArrayDeque<Tile> snakeBody = new ArrayDeque<>();
     /**
@@ -378,9 +439,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     private Consumer<Snake> defaultAction = null;
     /**
      * This is a queue storing actions for the snake to perform. This is 
-     * initially null, and will be initialized when it is first requested.
+     * initially null, and will be initialized when it is first requested via 
+     * the {@link #getActionQueue getActionQueue} method.
      */
-    private SnakeActionQueue actionQueue = null;
+    private ActionQueue actionQueue = null;
     /**
      * This constructs a Snake that will be displayed on the given model. The 
      * snake will be able to wrap around and eat apples and will grow when it 
@@ -388,8 +450,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * primary snake) and can fail an unlimited amount of times without 
      * crashing. The snake's default action will be enabled and will move the 
      * snake forward. The snake will need to be {@link #initialize initialized} 
-     * with an {@link Tile#isEmpty() empty} tile from the model before it can be 
-     * used.
+     * with a tile from the model before it can be used.
      * @param model The PlayFieldModel that provides the tiles for the snake 
      * (cannot be null). 
      * @throws NullPointerException If the model is null.
@@ -411,19 +472,19 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * when it does. The snake will also represent the first player (i.e. this 
      * will be a primary snake) and can fail an unlimited amount of times 
      * without crashing. The snake's default action will be enabled and will 
-     * move the snake forward. The snake will be facing left. <p>
+     * move the snake forward. <p>
      * 
-     * This is equivalent to {@link Snake#Snake(PlayFieldModel) constructing} a 
-     * snake without providing a tile for the head and then {@link 
-     * #initialize(Tile) initializing} that snake. 
+     * This is equivalent to {@code new } {@link Snake#Snake(PlayFieldModel) 
+     * Snake}{@code (model).}{@link #initialize(Tile) initialize}{@code (head)}.
      * 
      * @param model The PlayFieldModel that provides the tiles for the snake 
      * (cannot be null). 
-     * @param head The head for the snake. This must be a non-null, {@link 
-     * Tile#isEmpty() empty} tile from the given model. 
-     * @throws NullPointerException If either the model or the head are null.
-     * @throws IllegalArgumentException If the head is either not in the given 
-     * model or is not empty.
+     * @param head The tile to use as the head for the snake. 
+     * @throws NullPointerException If either the model or the tile are null.
+     * @throws IllegalArgumentException If the given tile is either not in the 
+     * given model or is neither empty nor a snake tile. If the given tile is a 
+     * snake tile, then this will also be thrown if it is either facing multiple 
+     * directions or if the tile's {@link Tile#getType type flag} is set.
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
      * @see Tile#isEmpty()
@@ -444,12 +505,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * around and eat apples and will grow when it does. The snake will also 
      * represent the first player (i.e. this will be a primary snake) and can 
      * fail an unlimited amount of times without crashing. The snake's default 
-     * action will be enabled and will move the snake forward. The snake will be 
-     * facing left. <p>
+     * action will be enabled and will move the snake forward. <p>
      * 
-     * This is equivalent to {@link Snake#Snake(PlayFieldModel) constructing} a 
-     * snake without providing a tile for the head and then {@link 
-     * #initialize(int, int) initializing} that snake. 
+     * This is equivalent to {@code new } {@link Snake#Snake(PlayFieldModel) 
+     * Snake}{@code (model).}{@link #initialize(int, int) 
+     * initialize}{@code (row, column)}. 
      * 
      * @param model The PlayFieldModel that provides the tiles for the snake 
      * (cannot be null). 
@@ -461,7 +521,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IndexOutOfBoundsException If either the row or column are out of 
      * bounds for the given model.
      * @throws IllegalArgumentException If the tile at the given row and column 
-     * is not empty.
+     * in the given model is neither empty nor a snake tile. If the tile is a 
+     * snake tile, then this will also be thrown if it is either facing multiple 
+     * directions or if the tile's {@link Tile#getType type flag} is set.
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
      * @see Tile#isEmpty()
@@ -475,9 +537,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         this(model);
         Snake.this.initialize(row, column);
     }
-    
-    protected SnakeActionQueue createActionQueue(){
-        return new SnakeActionQueue(this);
+    /**
+     * This constructs an action queue for this snake.
+     * @return The action queue that was constructed.
+     * @see #getActionQueue 
+     * @see ActionQueue
+     */
+    protected ActionQueue createActionQueue(){
+        return new ActionQueue();
     }
     /**
      * This returns an integer storing the flags used to store the settings for 
@@ -494,6 +561,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
+     * @see #SKIPS_REPEATED_ACTIONS_FLAG
      */
     protected int getFlags(){
         return flags;
@@ -514,6 +582,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
+     * @see #SKIPS_REPEATED_ACTIONS_FLAG
      */
     protected boolean getFlag(int flag){
         return SnakeUtilities.getFlag(flags, flag);
@@ -537,6 +606,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
+     * @see #SKIPS_REPEATED_ACTIONS_FLAG
      */
     protected boolean setFlag(int flag, boolean value){
         int old = flags;    // Get the old value for the flags
@@ -561,6 +631,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #FLIPPED_FLAG
      * @see #CRASHED_FLAG
      * @see #DEFAULT_ACTION_ENABLED_FLAG
+     * @see #SKIPS_REPEATED_ACTIONS_FLAG
      */
     protected boolean toggleFlag(int flag){
         int old = flags;    // Get the old value for the flags
@@ -592,14 +663,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     public boolean isEmpty(){
         return snakeBody.isEmpty();
     }
-//    /**
-//     * This returns whether this snake contains the given tile. In other words, 
-//     * this returns whether this snake contains at least one tile which {@link 
-//     * Tile#equals equals} the given tile.
-//     * @param o The tile to check for.
-//     * @return Whether the given tile is in this snake.
-//     * @see #contains(int, int) 
-//     */
+    /**
+     * This returns whether this snake contains the given object. More formally, 
+     * this returns {@code true} if this snake contains an element {@code e} 
+     * such that {@code Objects.equals(o, e)}.
+     * @param o The object to check for.
+     * @return Whether the given object is in this snake.
+     * @see #contains(int, int) 
+     */
     @Override
     public boolean contains(Object o){
         return snakeBody.contains(o);
@@ -612,7 +683,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @param row The row of the tile to check for.
      * @param column The column of the tile
      * @return Whether the tile at the given row and column is in this snake.
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #getModel 
      * @see PlayFieldModel#contains(int, int) 
      * @see PlayFieldModel#getTile(int, int) 
@@ -624,49 +695,136 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This adds the given tile to the body of this snake as the new head. This 
-     * assumes that the given tile has a direction set for it. The given tile 
-     * will have its {@link Tile#setType type} set to the {@link #getPlayerType 
-     * player type} of this snake and will be used to {@link 
-     * Tile#alterDirection(Tile) alter the direction} of the previous head if 
-     * there is one.
+     * assumes that the given tile is from the {@link #getModel model} and has a 
+     * direction set for it. The given tile will have its {@link Tile#setType 
+     * type} set to the {@link #getPlayerType player type} of this snake and 
+     * will be used to {@link Tile#alterDirection(Tile) alter the direction} of 
+     * the previous head if there is one. This will also {@link #resetFailCount 
+     * reset} the {@link #getFailCount fail count} for this snake. However, this 
+     * snake will not be {@link #revive revived} automatically. If the given 
+     * tile is already in this snake, then this will do nothing and return 
+     * {@code false}.
      * @param tile The new head for this snake (cannot be null).
+     * @return Whether the tile was added to this snake.
      * @throws NullPointerException If the given tile is null.
+     * @see #insertTail 
+     * @see #pollHead 
+     * @see #pollTail 
+     * @see #checkOfferedTile 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #canAddTile 
+     * @see #addOrMove 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek
+     * @see #contains(Object) 
+     * @see #contains(int, int) 
      * @see #size 
      * @see #getPlayerType 
      * @see #isFlipped 
+     * @see #getFailCount 
+     * @see #setFailCount 
+     * @see #resetFailCount 
+     * @see #revive 
      * @see Tile#setType 
      * @see Tile#clear 
      * @see Tile#setState 
      * @see Tile#alterDirection(Tile) 
-     * @see #pollTail 
      */
-    protected void addHead(Tile tile){
+    protected boolean insertHead(Tile tile){
+        if (contains(tile))             // If the tile is already in the snake
+            return false;
         Objects.requireNonNull(tile);   // Check if the tile is not null
         if (!isEmpty()){                // If there is currently a head
-            if (getTail() == null)      // If there is no tail yet
+            if (!hasTail())             // If there is no tail yet
                     // Clear the old head since it's about to become the tail
                 getHead().clear().setType(getPlayerType());
             getHead().alterDirection(tile);
         }
-        tile.setType(getPlayerType());
-        if (isFlipped())            // If the snake is flipped
-            snakeBody.addLast(tile);
-        else
-            snakeBody.addFirst(tile);
+        tile.setType(getPlayerType());  // Set the tile's type
+            // This gets whether the tile was successfully added. If the snake 
+            // is flipped, then the tile is added to the end of the queue. 
+            // Otherwise, it is added to the front of the queue.
+        boolean modified = (isFlipped()) ? snakeBody.offerLast(tile) : 
+                snakeBody.offerFirst(tile);
+        resetFailCount();               // Reset the fail count
+        return modified;
     }
     /**
-     * This removes and returns the tile at the end of the snake body which 
-     * represents the tail of the snake. This ignores whether the snake actually 
-     * has a {@link #getTail() tail} (i.e. that the snake is at least 2 tiles 
-     * long), and will remove the head if there is only one tile in the snake. 
-     * If the snake still has a tail after the current tail has been removed, 
-     * then the new tail will have its {@link Tile#alterDirection(Tile) 
-     * directions altered} based off the now removed tail. The removed tile will 
-     * then be {@link Tile#clear() cleared} and returned.
+     * This adds the given tile to the body of this snake as the new tail. This 
+     * assumes that the given tile is from the {@link #getModel model} and has a 
+     * direction set for it. The given tile will have its {@link Tile#setType 
+     * type} set to the {@link #getPlayerType player type} of this snake and 
+     * will be used to {@link Tile#alterDirection(Tile) alter the direction} of 
+     * the previous tail if there is one. This will also {@link #resetFailCount 
+     * reset} the {@link #getFailCount fail count} for this snake. However, this 
+     * snake will not be {@link #revive revived} automatically. If the given 
+     * tile is already in this snake, then this will do nothing and return 
+     * {@code false}. If this snake is currently {@link #isEmpty empty}, then 
+     * this is equivalent to {@link #insertHead insertHead}.
+     * @param tile The new tail for this snake (cannot be null).
+     * @return Whether the tile was added to this snake.
+     * @throws NullPointerException If the given tile is null.
+     * @see #insertHead 
+     * @see #pollHead 
+     * @see #pollTail 
+     * @see #checkOfferedTile 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #canAddTile 
+     * @see #addOrMove 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek
+     * @see #contains(Object) 
+     * @see #contains(int, int) 
+     * @see #size 
+     * @see #getPlayerType 
+     * @see #isFlipped 
+     * @see #getFailCount 
+     * @see #setFailCount 
+     * @see #resetFailCount 
+     * @see #revive 
+     * @see Tile#setType 
+     * @see Tile#clear 
+     * @see Tile#setState 
+     * @see Tile#alterDirection(Tile) 
+     */
+    protected boolean insertTail(Tile tile){
+        if (contains(tile))             // If the tile is already in the snake
+            return false;
+        Objects.requireNonNull(tile);   // Check if the tile is not null
+        if (isEmpty())                  // If the snake is currently empty
+                // Insert it as the head, since there's no difference either way
+            return insertHead(tile);    
+        if (hasTail())                  // If there is currently a tail
+            getTail().alterDirection(tile);
+        tile.setType(getPlayerType());  // Set the tile's type
+            // This gets whether the tile was successfully added. If the snake 
+            // is flipped, then the tile is added to the front of the queue. 
+            // Otherwise, it is added to the end of the queue.
+        boolean modified = (isFlipped())?snakeBody.offerFirst(tile):
+                snakeBody.offerLast(tile);
+        resetFailCount();               // Reset the fail count
+        return modified;
+    }
+    /**
+     * This removes and returns the tile at the front of the snake body which 
+     * represents the head of the snake. If the snake is still not {@link 
+     * #isEmpty empty} after the current head is removed, then if the new head 
+     * was previously the tail for the snake, then the new head will be facing 
+     * the same direction as the now removed head was. Otherwise, if the snake 
+     * still has a tail, then the new head will have its {@link 
+     * Tile#alterDirection(Tile) directions altered} based off the now removed 
+     * head. The removed head will then be {@link Tile#clear cleared} and 
+     * returned.
      * @return The tile that was removed, or null if the snake is {@link 
-     * #isEmpty() empty}.
+     * #isEmpty empty}.
+     * @see #insertHead 
+     * @see #insertTail 
+     * @see #pollTail 
+     * @see #removeTail 
      * @see #getHead 
      * @see #getTail 
      * @see #size 
@@ -674,167 +832,800 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isFlipped 
      * @see Tile#clear 
      * @see Tile#alterDirection(Tile) 
-     * @see #addHead(Tile) 
+     * @see #poll 
+     * @see #remove() 
+     */
+    protected Tile pollHead(){
+            // Remove the head of the snake. If the snake is flipped, this will 
+            // be the last tile in the queue. Otherwise, this will be the first 
+            // tile in the queue
+        Tile tile = (isFlipped()) ? snakeBody.pollLast():snakeBody.pollFirst();
+        if (tile != null){              // If the old head is not null
+                // If the snake is not empty (the snake still has a head)
+            if (!isEmpty()){
+                if (hasTail())  // If the snake still has a tail
+                    getHead().alterDirection(tile);
+                else            // The new head was previously the tail
+                    getHead().setState(tile.getState());
+            }
+            tile.clear();
+        }
+        return tile;
+    }
+    /**
+     * This removes and returns the tile at the end of the snake body which 
+     * represents the tail of the snake. This ignores whether the snake actually 
+     * has a {@link #getTail tail} (i.e. that the snake is at least 2 tiles 
+     * long), and will remove the head if there is only one tile in the snake. 
+     * If the snake still has a tail after the current tail has been removed, 
+     * then the new tail will have its {@link Tile#alterDirection(Tile) 
+     * directions altered} based off the now removed tail. The removed tile will 
+     * then be {@link Tile#clear cleared} and returned.
+     * @return The tile that was removed, or null if the snake is {@link 
+     * #isEmpty empty}.
+     * @see #insertHead 
+     * @see #insertTail 
+     * @see #pollHead 
      * @see #removeTail 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see Tile#clear 
+     * @see Tile#alterDirection(Tile) 
+     * @see #poll 
+     * @see #remove() 
      */
     protected Tile pollTail(){
             // Remove the tail of the snake. If the snake is flipped, this will 
             // be the first tile in the queue. Otherwise, this will be the last 
             // tile in the queue
         Tile tile = (isFlipped()) ? snakeBody.pollFirst():snakeBody.pollLast();
-        if (getTail() != null){ // If there is still a tail
-            getTail().alterDirection(tile);
-        }
-        if (tile != null)   // If the old tail is not null
+        if (tile != null){              // If the old tail is not null
+            if (hasTail()){             // If there is still a tail
+                getTail().alterDirection(tile);
+            }
             tile.clear();
+        }
         return tile;
     }
-    
+    /**
+     * This checks the offered tile to see if it can be added to this snake via 
+     * the {@link #offer offer(Tile)} and {@link #add(Tile) add(Tile)} methods, 
+     * and if not, throws an IllegalArgumentException. Tiles not in the {@link 
+     * #getModel model} cannot be added. If a tile is not {@link Tile#isEmpty 
+     * empty}, then it must be a {@link Tile#isSnake snake tile} with its {@link 
+     * Tile#getType type flag} set to this snake's {@link #getPlayerType player 
+     * type}, and must not be facing more than one direction. In addition, if 
+     * the {@code dirFaced} value is not null and the tile is facing the 
+     * direction opposite to the direction set for {@code dirFaced}, then the 
+     * tile cannot be added.
+     * @param tile The tile that is being offered (cannot be null.
+     * @param dirFaced The direction opposite to the direction the tile must not 
+     * be facing, or null if the tile can face any direction. (Typically, when 
+     * not null, this will be the direction the snake is facing)
+     * @throws NullPointerException If the tile is null.
+     * @throws IllegalArgumentException If the tile is not in the model, if the 
+     * tile is neither empty nor a snake tile facing a single direction with 
+     * this snake's player type as its type, or if the tile is a snake tile 
+     * facing the direction opposite to the direction set on {@code dirFaced} 
+     * when {@code dirFaced} is not null.
+     * @see #checkOfferedTile(Tile) 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #addAll 
+     * @see #insertHead 
+     * @see #insertTail 
+     * @see #getModel 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #getDirectionFaced 
+     * @see #getPlayerType 
+     * @see PlayFieldModel#contains(Tile) 
+     * @see Tile#getState 
+     * @see Tile#isEmpty 
+     * @see Tile#isSnake 
+     * @see Tile#getDirectionsFaced 
+     * @see Tile#getDirectionsFacedCount 
+     * @see Tile#getType 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeUtilities#requireSingleDirection 
+     */
+    protected void checkOfferedTile(Tile tile, Integer dirFaced){
+        Objects.requireNonNull(tile);   // Check if the tile is null
+        if (!model.contains(tile))      // If the tile is not in the model
+            throw new IllegalArgumentException("Tile is not in model");
+        if (tile.isEmpty())             // If the tile is empty
+            return;
+            // If the tile is not a snake tile of the same type as this snake's 
+        if (!tile.isSnake() || tile.getType() != getPlayerType())// player type
+            throw new IllegalArgumentException("Tile " + tile + 
+                    " is not a valid snake tile");
+            // Ensure the tile is facing a single direction
+        SnakeUtilities.requireSingleDirection(tile.getDirectionsFaced());
+            // If the given faced direction is not null and the tile is facing 
+            // in the direction opposite to the direction set on it
+        if (dirFaced != null && dirFaced == 
+                SnakeUtilities.invertDirections(tile.getDirectionsFaced()))
+            throw new IllegalArgumentException("Tile is facing in the opposite "
+                    + "direction to the snake");
+    }
+    /**
+     * This checks the offered tile to see if it can be added to this snake via 
+     * the {@link #offer offer(Tile)} and {@link #add(Tile) add(Tile)} methods, 
+     * and if not, throws an IllegalArgumentException. Tiles not in the {@link 
+     * #getModel model} cannot be added. If a tile is not {@link Tile#isEmpty 
+     * empty}, then it must be a {@link Tile#isSnake snake tile} with its {@link 
+     * Tile#getType type flag} set to this snake's {@link #getPlayerType player 
+     * type}, and must not be facing more than one direction. In addition, if 
+     * this snake has a {@link #getTail tail} and the tile is facing the 
+     * direction opposite to the direction this snake is {@link 
+     * #getDirectionFaced facing}, then the tile cannot be added. <p>
+     * 
+     * This is equivalent to calling {@link #checkOfferedTile(Tile, Integer) 
+     * checkOfferedTile}{@code (tile, (}{@link #getTail getTail()} {@code != 
+     * null) ? }{@link #getDirectionFaced getDirectionFaced()} {@code : null)}.
+     * 
+     * @param tile The tile that is being offered (cannot be null.
+     * @throws NullPointerException If the tile is null.
+     * @throws IllegalArgumentException If the tile is not in the model, if the 
+     * tile is neither empty nor a snake tile facing a single direction with 
+     * this snake's player type as its type, or if the tile is a snake tile 
+     * facing the direction opposite to the direction this snake is facing when 
+     * the snake has a tail.
+     * @see #checkOfferedTile(Tile, Integer) 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #addAll 
+     * @see #insertHead 
+     * @see #insertTail 
+     * @see #getModel 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #getDirectionFaced 
+     * @see #getPlayerType 
+     * @see PlayFieldModel#contains(Tile) 
+     * @see Tile#getState 
+     * @see Tile#isEmpty 
+     * @see Tile#isSnake 
+     * @see Tile#getDirectionsFaced 
+     * @see Tile#getDirectionsFacedCount 
+     * @see Tile#getType 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeUtilities#requireSingleDirection 
+     */
+    protected void checkOfferedTile(Tile tile){
+            // If this snake has a tail, then the tile must not be facing in the 
+            // direction opposite to the direction this snake is facing. 
+            // Otherwise, the tile can be facing in any single direction.
+        checkOfferedTile(tile,(hasTail())?getDirectionFaced():null);
+    }
+    /**
+     * This inserts the given tile at the front of this snake if the tile is not 
+     * already present in this snake. More formally, this adds the given tile to 
+     * this snake if this snake contains no tile {@code tile2} such that {@code 
+     * Objects.equals(tile, tile2)}. If this snake already contains the tile, 
+     * then no changes will be made to the snake and this will return {@code 
+     * false}. <p>
+     * 
+     * The tile must be a non-null tile from this snake's {@link #getModel 
+     * model}. Additionally, the tile must either be {@link Tile#isEmpty empty} 
+     * or a {@link Tile#isSnake snake tile}. If the tile is a snake tile, then 
+     * its {@link Tile#getType type flag} must be set to this snake's {@link 
+     * #getPlayerType player type} and it must not be facing more than one 
+     * direction. If this snake has a {@link #getTail tail} (i.e. if this snake 
+     * is at least two tiles long), then the tile must not be facing in the 
+     * direction opposite to the direction that this snake is {@link 
+     * #getDirectionFaced facing}. This ignores whether this snake has {@link 
+     * #isCrashed crashed}, and thus can be used to add tiles to a crashed snake 
+     * without {@link #revive reviving} it. <p>
+     * 
+     * If the tile is added to this snake, then it will become the new {@link 
+     * #getHead head} of the snake and the snake's {@link #getFailCount fail 
+     * count} will be reset to zero. However, if the snake has crashed, then it 
+     * will still need to be revived, as this alone will not revive a snake. If 
+     * this snake was {@link #isEmpty empty} before this was called, then the 
+     * snake will be {@link #initialize(Tile) initialized} using the given tile. 
+     * If the tile is empty, then this will determine the most appropriate 
+     * direction for the tile to be facing based off the location of the tile 
+     * relative to the previous head of this snake. If this snake does not have 
+     * a previous head as a result of being empty, and the given tile is empty, 
+     * then the tile will be facing {@link Tile#isFacingLeft left}. 
+     * 
+     * @param tile The tile to add to the snake. 
+     * @return Whether the tile was added to this snake ({@code true} if this 
+     * snake did not already contain the given tile, as specified by {@link 
+     * Set#add Set.add}).
+     * @throws NullPointerException If the given tile is null.
+     * @throws IllegalArgumentException If the given tile is either not in the 
+     * model or is neither empty nor a snake tile. If the given tile is a snake 
+     * tile, then this will also be thrown if it is either facing multiple 
+     * directions, facing the direction opposite to what this snake is facing, 
+     * or if the tile's type is not the same as this snake's player type.
+     * @see #add(Tile) 
+     * @see #addAll 
+     * @see #add(int) 
+     * @see #add() 
+     * @see #move(int) 
+     * @see #move() 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isValid 
+     * @see #contains(Object) 
+     * @see #contains(int, int) 
+     * @see #getModel 
+     * @see #setModel
+     * @see #getPlayerType 
+     * @see #setPlayerType 
+     * @see #isFacingUp 
+     * @see #isFacingDown 
+     * @see #isFacingLeft 
+     * @see #isFacingRight 
+     * @see #getDirectionFaced 
+     * @see #isFlipped 
+     * @see #getFailCount 
+     * @see #isCrashed 
+     * @see #revive 
+     * @see #clear 
+     * @see #initialize(Tile) 
+     * @see #initialize(int, int) 
+     * @see PlayFieldModel#getTile 
+     * @see PlayFieldModel#contains(Tile) 
+     * @see PlayFieldModel#contains(int, int) 
+     * @see PlayFieldModel#getRowCount 
+     * @see PlayFieldModel#getColumnCount 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     * @see Tile#getState 
+     * @see Tile#setState 
+     * @see Tile#isEmpty 
+     * @see Tile#clear 
+     * @see Tile#isSnake 
+     * @see Tile#getDirectionsFaced 
+     * @see Tile#getDirectionsFacedCount 
+     * @see Tile#isFacingUp 
+     * @see Tile#setFacingUp 
+     * @see Tile#isFacingDown 
+     * @see Tile#setFacingDown 
+     * @see Tile#isFacingLeft 
+     * @see Tile#setFacingLeft 
+     * @see Tile#isFacingRight 
+     * @see Tile#setFacingRight 
+     * @see Tile#getType 
+     * @see Tile#setType 
+     * @see Tile#alterDirection(Tile) 
+     * @see SnakeUtilities#getDirections 
+     * @see SnakeUtilities#getDirectionCount 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeUtilities#requireSingleDirection 
+     * @see SnakeEvent#SNAKE_ADDED_TILE
+     * @see SnakeEvent#SNAKE_RESET
+     * @see SnakeEvent#SNAKE_INITIALIZED
+     */
     @Override
     public boolean offer(Tile tile){
-        if (contains(tile))
+        if (contains(tile))         // If the tile is already in the snake
             return false;
-        if (tile == null)
-            throw new NullPointerException();
-        else if (!model.contains(tile))
-            throw new IllegalArgumentException("Tile is not in model");
-        else if (!tile.isEmpty())
-            throw new IllegalArgumentException("Tile is not empty");
-            // Get whether the tiles in the model are currently adjusting, so as 
+        checkOfferedTile(tile);     // Check if the tile can be added
+        if (isEmpty()){             // If the snake is currently empty
+            initialize(tile);       // Use the tile to initialize the snake
+                // If the tile was added, the snake should no longer be empty
+            return !isEmpty();      
+        }   // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
-        if (isEmpty())
-            tile.setFacingLeft(true);
-        else{
-            Tile head = getHead();
-            boolean vertical = ((head.isFacingUp() || head.isFacingDown()) && 
-                    tile.getColumn() == head.getColumn()) || tile.getRow() != 
-                    head.getRow();
-            tile.setFacingUp(vertical && tile.getRow() < head.getRow());
-            tile.setFacingDown(vertical && !tile.isFacingUp());
-            tile.setFacingLeft(!vertical && tile.getColumn() < head.getColumn());
-            tile.setFacingRight(!vertical && !tile.isFacingRight());
+        if (tile.isEmpty()){            // If the tile is empty
+            Tile head = getHead();      // Get the current head
+                // Get whether the new head should be vertical (up/down) or 
+            boolean vertical;       // horizontal (left/right)
+                // If the current head is facing either up or down
+            if (head.isFacingUp() || head.isFacingDown())
+                    // Base the new head's verticallity off whether the 
+                    // tiles are on the same column
+                vertical = tile.getColumn() == head.getColumn();
+            else    // Base the new head's verticallity off whether the 
+                    // tiles are on different rows
+                vertical = tile.getRow() != head.getRow();
+            if (size() > 1){    // If this snake is more than 1 tile long
+                tile.setFacingUp(vertical && head.isFacingUp());
+                tile.setFacingDown(vertical && head.isFacingDown());
+                tile.setFacingLeft(!vertical && head.isFacingLeft());
+                tile.setFacingRight(!vertical && head.isFacingRight());
+            }
+            if (tile.isEmpty()){    // If the tile is still empty
+                tile.setFacingUp(vertical && tile.getRow() < head.getRow());
+                tile.setFacingDown(vertical && !tile.isFacingUp());
+                tile.setFacingLeft(!vertical && tile.getColumn() < head.getColumn());
+                tile.setFacingRight(!vertical && !tile.isFacingLeft());
+            }
+        }   // Try to add the tile and get whether it was added to the snake
+        boolean modified = insertHead(tile);
+        if (modified){                  // If the tile was added to the snake
+            setConsumedApple(false);    // We haven't consumed an apple
+            fireSnakeChange(SnakeEvent.SNAKE_ADDED_TILE,tile);
         }
-        addHead(tile);
         model.setTilesAreAdjusting(adjusting);
-        fireSnakeChange(SnakeEvent.SNAKE_ADDED_TILE,tile);
-        return true;
+        return modified;
     }
-    
+    /**
+     * This inserts the given tile at the front of this snake if the tile is not 
+     * already present in this snake. More formally, this adds the given tile to 
+     * this snake if this snake contains no tile {@code tile2} such that {@code 
+     * Objects.equals(tile, tile2)}. If this snake already contains the tile, 
+     * then no changes will be made to the snake and this will return {@code 
+     * false}. <p>
+     * 
+     * The tile must be a non-null tile from this snake's {@link #getModel 
+     * model}. Additionally, the tile must either be {@link Tile#isEmpty empty} 
+     * or a {@link Tile#isSnake snake tile}. If the tile is a snake tile, then 
+     * its {@link Tile#getType type flag} must be set to this snake's {@link 
+     * #getPlayerType player type} and it must not be facing more than one 
+     * direction. If this snake has a {@link #getTail tail} (i.e. if this snake 
+     * is at least two tiles long), then the tile must not be facing in the 
+     * direction opposite to the direction that this snake is {@link 
+     * #getDirectionFaced facing}. This ignores whether this snake has {@link 
+     * #isCrashed crashed}, and thus can be used to add tiles to a crashed snake 
+     * without {@link #revive reviving} it. <p>
+     * 
+     * If the tile is added to this snake, then it will become the new {@link 
+     * #getHead head} of the snake and the snake's {@link #getFailCount fail 
+     * count} will be reset to zero. However, if the snake has crashed, then it 
+     * will still need to be revived, as this alone will not revive a snake. If 
+     * this snake was {@link #isEmpty empty} before this was called, then the 
+     * snake will be {@link #initialize(Tile) initialized} using the given tile. 
+     * If the tile is empty, then this will determine the most appropriate 
+     * direction for the tile to be facing based off the location of the tile 
+     * relative to the previous head of this snake. If this snake does not have 
+     * a previous head as a result of being empty, and the given tile is empty, 
+     * then the tile will be facing {@link Tile#isFacingLeft left}. <p>
+     * 
+     * This method is equivalent to {@link #offer offer(Tile)}.
+     * 
+     * @param tile The tile to add to the snake. 
+     * @return Whether the tile was added to this snake ({@code true} if this 
+     * snake did not already contain the given tile, as specified by {@link 
+     * Set#add Set.add}).
+     * @throws NullPointerException If the given tile is null.
+     * @throws IllegalArgumentException If the given tile is either not in the 
+     * model or is neither empty nor a snake tile. If the given tile is a snake 
+     * tile, then this will also be thrown if it is either facing multiple 
+     * directions, facing the direction opposite to what this snake is facing, 
+     * or if the tile's type is not the same as this snake's player type.
+     * @see #offer 
+     * @see #addAll 
+     * @see #add(int) 
+     * @see #add() 
+     * @see #move(int) 
+     * @see #move() 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isValid 
+     * @see #contains(Object) 
+     * @see #contains(int, int) 
+     * @see #getModel 
+     * @see #setModel
+     * @see #getPlayerType 
+     * @see #setPlayerType 
+     * @see #isFacingUp 
+     * @see #isFacingDown 
+     * @see #isFacingLeft 
+     * @see #isFacingRight 
+     * @see #getDirectionFaced 
+     * @see #isFlipped 
+     * @see #getFailCount 
+     * @see #isCrashed 
+     * @see #revive 
+     * @see #clear 
+     * @see #initialize(Tile) 
+     * @see #initialize(int, int) 
+     * @see PlayFieldModel#getTile 
+     * @see PlayFieldModel#contains(Tile) 
+     * @see PlayFieldModel#contains(int, int) 
+     * @see PlayFieldModel#getRowCount 
+     * @see PlayFieldModel#getColumnCount 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     * @see Tile#getState 
+     * @see Tile#setState 
+     * @see Tile#isEmpty 
+     * @see Tile#clear 
+     * @see Tile#isSnake 
+     * @see Tile#getDirectionsFaced 
+     * @see Tile#getDirectionsFacedCount 
+     * @see Tile#isFacingUp 
+     * @see Tile#setFacingUp 
+     * @see Tile#isFacingDown 
+     * @see Tile#setFacingDown 
+     * @see Tile#isFacingLeft 
+     * @see Tile#setFacingLeft 
+     * @see Tile#isFacingRight 
+     * @see Tile#setFacingRight 
+     * @see Tile#getType 
+     * @see Tile#setType 
+     * @see Tile#alterDirection(Tile) 
+     * @see SnakeUtilities#getDirections 
+     * @see SnakeUtilities#getDirectionCount 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeUtilities#requireSingleDirection 
+     * @see SnakeEvent#SNAKE_ADDED_TILE
+     * @see SnakeEvent#SNAKE_RESET
+     * @see SnakeEvent#SNAKE_INITIALIZED
+     */
     @Override
     public boolean add(Tile tile){
-        if (contains(tile))
+        if (contains(tile))     // If the tile is already in the snake
             return false;
         return super.add(tile);
     }
-    
+    /**
+     * This adds all of the elements in the given collection, in the order they 
+     * are returned by the collection's iterator, to this snake if they're not 
+     * already present. If the given collection is a set, then this operation 
+     * effectively modifies this snake so that it is the <i>union</i> of the set 
+     * and the snake, since snakes are themselves sets. The behavior of this 
+     * operation is undefined if the given collection is modified while this 
+     * operation is in progress. If an exception is thrown while adding an 
+     * element, then only the elements up to that point will be added to the 
+     * snake. If the given collection is this snake, then this will do nothing 
+     * and return {@code false} (getting the the <i>union</i> of a set with 
+     * itself just results in the original set, and, as previously mentioned, 
+     * snakes are sets). If the given collection is another snake, then the 
+     * tiles will be added in reverse order, starting from the snake's {@link 
+     * #peek tail} and ending at the snake's {@link #getHead head}. 
+     * 
+     * @implSpec Currently, adding a snake to another snake does not work 
+     * correctly, and may have unintended effects.
+     * 
+     * @todo Make it so that this method also allows the insertion of tiles with 
+     * at least two directions set, as opposed to the one or none limitation of 
+     * the normal {@code add(Tile)} method. This way, this could be used to 
+     * populate a snake with a collection of tiles without having to conform to 
+     * the restrictions of the {@code add} method, and would allow a snake to be 
+     * added to another snake.
+     * 
+     * @param c The collection containing the elements to be added to this snake 
+     * (cannot be null).
+     * @return {@code true} if this snake changed as a result of the call.
+     * @throws NullPointerException If the given collection contains a null 
+     * element, or if the given collection is itself null.
+     * @throws IllegalArgumentException If an element from the given collection 
+     * cannot be added to this snake.
+     * @see #offer(Tile) 
+     * @see #add(Tile) 
+     */
     @Override
     public boolean addAll(Collection<? extends Tile> c){
+        Objects.requireNonNull(c);  // Check if the collection is null
+            // If the collection is either this snake or its body somehow 
+            // (the union of a set with itself does nothing), or if the 
+            // collection is empty (nothing would be added)
+        if (c == this || c == snakeBody || c.isEmpty())
+            return false;
             // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
+            // This gets if this snake was modified as a result of calling this
+        boolean modified = false;   
+            // This gets any exceptions thrown while adding the tiles, so that 
+        RuntimeException exc = null;    // it can be relayed after we're done
         try{
-            boolean modified = super.addAll(c);
-            model.setTilesAreAdjusting(adjusting);
-            return modified;
+                // This gets an iterator to go through and add the tiles from c 
+            Iterator<? extends Tile> itr;
+            if (c instanceof Snake)     // If c is a snake
+                    // Get the descending iterator, so as to add the tiles from 
+                itr = ((Snake)c).iterator(true);    // the tail to the head
+            else
+                itr = c.iterator();     // Get an iterator from c
+            while (itr.hasNext()){      // While the iterator has tiles
+                if (add(itr.next()))//If the next tile in the iterator was added
+                    modified = true;    // The snake has been modified
+            }
         }
         catch(RuntimeException ex){
-            model.setTilesAreAdjusting(adjusting);
-            throw ex;
+            exc = ex;
         }
+        model.setTilesAreAdjusting(adjusting);
+        if (exc != null)    // If an exception was thrown while adding the tiles
+            throw exc;
+        return modified;
     }
-    
+    /**
+     * This returns, but does not remove, the head of the queue represented by 
+     * this snake, or null if this snake is {@link #isEmpty empty}. This will be 
+     * the last tile in this snake, and thus will typically be the tile that 
+     * represents the tail of the snake, since snakes act like a queue but in 
+     * reverse. This method differs from {@link #getTail getTail} only in that 
+     * this method will only return null if this snake is empty, whereas {@code 
+     * getTail} will return null if this snake is less than two tiles long. 
+     * @return The head of the queue (the tail of this snake), or null if this 
+     * snake is empty.
+     * @see #getTail 
+     * @see #element 
+     * @see #getHead 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #flip 
+     * @see #isFlipped 
+     * @see #poll 
+     * @see #remove() 
+     * @see #isValid 
+     */
     @Override
     public Tile peek(){
             // If the snake is flipped, return the first tile in the queue. 
             // Otherwise, return the last tile in the queue.
         return (isFlipped()) ? snakeBody.peekFirst() : snakeBody.peekLast();
     }
-    
+    /**
+     * This returns, but does not remove, the head of the queue represented by 
+     * this snake. This will be the last tile in this snake, and thus will 
+     * typically be the tile that represents the tail of the snake, since snakes 
+     * act like a queue but in reverse. This method differs from {@link #peek 
+     * peek} only in that it will throw an exception if this snake is {@link 
+     * #isEmpty empty}.
+     * @return The head of the queue (the tail of this snake).
+     * @throws NoSuchElementException If this snake is empty.
+     * @see #peek 
+     * @see #getTail 
+     * @see #getHead 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #flip 
+     * @see #isFlipped 
+     * @see #poll 
+     * @see #remove() 
+     * @see #isValid 
+     */
     @Override
     public Tile element(){
         return super.element();
     }
-    
+    /**
+     * This removes and returns the head of the queue represented by this snake, 
+     * or returns null if this snake is {@link #isEmpty empty}. The removed tile 
+     * will be {@link Tile#clear cleared} before it is returned. The removed 
+     * tile will be the last tile in this snake, and thus will typically be the 
+     * tile that represented the {@link #getTail tail} of the snake, since 
+     * snakes act like a queue but in reverse. This method differs from {@link 
+     * #removeTail removeTail} in that this method will only return null if this 
+     * snake is empty and will not fire a {@code SnakeEvent} when it does, 
+     * whereas {@code removeTail} will fire a {@code SnakeEvent} indicating that 
+     * it failed and return null if this snake is less than two tiles long. 
+     * @return The head of the queue (the tail of this snake), or null if this 
+     * snake is empty.
+     * @see #remove() 
+     * @see #removeTail 
+     * @see #getTail 
+     * @see #peek
+     * @see #element 
+     * @see #getHead 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #flip 
+     * @see #isFlipped 
+     * @see #isValid 
+     * @see Tile#clear 
+     * @see SnakeEvent#SNAKE_REMOVED_TILE
+     */
     @Override
     public Tile poll(){
             // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
-        Tile tile = pollTail();
-        model.setTilesAreAdjusting(adjusting);
-        if (tile != null)
+        Tile tile = pollTail();     // Remove the current tail
+        if (tile != null)           // If a tile was removed
             fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tile);
+        model.setTilesAreAdjusting(adjusting);
         return tile;
     }
-    
+    /**
+     * This removes and returns the head of the queue represented by this snake. 
+     * The removed tile will be {@link Tile#clear cleared} before it is 
+     * returned. The removed tile will be the last tile in this snake, and thus 
+     * will typically be the tile that represented the {@link #getTail tail} of 
+     * the snake, since snakes act like a queue but in reverse. This method 
+     * differs from {@link #poll poll} only in that it will throw an exception 
+     * if this snake is {@link #isEmpty empty}.
+     * @return The head of the queue (the tail of this snake).
+     * @throws NoSuchElementException If this snake is empty.
+     * @see #poll 
+     * @see #removeTail 
+     * @see #getTail 
+     * @see #peek
+     * @see #element 
+     * @see #getHead 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #flip 
+     * @see #isFlipped 
+     * @see #isValid 
+     * @see Tile#clear 
+     * @see SnakeEvent#SNAKE_REMOVED_TILE
+     */
     @Override
     public Tile remove(){
         return super.remove();
     }
-    
+    /**
+     * This removes the specified element from this snake if it is present. More 
+     * formally, this will remove an element {@code e} such that {@code 
+     * Objects.equals(o, e)} from this snake if this snake contains such an 
+     * element. If this snake contained the specified element (or equivalently, 
+     * if this snake changed as a result of the call), then this will return 
+     * {@code true}. 
+     * @param o The object to be removed from this snake, if present.
+     * @return {@code true} if this snake contained the specified element, else 
+     * {@code false}.
+     * @see #repair 
+     */
     @Override
-    public boolean removeAll(Collection<?> c){
+    public boolean remove(Object o){
+            // If either the object is null or this snake is empty
+        if (o == null || isEmpty()) 
+            return false;
+            // If the object is the tail of this snake (the head of the queue)
+        if (Objects.equals(o, peek()))
+            return poll() != null;  // Poll the tail (head of the queue)
             // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
-        try{
-            boolean modified = super.removeAll(c);
-            model.setTilesAreAdjusting(adjusting);
-            return modified;
+        boolean removed;    // This gets whether a tile was removed
+            // If the object is the head of the snake
+        if (Objects.equals(o, getHead())){
+            Tile tile = pollHead(); // Poll the head of the snake
+                // Get if a tile was removed (most likely to be true)
+            removed = tile != null; 
+            if (removed)            // If a tile was removed
+                fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tile);
         }
-        catch(RuntimeException ex){
-            model.setTilesAreAdjusting(adjusting);
-            throw ex;
-        }
-    }
-    
-    @Override
-    public boolean retainAll(Collection<?> c){
-            // Get whether the tiles in the model are currently adjusting, so as 
-            // to restore this once we're done
-        boolean adjusting = model.getTilesAreAdjusting();
-        model.setTilesAreAdjusting(true);
-        try{
-            boolean modified = super.retainAll(c);
-            model.setTilesAreAdjusting(adjusting);
-            return modified;
-        }
-        catch(RuntimeException ex){
-            model.setTilesAreAdjusting(adjusting);
-            throw ex;
-        }
-    }
-    
-    @Override
-    public boolean removeIf(Predicate<? super Tile> filter){
-            // Get whether the tiles in the model are currently adjusting, so as 
-            // to restore this once we're done
-        boolean adjusting = model.getTilesAreAdjusting();
-        model.setTilesAreAdjusting(true);
-        try{
-            boolean modified = super.removeIf(filter);
-            model.setTilesAreAdjusting(adjusting);
-            return modified;
-        }
-        catch(RuntimeException ex){
-            model.setTilesAreAdjusting(adjusting);
-            throw ex;
-        }
+        else
+            removed = super.remove(o);  // Remove the tile using the iterator
+        model.setTilesAreAdjusting(adjusting);
+        return removed;
     }
     /**
-     * This resets this snake by {@link #resetFailCount() resetting} the {@link 
-     * #getFailCount() fail count}, {@link #clearActionQueue() clearing} the 
-     * {@link #getActionQueue() action queue}, clearing any status flags set on 
-     * this snake (such as {@link #APPLE_CONSUMED_FLAG} and {@link 
-     * #CRASHED_FLAG}), and {@link clear removing all tiles} from this snake. If 
-     * the flags or the tile contents of this snake changed as a result of the 
-     * call, then this will fire a {@link SnakeEvent#SNAKE_RESET SNAKE_RESET} 
-     * {@code SnakeEvent}.
+     * This removes all of the elements in this snake that are also contained in 
+     * the specified collection. After this call returns, this snake will 
+     * contain no elements in common with the specified collection. If the 
+     * specified collection is a set, then this operation effectively modifies 
+     * this snake so that it is the <i>asymmetric set difference</i> of the set 
+     * and the snake, since snakes are themselves sets. If the specified 
+     * collection is this snake, then this is equivalent to calling {@link 
+     * #clear clear} to remove all elements from this snake.
+     * @param c A collection containing the elements to be removed from this 
+     * snake (cannot be null).
+     * @return {@code true} if this snake changed as a result of the call.
+     * @throws NullPointerException If the specified collection is null.
+     * @see #remove(Object) 
+     * @see #contains(Object) 
+     * @see #clear 
+     * @see #repair 
+     */
+    @Override
+    public boolean removeAll(Collection<?> c){
+        Objects.requireNonNull(c);      // Check if the collection is null
+            // If the collection is empty or this snake is empty, then nothing 
+        if (c.isEmpty() || isEmpty())   // would be removed
+            return false;
+            // If the collection is this snake or its body somehow
+        if (c == this || c == snakeBody){
+            clear();        // We would just end up removing everything anyway
+                // Everything has been removed (we already checked if this snake 
+            return true;    // was empty)
+        }   // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+            // Remove the objects in the given collection and get whether this 
+        boolean modified = super.removeAll(c); // snake was modified as a result
+        repair();           // Repair the snake (may be removed later)
+        model.setTilesAreAdjusting(adjusting);
+        return modified;
+    }
+    /**
+     * This retains only the elements in this snake that are contained in the 
+     * specified collection. In other words, this removes all the elements in 
+     * this snake that are not contained in the specified collection. After this 
+     * call returns, this snake will only contain elements that are in common 
+     * with the specified collection. If the specified collection is a set, then 
+     * this operation effectively modifies this snake so that it is the 
+     * <i>intersection</i> of the set and the snake, since snakes are themselves 
+     * sets. If the specified collection is this snake, then this does nothing. 
+     * If the specified collection is empty, then this is equivalent to calling 
+     * {@link #clear clear} to remove all elements from this snake.
+     * @param c A collection containing the elements to be retained by this 
+     * snake (cannot be null).
+     * @return {@code true} if this snake changed as a result of the call.
+     * @throws NullPointerException If the specified collection is null.
+     * @see #remove(Object) 
+     * @see #contains(Object) 
+     * @see #clear 
+     * @see #repair 
+     */
+    @Override
+    public boolean retainAll(Collection<?> c){
+        Objects.requireNonNull(c);  // Check if the collection is null
+            // If this snake is empty (nothing to retain) or the collection is 
+            // this snake or its body (and thus everything would be retained)
+        if (isEmpty() || c == this || c == snakeBody)          
+            return false;
+            // If the collection is empty (everything would be removed)
+        if (c.isEmpty()){
+            clear();                // Remove everything
+            return true;
+        }   // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+            // Retain only the objects in the given collection and get whether 
+            // this snake was modified as a result
+        boolean modified = super.retainAll(c);
+        repair();                   // Repair the snake (may be removed later)
+        model.setTilesAreAdjusting(adjusting);
+        return modified;
+    }
+    /**
+     * This removes all of the elements in this snake that satisfy the given 
+     * predicate. Any errors or runtime exceptions thrown by the predicate will 
+     * be relayed to the caller. It is worth noting that snakes will attempt to 
+     * {@link #repair repair} themselves as tiles are removed, and thus removing 
+     * tiles on the basis of the direction(s) they face may have unintended 
+     * results.
+     * @param filter A predicate which will return {@code true} for the elements 
+     * to be removed (cannot be null).
+     * @return {@code true} if any elements were removed from this snake.
+     * @throws NullPointerException If the given filter predicate is null.
+     * @see #repair 
+     */
+    @Override
+    public boolean removeIf(Predicate<? super Tile> filter){
+        Objects.requireNonNull(filter); // Check if the filter is null
+        if (isEmpty())      // If this snake is empty (nothing to remove)
+            return false;
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+            // This gets if this snake was modified as a result of removing the 
+        boolean modified = false;       // tiles that matched the filter
+        // This gets any exceptions thrown while removing the tiles, so that 
+        RuntimeException exc = null;    // it can be relayed after we're done
+        try{    // Remove the tiles that match the filter
+            modified = super.removeIf(filter);  
+        }
+        catch(RuntimeException ex){
+            exc = ex;
+        }
+        repair();                    // Repair the snake (may be removed later)
+        model.setTilesAreAdjusting(adjusting);
+        if (exc != null)    // If an exception was thrown while removing tiles
+            throw exc;
+        return modified;
+    }
+    /**
+     * This resets this snake by {@link #resetFailCount resetting} the {@link 
+     * #getFailCount fail count}, clearing any status flags set on this snake 
+     * (such as {@link #APPLE_CONSUMED_FLAG} and {@link #CRASHED_FLAG}), and 
+     * removing all tiles from this snake. If the flags or the tile contents of 
+     * this snake changed as a result of the call, then this will fire a {@link 
+     * SnakeEvent#SNAKE_RESET SNAKE_RESET} {@code SnakeEvent}.
      * @param model The model that this snake is/was being displayed on. This 
      * may be different from the currently set model, and may be the model that 
      * this snake is being removed from when {@link #setModel setting the 
@@ -842,7 +1633,6 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * model that the {@link PlayFieldModel#setTilesAreAdjusting tiles will be 
      * adjusting}.
      * @see #resetFailCount 
-     * @see #clearActionQueue 
      * @see #setFlag 
      * @see PlayFieldModel#getTilesAreAdjusting 
      * @see PlayFieldModel#setTilesAreAdjusting 
@@ -851,50 +1641,59 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
      * @see #clear 
+     * @see Tile#clear 
      * @see SnakeEvent#SNAKE_RESET
      */
     protected void reset(PlayFieldModel model){
-        resetFailCount();
-        getActionQueue().clear();
+            // This gets whether the tiles are currently adjusting, so as to 
+            // restore this value when the reset is finished
+        boolean adjusting = false;  
+        if (model != null){ // If the model is not null
+            adjusting = model.getTilesAreAdjusting();
+                // The tiles will be adjusting
+            model.setTilesAreAdjusting(true);
+        }
+        resetFailCount();           // Reset the fail count
             // Reset the flags that are affected when resetting a snake and get 
             // whether they changed
         boolean reset = setFlag(RESET_AFFECTED_FLAGS,false);
         if (!snakeBody.isEmpty()){  // If the snake body is not empty
-            reset = true;   // The snake will be changed
-                // This gets whether the tiles are currently adjusting, so as to 
-                // restore this value when the reset is finished
-            boolean adjusting = false;  
-            if (model != null){ // If the model is not null
-                adjusting = model.getTilesAreAdjusting();
-                    // The tiles will be adjusting
-                model.setTilesAreAdjusting(true);
-            }    // A for loop to go through the body of this snake and clear 
+            reset = true;           // The snake will be changed
+                // A for loop to go through the body of this snake and clear 
             for (Tile tile : snakeBody) // each tile
-                tile.clear();
-            snakeBody.clear();           
-            if (model != null)  // If the model is not null
-                model.setTilesAreAdjusting(adjusting);
+                tile.clear();       // Clear the current tile
+            snakeBody.clear();      // Empty the snake
         }
-        if (reset)  // If this snake was reset
+        if (reset)                  // If this snake was affected by the reset
             fireSnakeChange(SnakeEvent.SNAKE_RESET,0);
+        if (model != null)          // If the model is not null
+            model.setTilesAreAdjusting(adjusting);
     }
     /**
-     * This {@link Tile#clear() clears} and removes all the tiles from this 
-     * snake.
-     * @see #reset
+     * This removes and {@link Tile#clear clears} all of the tiles from this 
+     * snake. This will also reset this snake, resulting in the status and the 
+     * {@link #getFailCount fail count} of this snake being reset. Any and all 
+     * settings previously set for this snake will be maintained. If this snake 
+     * changed as a result of calling this, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake has been {@link 
+     * SnakeEvent#SNAKE_RESET reset}. This snake will be {@link #isEmpty empty}, 
+     * its fail count will be zero, it will not be {@link #isFlipped flipped}, 
+     * and it will not have {@link #hasConsumedApple eaten an apple} or {@link 
+     * #isCrashed crashed} after this call returns. 
+     * @see #isValid 
+     * @see #isEmpty 
+     * @see #size 
      * @see Tile#clear 
+     * @see SnakeEvent#SNAKE_RESET
      */
     @Override
     public void clear(){
         reset(model);
     }
-    
-    
-    
     /**
      * This returns an array containing the tiles in this snake in the order in 
-     * which they appear, starting at the {@link #getHead() head} and ending at 
-     * the {@link #getTail() tail} of this snake. <p>
+     * which they appear, starting at the {@link #getHead head} and ending at 
+     * the {@link #getTail tail} of this snake. <p>
      * 
      * The returned array will be "safe" in that no references to the array will 
      * be maintained by this snake. (In other words, this method must allocate a 
@@ -903,65 +1702,427 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @return An array containing the tiles in this snake.
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
      * @see #isFlipped 
      * @see #flip 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
-     * @see #toList 
-     * @see #toQueue 
      */
     @Override
     public Object[] toArray(){
         return super.toArray();
     }
-    
-    @Override
-    public <T> T[] toArray(T[] a){
-        return super.toArray(a);
-    }
     /**
-     * This returns an iterator over the tiles in this snake in the order in 
-     * which they appear in this snake. The iterator starts at the {@link 
-     * #getHead() head} of the snake and ends at the {@link #getTail() tail} of 
-     * the snake. <p>
+     * This returns an iterator over the tiles in this snake. The order in which 
+     * the tiles are iterated over depends on the value for {@code descending}. 
+     * If {@code descending} is {@code false}, then the iterator will iterate 
+     * over the tiles in the order in which they appear in this snake, starting 
+     * at the {@link #getHead head} of the snake, and ending at the {@link #peek 
+     * tail} of the snake. If {@code descending} is {@code true}, then the 
+     * iterator will iterate over the tiles in the reverse order, starting at 
+     * the tail of the snake, and ending at the head of the snake. <p>
      * 
      * Please note that tiles store their corresponding row and column, and thus 
      * the location of each tile can be retrieved by using the tile's {@link 
-     * Tile#getRow() getRow} and {@link Tile#getColumn() getColumn} methods. <p>
+     * Tile#getRow getRow} and {@link Tile#getColumn getColumn} methods. <p>
      * 
      * The returned iterator is fail-fast. That is to say, if the structure of
-     * this snake changes at any time after the iterator is created, then the 
-     * iterator will throw a {@link ConcurrentModificationException 
-     * ConcurrentModificationException}.
+     * this snake changes at any time after the iterator is created except via 
+     * the iterator's {@link Iterator#remove remove} method, then the iterator 
+     * will throw a {@link ConcurrentModificationException 
+     * ConcurrentModificationException}. 
      * 
+     * @todo Finish implementing the {@link #repairAfterRemoval 
+     * repairAfterRemoval} protected method to allow the snake to repair itself 
+     * after a tile is removed automatically.
+     * 
+     * @param descending Whether the iterator should be an ascending iterator or 
+     * a descending iterator ({@code false} for an ascending iterator, and 
+     * {@code true} for a descending iterator).
      * @return An iterator over the tiles in this snake.
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
      * @see #isFlipped 
      * @see #flip 
+     * @see #repair 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     * @see #iterator() 
+     */
+    protected Iterator<Tile> iterator(boolean descending) {
+        return new SnakeIterator(descending);
+    }
+    /**
+     * This returns an iterator over the tiles in this snake in the order in 
+     * which they appear in this snake. The iterator starts at the {@link 
+     * #getHead head} of the snake and ends at the {@link #peek tail} of the 
+     * snake. <p>
+     * 
+     * Please note that tiles store their corresponding row and column, and thus 
+     * the location of each tile can be retrieved by using the tile's {@link 
+     * Tile#getRow getRow} and {@link Tile#getColumn getColumn} methods. <p>
+     * 
+     * The returned iterator is fail-fast. That is to say, if the structure of
+     * this snake changes at any time after the iterator is created except via 
+     * the iterator's {@link Iterator#remove remove} method, then the iterator 
+     * will throw a {@link ConcurrentModificationException 
+     * ConcurrentModificationException}. 
+     * 
+     * @todo Finish implementing the {@link #repairAfterRemoval 
+     * repairAfterRemoval} protected method to allow the snake to repair itself 
+     * after a tile is removed automatically.
+     * 
+     * @return An iterator over the tiles in this snake.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see #flip 
+     * @see #repair 
      * @see Tile#getRow 
      * @see Tile#getColumn 
      */
     @Override
     public Iterator<Tile> iterator() {
-        return new SnakeIterator();
+        return iterator(false);
     }
-    
-    
-    
-    
-    
+    /**
+     * This repairs this snake. This attempts to ensure that all the tiles in 
+     * this snake join up. In other words, this attempts to ensure that each 
+     * tile in this snake will lead into the tiles before and after it in this 
+     * snake, so that this snake would appear continuous if each tile in this 
+     * snake was adjacent to the tile that comes before it and the tile that 
+     * comes after it in this snake. After this is called, each tile in this 
+     * snake will have at least one direction set for it (with the {@link 
+     * #getHead head} and {@link #peek tail} having only one direction set, and 
+     * the rest having two directions set), the direction(s) set for each tile 
+     * will result in it joining up with the tiles before an after it, and all 
+     * tiles in this snake will have their {@link Tile#getType type flag} set to 
+     * this snake's {@link #getPlayerType player type}. This will also remove 
+     * any tiles in this snake that are not currently in the {@link #getModel 
+     * model}. If any tiles have been changed or removed as a result of this 
+     * call, then this will fire a {@code SnakeEvent} indicating that the snake 
+     * has been {@link SnakeEvent#SNAKE_REPAIRED repaired}.
+     * 
+     * @todo Finish implementing the {@link #repairAfterRemoval 
+     * repairAfterRemoval} protected methods, so that the snake can repair 
+     * itself after a tile is removed via the iterator's remove method. Finish 
+     * workshopping the {@link #repairSegment repairSegment} protected method to 
+     * optimize repairing a snake.
+     * 
+     * @return This snake.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFlipped 
+     * @see #flip 
+     * @see #getModel 
+     * @see #setModel
+     * @see #getPlayerType 
+     * @see #setPlayerType 
+     * @see Tile#getState 
+     * @see Tile#setState 
+     * @see Tile#isEmpty 
+     * @see Tile#isSnake 
+     * @see Tile#getDirectionsFaced 
+     * @see Tile#getDirectionsFacedCount 
+     * @see Tile#getType 
+     * @see Tile#setType 
+     * @see Tile#alterDirection(int) 
+     * @see Tile#alterDirection(Tile) 
+     * @see PlayFieldModel#contains(Tile) 
+     * @see PlayFieldModel#contains(int, int) 
+     * @see SnakeUtilities#getDirections 
+     * @see SnakeUtilities#getDirectionCount 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeEvent#SNAKE_REPAIRED
+     */
+    public Snake repair(){
+        if (isEmpty())      // If this snake is empty
+            return this;
+            // Get whether the tiles in the model are currently adjusting, so as 
+            // to restore this once we're done
+        boolean adjusting = model.getTilesAreAdjusting();
+        model.setTilesAreAdjusting(true);
+            // An iterator to go through the tiles in this snake
+        Iterator<Tile> itr = iterator();
+        boolean repaired = false;// This gets whether any changes have been made
+        Tile prev;              // This stores the tile before the current tile
+        Tile curr = null;      // This stores the tile currently being worked on
+        Tile next = itr.next(); // This stores the tile after the current tile
+            // This stores the direction that the previous tile will join up 
+        int connectValue = 0;   // with the current tile.
+            // While the next tile in the snake is not in the model, and the 
+            // iterator still has tiles to go through (stops short of the last 
+        while (!model.contains(next) && itr.hasNext()){ // tile in the snake)
+            itr.remove();       // Remove the tile
+            next = itr.next();  // Get the next tile
+            repaired = true;    // We have made a change to the snake
+        }   // This will go through the tiles in the snake and repair it up to 
+        while (itr.hasNext()){  // the second to last tile in the snake
+            Tile temp = itr.next();     // Get the next tile in the snake
+            if (model.contains(temp)){  // If the model contains the next tile
+                prev = curr;        // The current tile is now the previous tile
+                curr = next;        // The next tile is now the current tile
+                next = temp;        // Get the next tile
+                    // Get the current state of the current tile, so that it can 
+                int old = curr.getState();  // be compared to after repairing it
+                    // Repair the segment made up of the previous, current, and 
+                    // next tiles
+                connectValue = repairSegment(prev, curr, next, connectValue); 
+                    // Update this to reflect if any changes have been made to 
+                    // any of the tiles so far
+                repaired = repaired || old != curr.getState();
+            }
+            else{   // Tile is not in the model
+                itr.remove();       // Remove the tile
+                repaired = true;    // We have made a change to the snake
+            }
+        }   // Next should contain the last tile in the snake
+        if (model.contains(next)){  // If the next tile is in the model
+                // Get the current state of the next (current) tile, so that it 
+            int old = next.getState();  // can be compared to after repairing it
+                // Repair the segment made up of the current (previous) and next 
+            repairSegment(curr, next, null, connectValue);//(current/last) tiles
+                // Update this to reflect if a change has been made to a tile
+            repaired = repaired || old != next.getState();
+        }
+        else{   // Next should still be the last tile returned by the iterator 
+                // at this point, since for it to both be the last tile in the 
+                // snake and still not be in the model, the second loop must 
+                // have been skipped
+            itr.remove();       // Remove the tile
+            repaired = true;    // We have made a change to the snake
+        }   // If the state of any of the tiles in this snake changed or if any 
+        if (repaired) // tiles were removed as a result of calling this
+            fireSnakeChange(SnakeEvent.SNAKE_REPAIRED,0);
+        model.setTilesAreAdjusting(adjusting);
+        return this;
+    }
+    /**
+     * This attempts to repair the given segment of this snake by altering the 
+     * direction(s) faced by the {@code current} tile to connect the {@code 
+     * previous} and {@code next} tiles if possible. This method is called by 
+     * the {@link #repair repair} method, and is responsible for ensuring that 
+     * the {@code current} tile joins up with the {@code previous} and {@code 
+     * next} tiles if possible, so as to allow the snake to be continuous 
+     * (assuming that each tile in the snake was adjacent to the tile before and 
+     * after it in the snake). The {@code previous} tile will be null for the 
+     * {@link #getHead first tile} in the snake, and the {@code next} tile will 
+     * be null for the {@link #peek last tile} in the snake. If both the {@code 
+     * previous} and {@code next} tiles are null, then it can be assumed that 
+     * the snake consists of only one tile. When the {@code previous} tile is 
+     * not null, then it will typically have one (if the {@code previous} tile 
+     * is the first tile in the snake, i.e. if the {@code current} tile is the 
+     * second tile in the snake) or two (for all {@code current} tiles other 
+     * than the second tile) directions set for it. The {@code next} tile may 
+     * have any number of directions set for it. The {@code previous}, {@code 
+     * current}, and {@code next} tiles may or may not be adjacent to each 
+     * other. After this is called, the {@code current} tile should have only 
+     * one (if the {@code current} tile is either the first or last tile in the 
+     * snake) or two (for all {@code current} tiles other than the first or last 
+     * tiles in the snake) directions set for it. The direction(s) set on the 
+     * {@code current} tile should ideally result in it joining up with the 
+     * {@code previous} and {@code next} tiles when possible. If the {@code 
+     * current} tile cannot be made to join up with the {@code next} tile, then 
+     * this should attempt to set up the {@code current} tile in a way that, the 
+     * {@code next} tile can be made to join up with when this method is called 
+     * by the {@code repair} method with the {@code current} tile, {@code next} 
+     * tile, and the tile after the {@code next} tile as the {@code previous}, 
+     * {@code current}, and {@code next} tiles, respectively. <p>
+     * 
+     * This assumes that only one direction is set on {@code connectDir} if any, 
+     * that the direction set on {@code connectDir} is a direction set on the 
+     * {@code previous} tile when the {@code previous} tile is non-null, and 
+     * that {@code connectDir} is the direction in which the {@code previous} 
+     * tile will be joining up with the {@code current} tile. This also assumes 
+     * that the {@code next} tile, when non-null, will not be the same tile as 
+     * the {@code current} tile, nor will the {@code next} tile's {@link 
+     * Tile#getRow row} and {@link Tile#getColumn column} are not the same row 
+     * and column as the {@code current} tile. When called by the {@code repair}
+     * method, these assumptions will be true. The value returned will be the 
+     * direction that the {@code next} tile will join up with the {@code 
+     * current} tile. In other words, the value returned will be the value to 
+     * use for {@code connectDir} when this is used to repair the {@code next} 
+     * tile.
+     * 
+     * @todo Finish workshopping this method to optimize repairing a snake.
+     * 
+     * @param previous The tile in the snake that comes before the {@code 
+     * current} tile, or null.
+     * @param current The tile in the snake that is to be altered, if necessary, 
+     * to make the snake to be continuous (cannot be null).
+     * @param next The tile in the snake that comes after the {@code current} 
+     * tile, or null.
+     * @param connectDir The direction set on the {@code previous} tile that 
+     * will join up with the {@code current} tile, or zero if the {@code 
+     * previous} tile is null.
+     * @return The direction set on the {@code current} tile that will join up 
+     * with the {@code next} tile.
+     * @see #repair 
+     */
+    protected int repairSegment(Tile previous, Tile current, Tile next, 
+            int connectDir){
+            // If there is a previous tile and it is facing a single direction
+        if (previous != null && previous.getDirectionsFacedCount() == 1)
+                // There is only one direction that will cause the current tile 
+                // to join up with the previous tile
+            connectDir = previous.getDirectionsFaced();
+        else if (previous == null)  // If there isn't a previous tile
+            connectDir = 0; // Ensure that this direction is zero
+            // Invert the direction to get the direction needed to join up with 
+            // the previous tile, instead of the direction that was from the 
+            // previous tile
+        connectDir = SnakeUtilities.invertDirections(connectDir);
+            // If the next tile is null (the current tile is the last tile in 
+        if (next == null){      // the snake)
+                // If the previous tile is null (the current tile is the only 
+            if (previous == null){  // tile in the snake)
+                    // If the current tile isn't facing any directions
+                if (current.getDirectionsFaced() == 0)
+                    current.setFacingLeft(true);
+                    // If the current tile is facing more than one direction
+                else if (current.getDirectionsFacedCount() != 1){   
+                        // If the current tile is facing both of the horizontal 
+                    if (current.getFlag(HORIZONTAL_DIRECTIONS)) // directions
+                        current.setFacingRight(false);
+                        // If the current tile is facing both of the vertical
+                    if (current.getFlag(VERTICAL_DIRECTIONS))   // directions
+                        current.setFacingDown(false);
+                        // If the current tile is still facing more than one 
+                        // direction at this point
+                    if (current.getDirectionsFacedCount() != 1)
+                        current.setFlag(VERTICAL_DIRECTIONS, false);
+                }
+            }
+            else    //The last tile just needs to join up with the previous tile
+                current.setState(connectDir);
+        }
+        else{   // The current tile must not be the last tile in the snake
+                // If the next tile is below the current tile, make the current 
+                // tile face upwards
+            current.setFacingUp(current.getRow() < next.getRow());
+                // If the next tile is above the current tile, make the current 
+                // tile face downwards
+            current.setFacingDown(current.getRow() > next.getRow());
+                // If the next tile is to the right of the current tile, make 
+                // the current tile face to the left
+            current.setFacingLeft(current.getColumn() < next.getColumn());
+                // If the next tile is to the left of the current tile, make the 
+                // current tile face to the right
+            current.setFacingRight(current.getColumn() > next.getColumn());
+                // If the current tile is now facing two directions (this is the 
+                // case if the next tile is neither in the same row nor the same 
+                // column as the current tile)
+            if (current.getDirectionsFacedCount() == 2){
+                if (previous == null){  // If the previous tile is null (the 
+                        // current tile is the first tile in the snake)
+                        // If the next tile is facing either up or down, remove 
+                        // any horizontal directions set on the current tile. 
+                        // Otherwise, remove any vertical directions set on the 
+                        // current tile.
+                    current.setFlag((next.isFacingUp() || next.isFacingDown())?
+                            HORIZONTAL_DIRECTIONS:VERTICAL_DIRECTIONS, false);
+                }
+                else    // Remove the direction opposite to the direction that 
+                        // will connect the current tile to the previous tile, 
+                        // if set
+                    current.setFlag(SnakeUtilities.invertDirections(connectDir), 
+                            false);
+            }
+            if (previous != null){  // If the previous tile is not null (the 
+                    // current tile is not the first tile in the snake)
+                    // If the current tile is currently only facing the 
+                    // direction needed to connect to the previous tile
+                if (current.getDirectionsFaced() == connectDir)
+                    current.setFlag(SnakeUtilities.invertDirections(connectDir), 
+                            true);
+                else
+                    current.setFlag(connectDir, true);
+            }
+        }
+        current.setType(getPlayerType());   // Enforce the snake's player type
+            // Get the direction that was set on the current tile, so that we 
+            // can connect the next tile to the current tile
+        return SnakeUtilities.setFlag(current.getDirectionsFaced(), connectDir, 
+                false);
+    }
+    /**
+     * This is used to repair the snake after a tile is removed. This is called 
+     * by the {@link Iterator#remove remove} method of the {@link #iterator 
+     * iterator} returned by this snake. This should attempt to ensure that the 
+     * {@code previous} and {@code next} tiles will join up (i.e. that, if the 
+     * {@code previous} and {@code next} tiles were next together, the snake 
+     * would be continuous) if possible. The {@code previous} tile will be null 
+     * if the tile at the start of the snake was removed. The {@code next} tile 
+     * will be null if the tile at the end of the snake was removed. If both are 
+     * null, then the snake will be empty.
+     * 
+     * @todo Finish developing this methods to allow the snake to repair itself 
+     * automatically when a tile is removed.
+     * 
+     * @param previous The tile in the snake that came before the tile that was 
+     * removed, or null.
+     * @param removed The tile that was removed from the snake.
+     * @param next The tile in the snake that came after the tile that was 
+     * removed, or null.
+     * @see #iterator 
+     * @see Iterator#remove
+     * @see #isEmpty 
+     * @see #repair 
+     * @see #repairSegment 
+     */
+    protected void repairAfterRemoval(Tile previous, Tile removed, Tile next){
+            // If the snake is empty or both previous and next tiles are null 
+            // (which they would be if the snake is now empty)
+        if (isEmpty() || (previous == null && next == null))    
+            return;
+            // If the previous tile is null (head was removed)
+        if (previous == null){  
+            if (hasTail())          // If the snake still has a tail
+                next.alterDirection(removed);
+            else
+                next.setState(removed.getState());
+        }
+        else if (next == null){ // If the next tile is null (tail was removed)
+            previous.alterDirection(removed);
+        }
+        else if (previous.getDirectionsFaced() != removed.getDirectionsFaced() && 
+                next.getDirectionsFaced() != removed.getDirectionsFaced() && 
+                removed.getDirectionsFaced() != HORIZONTAL_DIRECTIONS && 
+                removed.getDirectionsFaced() != VERTICAL_DIRECTIONS && 
+                removed.getDirectionsFacedCount() == 2){
+            if (previous.getDirectionsFacedCount() == 1 || next.getDirectionsFacedCount() == 1){
+                Tile tile = (previous.getDirectionsFacedCount() == 1) ? previous : next;
+                tile.alterDirection(removed).flip();
+            }
+            else{
+                
+            }
+        }
+//        else if (previous != peek() && removed.isSnake() && 
+//                previous.getDirectionsFaced() != removed.getDirectionsFaced()){
+//            if (!previous.isSnake())
+//                previous.setState(removed.getState());
+//
+//            // try to repair the snake by ensuring the previous tile will join 
+//            // up with the next
+//        }
+    }
     /**
      * This returns the model that this snake is displayed on and uses to get 
      * its {@link Tile tiles} from.
      * @return The PlayFieldModel that provides the tiles for this snake.
      * @see #setModel
-     * @see #initialize(Tile) 
-     * @see #initialize(int, int) 
      * @see #isValid 
      * @see PlayFieldModel
      * @see AbstractPlayFieldModel
@@ -972,12 +2133,12 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This sets the model that this snake is displayed on and uses to get its 
-     * {@link Tile tiles} from. This will also result in this snake being reset, 
-     * removing all tiles from this snake, resetting the status of this snake, 
-     * and {@link #clearActionQueue() clearing the action queue}. All settings 
-     * previously set for this snake will be maintained. This snake will need to 
-     * be {@link #initialize(Tile) reinitialized} with a tile from the new model 
-     * before it can be used. 
+     * {@link Tile tiles} from. This will also cause this snake to be {@link 
+     * #clear reset}, resulting in all tiles being removed, the {@link 
+     * #getFailCount fail count} being reset to zero, and the status being 
+     * reset. Any and all settings previously set for this snake will be
+     * maintained. This snake will need to be {@link #initialize(Tile) 
+     * reinitialized} with a tile from the new model before it can be used. 
      * @param model The PlayFieldModel that provides the tiles for this snake 
      * (cannot be null).
      * @return This snake.
@@ -985,15 +2146,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getModel 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
+     * @see #clear 
      * @see #isValid 
-     * @see #clearActionQueue 
      * @see PlayFieldModel
      * @see AbstractPlayFieldModel
      * @see DefaultPlayFieldModel
      */
     public Snake setModel(PlayFieldModel model){
-        if (model == null)      // If the model is null
-            throw new NullPointerException("Play field model cannot be null");
+        Objects.requireNonNull(model);      // Check if the model is null
             // If the old and new model are the same
         if (Objects.equals(this.model, model))
             return this;
@@ -1001,43 +2161,61 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         this.model = model;
         firePropertyChange(MODEL_PROPERTY_CHANGED,old,model);
             // If the old model is not null, reset this snake. (The old model 
-            // will only ever be null when the snake is first being constructed)
-        if (old != null)
+        if (old != null)    // will only ever be null during the constructor)
             reset(old);
         return this;
     }
     /**
      * This initializes this snake and sets the given tile to be the snake's 
-     * {@link #getHead() head}. If this snake was previously initialized, then 
-     * this will also reset the snake. This will result in all tiles being 
-     * removed from this snake, the current status of this snake will be reset, 
-     * and the action queue will be {@link #clearActionQueue() cleared}. All 
-     * settings previously set for this snake will be maintained. After this is 
-     * called, the snake will be one tile long, consisting of only the given 
-     * tile, and will be facing {@link #isFacingLeft() left}.
-     * @param head The head for this snake. This must be a non-null, {@link 
-     * Tile#isEmpty() empty} tile from the {@link #getModel() model}. If this 
-     * tile is currently part of this snake, then it just needs to be a non-null 
-     * tile from the model.
+     * {@link #getHead head}. If this snake was previously initialized, then 
+     * this will also {@link #clear reset} the snake. This will result in all 
+     * tiles being removed from this snake, the current status of this snake 
+     * being reset, and this snake's {@link #getFailCount fail count} being 
+     * reset to zero. Any and all settings previously set for this snake will be 
+     * maintained. <p>
+     * 
+     * The tile must be a non-null tile from this snake's {@link #getModel 
+     * model}. Additionally, if the tile is not currently in this snake, then 
+     * the tile must either be {@link Tile#isEmpty empty} or a {@link 
+     * Tile#isSnake snake tile}. If the tile is a snake tile, then 
+     * its {@link Tile#getType type flag} must be set to this snake's {@link 
+     * #getPlayerType player type} and it must not be facing more than one 
+     * direction. If the tile is currently in this snake, then it will be {@link 
+     * Tile#clear cleared}, regardless of its current state. As such, if the 
+     * tile is currently in this snake, then it will be treated as if it were an 
+     * empty tile. <p>
+     * 
+     * After this is called, the snake will be one tile long, consisting of only 
+     * the given tile. If the given tile was either empty or a part of this 
+     * snake, then this snake will be facing {@link #isFacingLeft() left}. 
+     * Otherwise, if the tile was facing a direction, then this snake will be 
+     * facing the direction that the tile was facing.
+     * 
+     * @param head The tile to use as the head for this snake.  
      * @return This snake.
-     * @throws NullPointerException If the head is null.
-     * @throws IllegalArgumentException If the head is either not in the model 
-     * or is neither empty nor currently part of this snake.
+     * @throws NullPointerException If the given tile is null.
+     * @throws IllegalArgumentException If the given tile is either not in the 
+     * model or is neither empty, a snake tile, nor currently part of this 
+     * snake. If the given tile is a snake tile that is not currently in this 
+     * snake, then this will also be thrown if it is either facing multiple 
+     * directions or if the tile's type is not the same as this snake's player 
+     * type.
      * @see #getModel 
      * @see #setModel 
      * @see #initialize(int, int) 
      * @see #isValid 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
-     * @see #contains(Tile) 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
-     * @see #isFacingLeft 
      * @see #getPlayerType 
      * @see #setPlayerType 
      * @see #revive 
-     * @see #clearActionQueue 
      * @see Tile#isEmpty 
      * @see Tile#clear 
      * @see Tile#getType 
@@ -1054,38 +2232,54 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see PlayFieldModel#getColumnCount 
      */
     public Snake initialize(Tile head){
-        if (head == null)           // If the proposed head is null
-            throw new NullPointerException("Head tile cannot be null");
-        if (!model.contains(head))  // If the proposed head is not in the model
-            throw new IllegalArgumentException("Head tile is not in model");
-            // If the proposed head is neither empty nor part of this snake
-        if (!head.isEmpty() && !contains(head))
-            throw new IllegalArgumentException("Head tile is not empty");
+        Objects.requireNonNull(head);   // Check if the proposed head is null
+            // If the proposed head is not currently a part of this snake (or if 
+            // it is, but it's not in the model)
+        if (!contains(head) || !model.contains(head))
+            checkOfferedTile(head,null);// Check if the tile can be added
             // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once we're done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
-        reset(model);   // Reset the snake
-            // Clear the new head, set it to be facing left, and set it to be 
-        addHead(head.clear().setFacingLeft(true));  // the snake's head
-        model.setTilesAreAdjusting(adjusting);
+        clear();                        // Reset the snake
+        if (head.isEmpty())         // If the new head is empty (no thoughts)
+            head.setFacingLeft(true);   // Set the new head to be facing left
+        insertHead(head);               // Add the tile as the head of the snake
         fireSnakeChange(SnakeEvent.SNAKE_INITIALIZED,head);
+        fireSnakeChange(SnakeEvent.SNAKE_ADDED_TILE,head);
+        model.setTilesAreAdjusting(adjusting);
         return this;
     }
     /**
-     * This initializes this snake and sets the tile in the {@link #getModel() 
-     * model} at the given row and column to be the snake's {@link #getHead() 
+     * This initializes this snake and sets the tile in the {@link #getModel 
+     * model} at the given row and column to be the snake's {@link #getHead 
      * head}. If this snake was previously initialized, then this will also 
+     * {@link #clear reset} the snake. This will result in all tiles being 
+     * removed from this snake, the current status of this snake being reset, 
+     * and this snake's {@link #getFailCount fail count} being reset to zero. 
+     * Any and all settings previously set for this snake will be maintained. 
+     * <p>
+     * 
+     * If this snake was previously initialized, then this will also 
      * reset the snake.This will result in all tiles being removed from this 
      * snake, the current status of this snake will be reset, and the action 
-     * queue will be {@link #clearActionQueue() cleared}. All settings 
+     * queue will be {@code #clearActionQueue() cleared}. All settings 
      * previously set for this snake will be maintained. After this is called, 
      * the snake will be one tile long, consisting of only the given tile, and 
      * will be facing {@link #isFacingLeft() left}. <p>
      * 
-     * This is equivalent to calling {@link #initialize(Tile) initialize} with 
-     * the tile returned by the {@link #getModel() model}'s {@link 
-     * PlayFieldModel#getTile getTile} method.
+     * If the tile is not currently in this snake, then the tile must either be 
+     * {@link Tile#isEmpty empty} or a {@link Tile#isSnake snake tile}. If the 
+     * tile is a snake tile, then its {@link Tile#getType type flag} must be set 
+     * to this snake's {@link #getPlayerType player type} and it must not be 
+     * facing more than one direction. If the tile is currently in this snake, 
+     * then it will be {@link Tile#clear cleared}, regardless of its current 
+     * state. As such, if the tile is currently in this snake, then it will be 
+     * treated as if it were an empty tile. <p>
+     * 
+     * This is equivalent to calling {@link #initialize(Tile) 
+     * initialize}{@code (}{@link #getModel getModel()}{@code .}{@link 
+     * PlayFieldModel#getTile getTile}{@code (row, column))}.
      * 
      * @param row The row in the model for the tile to use as the head of this 
      * snake.
@@ -1095,22 +2289,27 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IndexOutOfBoundsException If either the row or column are out of 
      * bounds for the model.
      * @throws IllegalArgumentException If the tile at the given row and column 
-     * is neither empty nor currently part of this snake.
+     * is neither empty, a snake tile, nor currently part of this snake. If the 
+     * tile is a snake tile that is not currently in this snake, then this will 
+     * also be thrown if it is either facing multiple directions or if the 
+     * tile's type is not the same as this snake's player type.
      * @see #getModel 
      * @see #setModel 
      * @see #initialize(Tile) 
      * @see #isValid 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
-     * @see #contains(Tile) 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #isFacingLeft 
      * @see #getPlayerType 
      * @see #setPlayerType 
      * @see #revive 
-     * @see #clearActionQueue 
      * @see Tile#isEmpty 
      * @see Tile#clear 
      * @see Tile#getType 
@@ -1131,9 +2330,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake is in a valid state. A snake is in a 
-     * valid state if the snake is not {@link #isEmpty() empty}, its {@link 
-     * #getHead() head} is a non-null tile {@link PlayFieldModel#contains(Tile) 
-     * in} the {@link #getModel() model}, and it's {@link #getDirectionFaced() 
+     * valid state when it is not {@link #isEmpty empty}, its {@link #getHead 
+     * head} is a non-null tile {@link PlayFieldModel#contains(Tile) contained} 
+     * in its {@link #getModel model}, and it's {@link #getDirectionFaced 
      * facing} in one direction and one direction only.
      * @return Whether this snake is in a valid state.
      * @see #isEmpty 
@@ -1144,14 +2343,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see PlayFieldModel#contains(int, int) 
      * @see PlayFieldModel#contains(Tile) 
      * @see #getModel 
+     * @see #repair 
      */
     public boolean isValid(){
         return model != null && !isEmpty() && getHead() != null && 
                 model.contains(getHead()) && 
-                getHead().getDirectionsFacedCount() == 1;
+                getHead().getDirectionsFacedCount()==1;
     }
     /**
-     * This checks to see if this snake is in a {@link #isValid() valid} state, 
+     * This checks to see if this snake is in a {@link #isValid valid} state, 
      * and if not, throws an {@code IllegalStateException}.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
@@ -1164,19 +2364,23 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
             throw new IllegalStateException("Snake "+((name!=null)?name+" ":"")+
                     "is not in a valid state");
     }
-    
-    
-    
-    
-    
-//    public boolean addAll()
-    
     /**
-     * This returns the tile that represents the head of this snake. If this 
-     * snake has no head as a result of being {@link #isEmpty() empty}, then 
-     * this returns null.
+     * This returns the tile that represents the start or head of this snake. 
+     * This will be the first tile in this snake. If this is {@link #isEmpty 
+     * empty}, then this returns null. <p>
+     * 
+     * Note that this is different from the head of the queue represented by 
+     * this snake. Snakes act like a queue but in reverse, and thus the 
+     * <em>head</em> of the <em>snake</em> is technically the <em>tail</em> of 
+     * the <em>queue</em>, and vice versa. The {@link #peek peek} method can be 
+     * used to get the head of the <em>queue</em> represented by this snake. The 
+     * {@link #getTail getTail} method can also be used to get the head of the 
+     * queue, but only when the snake is at least two tiles long, as it will 
+     * otherwise return null.
+     * 
      * @return The head of this snake, or null if this snake has no head.
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
      * @see #flip 
@@ -1197,100 +2401,54 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         return (isFlipped()) ? snakeBody.peekLast() : snakeBody.peekFirst();
     }
     /**
-     * This returns the tile that represents the tail of this snake. If this 
-     * snake is either {@link #isEmpty() empty} or only has a {@link #getHead() 
+     * This returns whether this snake has a tail. This is used internally to 
+     * determine if the snake has a tail, and returns whether the snake is at 
+     * least two tiles long.
+     * @return Whether this snake has a tail.
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #isEmpty 
+     * @see #size 
+     */
+    protected boolean hasTail(){
+        return size() >= 2;
+    }
+    /**
+     * This returns the tile that represents the end or tail of this snake. If 
+     * this snake is either {@link #isEmpty empty} or only has a {@link #getHead 
      * head} (i.e. this snake is less than two tiles long), then this returns 
-     * null.
+     * null. This method is similar to {@link #peek peek}, with the exception 
+     * that this will return null if this snake is less than two tiles long. <p>
+     * 
+     * Note that this is different from the tail of the queue represented by 
+     * this snake. Snakes act like a queue but in reverse, and thus the 
+     * <em>tail</em> of the <em>snake</em> is technically the <em>head</em> of 
+     * the <em>queue</em>, and vice versa. As such, the {@link #getHead getHead} 
+     * method can be used to get the tail of the <em>queue</em> represented by 
+     * this snake.
+     * 
      * @return The tail of this snake, or null if this snake has no tail.
+     * @see #peek 
      * @see #getHead 
      * @see #size 
      * @see #isEmpty 
      * @see #flip 
      * @see #isFlipped 
+     * @see #poll
+     * @see #remove() 
      * @see #removeTail 
      */
     public Tile getTail(){
-            // If the snake is less than two tiles long, return null. Otherwise
-            // peek at the queue to get the snake's tail
-        return (size() < 2) ? null : peek();
-    }
-    /**
-     * This is used to add the tiles in this snake to the given collection.
-     * @param c The collection to add the tiles to.
-     * @see #iterator 
-     * @see #toList 
-     * @see #toQueue 
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see #flip 
-     */
-    private void addToCollection(java.util.Collection<? super Tile> c){
-            // A for loop to go through the tiles in this snake
-        for (Tile tile : this)
-            c.add(tile);
-    }
-    /**
-     * This returns a queue containing the tiles in this snake in the order in 
-     * which they appear, starting at the {@link #getHead() head} and ending at 
-     * the {@link #getTail() tail} of this snake. <p>
-     * 
-     * The returned queue will be "safe" in that no references to the queue will 
-     * be maintained by this snake. (In other words, this method must allocate a 
-     * new queue). The caller is thus free to modify the returned queue. 
-     * 
-     * @return A queue containing the tiles in this snake.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see #flip 
-     * @see #contains(Tile) 
-     * @see #contains(int, int) 
-     * @see #toArray 
-     * @see #toList 
-     */
-    public Deque<Tile> toQueue(){
-            // A queue to get the tiles in this snake
-        ArrayDeque<Tile> tiles = new ArrayDeque<>();
-        addToCollection(tiles); // Add the tiles to the queue
-        return tiles;
-    }
-    /**
-     * This returns a list containing the tiles in this snake in the order in 
-     * which they appear, starting at the {@link #getHead() head} and ending at 
-     * the {@link #getTail() tail} of this snake. <p>
-     * 
-     * The returned list will be "safe" in that no references to the list will 
-     * be maintained by this snake. (In other words, this method must allocate a 
-     * new list). The caller is thus free to modify the returned list. 
-     * 
-     * @return A list containing the tiles in this snake.
-     * @see #getHead 
-     * @see #getTail 
-     * @see #size 
-     * @see #isEmpty 
-     * @see #isFlipped 
-     * @see #flip 
-     * @see #contains(Tile) 
-     * @see #contains(int, int) 
-     * @see #toArray 
-     * @see #toQueue 
-     */
-    public List<Tile> toList(){
-            // A list to get the tiles in this snake
-        ArrayList<Tile> tiles = new ArrayList<>();
-        addToCollection(tiles); // Add the tiles to the list
-        return tiles;
+            // If the snake has a tail, peek at the queue to get the snake's 
+            // tail. Otherwise, return null.
+        return (hasTail()) ? peek() : null;
     }
     /**
      * This returns whether this snake is facing up. This is equivalent to 
-     * calling {@link Tile#isFacingUp() isFacingUp} on the {@link #getHead() 
-     * head} of this snake. If this snake does not have a head, then this will 
-     * return {@code false}.
+     * calling {@link Tile#isFacingUp isFacingUp} on the {@link #getHead head} 
+     * of this snake. If this snake does not have a head, then this will return 
+     * {@code false}.
      * @return Whether this snake is facing up.
      * @see #getHead 
      * @see #isFacingDown 
@@ -1305,7 +2463,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake is facing down. This is equivalent to 
-     * calling {@link Tile#isFacingDown() isFacingDown} on the {@link #getHead() 
+     * calling {@link Tile#isFacingDown isFacingDown} on the {@link #getHead 
      * head} of this snake. If this snake does not have a head, then this will 
      * return {@code false}.
      * @return Whether this snake is facing down.
@@ -1322,9 +2480,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake is facing to the left. This is equivalent 
-     * to calling {@link Tile#isFacingLeft() isFacingLeft} on the {@link 
-     * #getHead() head} of this snake. If this snake does not have a head, then 
-     * this will return {@code false}.
+     * to calling {@link Tile#isFacingLeft isFacingLeft} on the {@link #getHead 
+     * head} of this snake. If this snake does not have a head, then this will 
+     * return {@code false}.
      * @return Whether this snake is facing to the left.
      * @see #getHead 
      * @see #isFacingUp 
@@ -1339,9 +2497,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake is facing to the right. This is 
-     * equivalent to calling {@link Tile#isFacingRight() isFacingRight} on the 
-     * {@link #getHead() head} of this snake. If this snake does not have a 
-     * head, then this will return {@code false}.
+     * equivalent to calling {@link Tile#isFacingRight isFacingRight} on the 
+     * {@link #getHead head} of this snake. If this snake does not have a head, 
+     * then this will return {@code false}.
      * @return Whether this snake is facing to the right.
      * @see #getHead 
      * @see #isFacingUp 
@@ -1357,12 +2515,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This returns the flag representing the direction that this snake is 
      * currently facing. This is equivalent to calling {@link 
-     * Tile#getDirectionsFaced() getDirectionsFaced} on the {@link #getHead() 
-     * head} of this snake. As a result, if the head of this snake is facing 
-     * multiple directions, then this will return the flags for all the 
-     * directions faced. However, keep in mind that a snake is only {@link 
-     * #isValid() valid} if it has a head that is facing a single direction. If 
-     * this snake does not have a head, then this will return zero.
+     * Tile#getDirectionsFaced getDirectionsFaced} on the {@link #getHead head} 
+     * of this snake. As a result, if the head of this snake is facing multiple 
+     * directions, then this will return the flags for all the directions faced. 
+     * However, keep in mind that a snake is only {@link #isValid valid} if it 
+     * has a head that is facing a single direction. If this snake does not have 
+     * a head (i.e. if this snake is {@link #isEmpty empty}), then this will 
+     * return zero.
      * @return The direction that this snake is facing.
      * @see #getHead 
      * @see #isFacingUp 
@@ -1373,6 +2532,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#getDirectionsFacedCount 
      * @see #isValid 
      * @see #isEmpty 
+     * @see #size 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -1388,7 +2548,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * If the given value has no directions set (i.e. {@link 
      * SnakeUtilities#getDirectionCount 
      * SnakeUtilities.getDirectionCount}{@code (direction)} returns zero), then 
-     * the direction is replaced with the {@link #getDirectionFaced() direction 
+     * the direction is replaced with the {@link #getDirectionFaced direction 
      * currently faced} by this snake.
      * @param direction The direction to check.
      * @return The direction to use.
@@ -1405,31 +2565,31 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         return SnakeUtilities.requireSingleDirection(direction);
     }
     /**
-     * This returns the tile in the {@link #getModel() model} that is {@link 
-     * PlayFieldModel#getAdjacentTile adjacent} to the {@link #getHead() head} 
-     * of this snake in the given direction. The direction must be either zero 
-     * or one of the four direction flags: {@link #UP_DIRECTION}, {@link 
+     * This returns the tile in the {@link #getModel model} that is {@link 
+     * PlayFieldModel#getAdjacentTile adjacent} to the {@link #getHead head} of 
+     * this snake in the given direction. The direction must be either zero or 
+     * one of the four direction flags: {@link #UP_DIRECTION}, {@link 
      * #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. 
      * If the direction is zero, then this will get the tile in front of this 
      * snake (i.e. the tile adjacent to the head in the {@link 
-     * #getDirectionFaced() direction being faced}). This will use whether the 
-     * snake {@link #isWrapAroundEnabled() wraps around} to determine how to 
-     * treat getting the tile adjacent to the head when the adjacent tile would 
-     * be out of bounds. If the snake can wrap around, then this will wrap 
-     * around and get a tile from the other side of the model when the adjacent 
-     * tile would be out of bounds. Otherwise, this will return null when the 
-     * adjacent tile would be out of bounds. <p>
+     * #getDirectionFaced direction being faced}). This will use whether the 
+     * snake {@link #isWrapAroundEnabled wraps around} to determine how to treat 
+     * getting the tile adjacent to the head when the adjacent tile would be out 
+     * of bounds. If the snake can wrap around, then this will wrap around and 
+     * get a tile from the other side of the model when the adjacent tile would 
+     * be out of bounds. Otherwise, this will return null when the adjacent tile 
+     * would be out of bounds. <p>
      * 
      * This calls the {@link PlayFieldModel#getAdjacentTile getAdjacentTile} 
-     * method of the {@link #getModel() model}, providing it with the {@link 
-     * #getHead() head} of the snake for the tile, the given direction 
-     * (substituting it with the {@link #getDirectionFaced() direction faced} if 
+     * method of the {@link #getModel model}, providing it with the {@link 
+     * #getHead head} of the snake for the tile, the given direction 
+     * (substituting it with the {@link #getDirectionFaced direction faced} if 
      * the given direction is zero), and whether this snake is allowed to {@link 
-     * #isWrapAroundEnabled() wrap around}. 
+     * #isWrapAroundEnabled wrap around}. 
      * 
      * @param direction The direction indicating which adjacent tile to return. 
      * This should be one of the following: 
-     *      {@code 0} to get the tile being {@link #getDirectionFaced() faced}, 
+     *      {@code 0} to get the tile being {@link #getDirectionFaced faced}, 
      *      {@link #UP_DIRECTION} to get the tile above the head, 
      *      {@link #DOWN_DIRECTION} to get the tile below the head, 
      *      {@link #LEFT_DIRECTION} to get the tile to the left of the head, or 
@@ -1440,7 +2600,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @throws IllegalArgumentException If the given direction is neither zero 
-     * nor one of the direction flags.
+     * nor one of the four direction flags.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -1453,7 +2613,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getHead 
      * @see #isWrapAroundEnabled
      * @see #setWrapAroundEnabled
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #getModel
      * @see #setModel
@@ -1466,15 +2626,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
                 isWrapAroundEnabled());
     }
     /**
-     * This returns the tile {@link #getDirectionFaced() in front} of the {@link 
-     * #getHead() head} of this snake. This is equivalent to calling {@link 
+     * This returns the tile {@link #getDirectionFaced in front} of the {@link 
+     * #getHead head} of this snake. This is equivalent to calling {@link 
      * #getAdjacentToHead getAdjacentToHead}{@code (}{@link #getDirectionFaced 
      * getDirectionFaced()}{@code )}. As such, the head should be facing a 
-     * single direction, which it must be for the snake to be {@link #isValid() 
+     * single direction, which it must be for the snake to be {@link #isValid 
      * valid}. If the tile being faced is out of bounds, then this will either 
      * wrap around and return the tile on the other side of the {@link #getModel 
-     * model} or return null, depending on whether the snake {@link 
-     * #isWrapAroundEnabled() wraps around}.
+     * model} or return null, depending on whether the snake {@link
+     * #isWrapAroundEnabled wraps around}.
      * 
      * @return The tile in front of the head, or null if the head is facing a 
      * boundary and the snake does not wrap around.
@@ -1491,7 +2651,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getHead 
      * @see #isWrapAroundEnabled
      * @see #setWrapAroundEnabled
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #getModel
      * @see #setModel
@@ -1581,6 +2741,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #flip 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      */
     public boolean isFlipped(){
         return getFlag(FLIPPED_FLAG);
@@ -1588,10 +2749,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This sets whether this snake is flipped. When a snake is flipped, the 
      * order of the tiles in the snake are reversed. If there is only one tile, 
-     * then the {@link #getHead() head} of this snake will also {@link 
-     * Tile#flip() flip}. This will also fire a {@code SnakeEvent} indicating 
-     * that the snake has {@link SnakeEvent#SNAKE_FLIPPED flipped} if a change 
-     * is made.
+     * then the {@link #getHead() head} of this snake will also {@link Tile#flip 
+     * flip}. This will also fire a {@code SnakeEvent} indicating that the snake 
+     * has {@link SnakeEvent#SNAKE_FLIPPED flipped} if a change is made.
      * @param value Whether this snake should be flipped.
      * @return This snake.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
@@ -1600,6 +2760,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #flip 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #isValid 
      * @see Tile#flip 
      * @see SnakeEvent#SNAKE_FLIPPED
@@ -1607,26 +2768,27 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     protected Snake setFlipped(boolean value){
         checkIfInvalid();                   // Check if this snake is invalid
         if (setFlag(FLIPPED_FLAG,value)){   // If the flag changed
-            if (getTail() == null)          // If this snake does not have a tail
-                getHead().flip();
+            if (!hasTail())                // If this snake does not have a tail
+                getHead().flip();           // Flip the head
             fireSnakeChange(SnakeEvent.SNAKE_FLIPPED);
         }
         return this;
     }
     /**
      * This flips the orientation of this snake. This will reverse the order of 
-     * the tiles in this snake, resulting in the {@link #getHead() head} 
-     * becoming the {@link #getTail() tail} and vice versa. If this snake does 
-     * not have a tail (i.e. there is only one tile in this snake, that being 
-     * the head), then the head of the snake will be {@link Tile#flip flipped}. 
-     * This will also fire a {@code SnakeEvent} indicating that the snake has 
-     * {@link SnakeEvent#SNAKE_FLIPPED flipped}.
+     * the tiles in this snake, resulting in the {@link #getHead head} becoming 
+     * the {@link #getTail() tail} and vice versa. If this snake does not have a 
+     * tail (i.e. there is only one tile in this snake, that being the head), 
+     * then the head of the snake will be {@link Tile#flip flipped}. This will 
+     * also fire a {@code SnakeEvent} indicating that the snake has {@link 
+     * SnakeEvent#SNAKE_FLIPPED flipped}.
      * @return This snake.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #isFlipped 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #isValid 
      * @see Tile#flip 
      * @see SnakeEvent#SNAKE_FLIPPED
@@ -1636,9 +2798,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake will wrap around to the other side of the 
-     * play field when it reaches the boundaries of the {@link #getModel() 
-     * model}. If this is {@code true} and this snake has reached the edge of 
-     * the play field, then attempting to {@link #getAdjacentToHead get}, {@link 
+     * play field when it reaches the boundaries of the {@link #getModel model}. 
+     * If this is {@code true} and this snake has reached the edge of the play 
+     * field, then attempting to {@link #getAdjacentToHead get}, {@link 
      * #add(int) add}, or {@link #move(int) move to} a tile that would be out of 
      * bounds will result in the snake wrapping around and getting, adding, or 
      * moving to a tile on the other side of the play field. If this is {@code 
@@ -1664,10 +2826,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This sets whether this snake will wrap around when it reaches the 
-     * boundaries of the {@link #getModel() model}. Refer to the documentation 
-     * for the {@link #isWrapAroundEnabled() isWrapAroundEnabled} method for 
-     * more information on how this is used. The default value for this is 
-     * {@code true}. 
+     * boundaries of the {@link #getModel model}. Refer to the documentation for 
+     * the {@link #isWrapAroundEnabled() isWrapAroundEnabled} method for more 
+     * information on how this is used. The default value for this is {@code 
+     * true}. 
      * @param enabled Whether this snake will wrap around when it reaches the 
      * boundaries of the model.
      * @return This snake.
@@ -1692,9 +2854,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This returns whether this snake can eat apples. If this is {@code true}, 
      * then this snake will be able to {@link #add(int) add} or {@link 
-     * #move(int) move to} {@link Tile#isApple() apple tiles}. If this is {@code 
-     * false}, then any attempt to add or move to an apple tile will fail. The 
-     * default value for this is {@code true}. 
+     * #move(int) move} to {@link Tile#isApple apple tiles}. If this is {@code 
+     * false}, then any attempt to add or move to an apple tile will fail. This 
+     * does not affect directly {@link #add(Tile) adding} or {@link #offer 
+     * offering} tiles to this snake. The default value for this is {@code 
+     * true}. 
      * @return Whether this snake can eat apples.
      * @see #setAppleConsumptionEnabled 
      * @see #getApplesCauseGrowth 
@@ -1738,14 +2902,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake will grow when it eats an apple. If this 
-     * is {@code true}, then {@link #move(int) moving to} an {@link 
-     * Tile#isApple() apple tile} will be treated the same as {@link #add(int) 
-     * adding} an apple tile. In other words, when an apple is eaten, then this 
-     * snake will grow by one tile regardless of whether this snake moved or was 
-     * added to. If this is {@code false}, then moving to an apple tile will not 
-     * cause this snake to grow. If this snake {@link #isAppleConsumptionEnabled 
-     * cannot eat apples}, then this has no effect. The default value for this 
-     * is {@code true}. 
+     * is {@code true}, then {@link #move(int) moving to} an {@link Tile#isApple 
+     * apple tile} will be treated the same as {@link #add(int) adding} an apple 
+     * tile. In other words, when an apple is eaten, then this snake will grow 
+     * by one tile regardless of whether this snake moved or was added to. If 
+     * this is {@code false}, then moving to an apple tile will not cause this 
+     * snake to grow. If this snake {@link #isAppleConsumptionEnabled cannot eat 
+     * apples}, then this has no effect. The default value for this is {@code 
+     * true}. 
      * @return Whether this snake grows when it eats an apple.
      * @see #setApplesCauseGrowth 
      * @see #isAppleConsumptionEnabled 
@@ -1804,19 +2968,19 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     public boolean hasConsumedApple(){
         return getFlag(APPLE_CONSUMED_FLAG);
     }
-    
-//    protected void setConsumedApple(boolean value, int direction)
     /**
      * This sets whether this snake has eaten an apple. This ignores whether 
-     * this snake {@link #isAppleConsumptionEnabled() can even eat apples}. If 
-     * the given {@code value} is {@code true}, then this will fire a {@link 
+     * this snake {@link #isAppleConsumptionEnabled can even eat apples}. If the 
+     * given {@code value} is {@code true}, then this will fire a {@link 
      * SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} {@code SnakeEvent} 
-     * with the given direction. 
+     * with the given direction and target tile. 
      * @param value Whether this snake ate an apple. If this is {@code true}, 
      * then a {@link SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} will 
      * be fired.
      * @param direction The direction to use for the event fired if {@code 
      * value} is {@code true}.
+     * @param tile The target tile to use for the event fired if {@code value} 
+     * is {@code true}, or null.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #hasConsumedApple 
@@ -1831,29 +2995,31 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #move(int) 
      * @see #move() 
      * @see #isValid 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
      * @see #getDirectionFaced 
+     * @see #getHead 
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      */
-    protected void setConsumedApple(boolean value, int direction){
+    protected void setConsumedApple(boolean value, int direction, Tile tile){
         checkIfInvalid();                   // Check if this snake is invalid
         setFlag(APPLE_CONSUMED_FLAG,value);
         if (value)                          // If the value is true
-            fireSnakeChange(SnakeEvent.SNAKE_CONSUMED_APPLE,direction);
+            fireSnakeChange(SnakeEvent.SNAKE_CONSUMED_APPLE,direction,tile);
     }
     /**
      * This sets whether this snake has eaten an apple. This ignores whether 
-     * this snake {@link #isAppleConsumptionEnabled() can even eat apples}. If 
-     * the given {@code value} is {@code true}, then this will fire a {@link 
+     * this snake {@link #isAppleConsumptionEnabled can even eat apples}. If the 
+     * given {@code value} is {@code true}, then this will fire a {@link 
      * SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} {@code SnakeEvent} 
-     * with the {@link #getDirectionFaced() direction currently being faced}.
+     * with the {@link #getDirectionFaced direction currently being faced} and 
+     * the current {@link #getHead head} as the target tile.
      * @param value Whether this snake ate an apple. If this is {@code true}, 
      * then a {@link SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} will 
      * be fired.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #hasConsumedApple 
-     * @see #setConsumedApple(boolean, int) 
+     * @see #setConsumedApple(boolean, int, Tile) 
      * @see #isAppleConsumptionEnabled 
      * @see #setAppleConsumptionEnabled 
      * @see #getApplesCauseGrowth 
@@ -1866,21 +3032,24 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isValid 
      * @see #fireSnakeChange(int) 
      * @see #getDirectionFaced 
+     * @see #getHead 
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      */
     protected void setConsumedApple(boolean value){
-        setConsumedApple(value,getDirectionFaced());
+        setConsumedApple(value,getDirectionFaced(),getHead());
     }
     /**
-     * This returns whether this snake has crashed. A snake will crash when it 
-     * has {@link #getFailCount() repeatedly failed} to {@link #add(int) add} or 
-     * {@link #move(int) move} more than the {@link #getAllowedFails() allowed 
-     * number of failures}, not including any attempt to add or move the snake 
-     * backwards. If the allowed number of failures is negative, then a snake is 
-     * allowed to fail an unlimited number of times without crashing. <p>
+     * This returns whether this snake has crashed. A snake will crash when its 
+     * {@link #getFailCount fail count} has exceeded its set {@link 
+     * #getAllowedFails allowed number of failures}. If the allowed number of 
+     * failures is negative, then a snake is allowed to fail an unlimited number 
+     * of times without crashing. <p>
      * 
-     * A snake that has crashed will not be able to add or move to tiles until 
-     * the snake has been {@link #revive() revived} or reset.
+     * A snake that has crashed will not be able to {@link #add(int) add} or 
+     * {@link #move(int) move} to tiles until the snake has been {@link #revive 
+     * revived} or {@link #clear reset}. This does not affect the {@link #offer 
+     * offer(Tile)}, {@link #add(Tile) add(Tile)}, and {@link #addAll addAll} 
+     * methods.
      * 
      * @return Whether this snake has crashed.
      * @see #revive 
@@ -1900,29 +3069,28 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This sets whether this snake has crashed. Refer to the documentation for 
-     * the {@link #isCrashed() isCrashed} method for more information on what it 
+     * the {@link #isCrashed isCrashed} method for more information on what it 
      * means for a snake to crash. If {@code value} causes a change to whether 
      * this snake has crashed or not, then this will fire a snake event 
-     * indicating the change made and using the given direction. If the snake 
-     * has now crashed, then a {@link SnakeEvent#SNAKE_CRASHED SNAKE_CRASHED} 
-     * {@code SnakeEvent} will be fired. Otherwise, a {@link 
+     * indicating the change made and using the given direction and target tile. 
+     * If the snake has now crashed, then a {@link SnakeEvent#SNAKE_CRASHED 
+     * SNAKE_CRASHED} {@code SnakeEvent} will be fired. Otherwise, a {@link 
      * SnakeEvent#SNAKE_REVIVED SNAKE_REVIVED} {@code SnakeEvent} will be fired. 
-     * If the direction is null, then the event will use the {@link 
-     * #getDirectionFaced() direction being faced}. <p>
-     * 
+     * <p>
      * It's recommended to use the {@link #revive() revive} method to revive a 
      * snake, as the {@code revive} method will also reset the conditions that 
      * resulted in the snake crashing.
      * 
      * @param value Whether this snake has crashed. 
      * @param direction The direction to use for the event fired if this has 
-     * changed whether this snake has crashed or not, or or null to use the 
-     * direction being faced.
+     * changed whether this snake has crashed or not.
+     * @param target The target tile to use for the event fired if this has 
+     * changed whether this snake has crashed or not, or null.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #isCrashed 
      * @see #setCrashed(boolean) 
-     * @see #updateCrashed 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #isValid 
      * @see #getAllowedFails 
@@ -1938,32 +3106,32 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #add() 
      * @see #move(int) 
      * @see #move() 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
      * @see #getDirectionFaced 
      * @see SnakeEvent#SNAKE_CRASHED
      * @see SnakeEvent#SNAKE_REVIVED
      */
-    protected void setCrashed(boolean value, Integer direction){
+    protected void setCrashed(boolean value, int direction, Tile target){
         checkIfInvalid();                   // Check if this snake is invalid
         if (setFlag(CRASHED_FLAG,value)){   // If the flag changed
                 // Fire a snake crashed event if the snake crashed, and a snake 
                 // revived event if it is no longer crashed
             fireSnakeChange((value)?SnakeEvent.SNAKE_CRASHED:
-                    SnakeEvent.SNAKE_REVIVED,direction);
+                    SnakeEvent.SNAKE_REVIVED,direction,target);
         }
     }
     /**
      * This sets whether this snake has crashed. Refer to the documentation for 
-     * the {@link #isCrashed() isCrashed} method for more information on what it 
+     * the {@link #isCrashed isCrashed} method for more information on what it 
      * means for a snake to crash. If {@code value} causes a change to whether 
      * this snake has crashed or not, then this will fire a snake event 
-     * indicating the change made and using the {@link #getDirectionFaced() 
-     * direction currently being faced}. If the snake has now crashed, then a 
-     * {@link SnakeEvent#SNAKE_CRASHED SNAKE_CRASHED} {@code SnakeEvent} will be 
-     * fired. Otherwise, a {@link SnakeEvent#SNAKE_REVIVED SNAKE_REVIVED} {@code 
-     * SnakeEvent} will be fired. <p>
-     * 
-     * It's recommended to use the {@link #revive() revive} method to revive a 
+     * indicating the change made and using the {@link #getDirectionFaced 
+     * direction currently being faced} and with no target tile. If the snake 
+     * has now crashed, then a {@link SnakeEvent#SNAKE_CRASHED SNAKE_CRASHED} 
+     * {@code SnakeEvent} will be fired. Otherwise, a {@link 
+     * SnakeEvent#SNAKE_REVIVED SNAKE_REVIVED} {@code SnakeEvent} will be fired. 
+     * <p>
+     * It's recommended to use the {@link #revive revive} method to revive a 
      * snake, as the {@code revive} method will also reset the conditions that 
      * resulted in the snake crashing.
      * 
@@ -1971,8 +3139,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @see #isCrashed 
-     * @see #setCrashed(boolean, Integer) 
-     * @see #updateCrashed 
+     * @see #setCrashed(boolean, int, Tile) 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #isValid 
      * @see #getAllowedFails 
@@ -1994,19 +3162,20 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see SnakeEvent#SNAKE_REVIVED
      */
     protected void setCrashed(boolean value){
-        setCrashed(value,getDirectionFaced());
+        setCrashed(value,getDirectionFaced(),null);
     }
     /**
-     * This updates whether this snake has crashed based off whether the {@link 
-     * #getFailCount() fail count} has exceeded a non-negative {@link 
-     * #getAllowedFails() allowed number of failures}. This calls {@link 
-     * #setCrashed setCrashed} to set whether the snake is crashed or not, 
-     * passing the given direction to it if one is provided.
-     * @param direction The direction to use for the event fired if this has 
-     * changed whether this snake has crashed or not, or or null to use the 
-     * direction being faced.
+     * This returns whether this snake will {@link #isCrashed crash}. This is 
+     * used to update whether the snake has crashed when it fails to {@link 
+     * #addOrMove add or move to} a tile. This is based off whether the snake's 
+     * {@link #getFailCount fail count} has exceeded a non-negative {@link 
+     * #getAllowedFails allowed number of failures}. To set whether the snake 
+     * has crashed, use the {@link #setCrashed setCrashed} method. This method 
+     * is here so that a subclass can override this to add or remove conditions 
+     * that, when met, will cause the snake to crash.
+     * @return {@code true} if the snake will crash, else {@code false}.
      * @see #isCrashed 
-     * @see #setCrashed(boolean, Integer) 
+     * @see #setCrashed 
      * @see #setCrashed(boolean) 
      * @see #revive 
      * @see #isValid 
@@ -2016,6 +3185,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #setFailCount 
      * @see #incrementFailCount 
      * @see #resetFailCount 
+     * @see #canAddTile 
      * @see #canMoveInDirection 
      * @see #canMoveForward 
      * @see #addOrMove 
@@ -2023,31 +3193,24 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #add() 
      * @see #move(int) 
      * @see #move() 
-     * @see #fireSnakeChange(int, Integer) 
-     * @see #getDirectionFaced 
-     * @see SnakeEvent#SNAKE_CRASHED
-     * @see SnakeEvent#SNAKE_REVIVED
      */
-    protected void updateCrashed(Integer direction){
-        setCrashed(getAllowedFails() >= 0 && getFailCount() > getAllowedFails(),
-                direction);
+    protected boolean getSnakeWillNowCrash(){
+        return getAllowedFails() >= 0 && getFailCount() > getAllowedFails();
     }
     /**
      * This returns the maximum amount of consecutive failed attempts that this 
-     * snake can make to {@link #add(int) add} or {@link #move(int) move} to a 
-     * tile before it will {@link #isCrashed() crash}. In other words, if the 
-     * {@link #getFailCount() amount of times that this snake has failed} to add 
-     * or move to a tile consecutively exceeds this value, then this snake will 
-     * crash. If this is negative, then this snake can fail to add or move an 
+     * snake can make before it will {@link #isCrashed crash}. In other words, 
+     * if this snake's {@link #getFailCount fail count} exceeds this value, then 
+     * this snake will crash. If this is negative, then this snake can fail an 
      * unlimited amount of times without crashing. The default value for this is 
      * -1. 
      * @return The amount of times that this snake can fail consecutively before 
      * it crashes. If this is negative, then this snake can fail an unlimited 
      * amount of times.
      * @see #setAllowedFails 
+     * @see #getFailCount 
      * @see #isCrashed 
      * @see #revive 
-     * @see #getFailCount 
      * @see #canMoveInDirection 
      * @see #canMoveForward 
      * @see #add(int) 
@@ -2060,21 +3223,20 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This sets the maximum amount of consecutive failed attempts this snake 
-     * can make to {@link #add(int) add} or {@link #move(int) move} to a tile 
-     * before it will {@link #isCrashed() crash}. Refer to the documentation for 
-     * the {@link #getAllowedFails() getAllowedFails} method for more 
-     * information about how this value is used. If this snake is {@link 
-     * #isValid() valid} and the allowed number of fails changes, then this will 
-     * also {@link #revive() revive} this snake if necessary. The default value 
+     * can make before it will {@link #isCrashed crash}. Refer to the 
+     * documentation for the {@link #getAllowedFails getAllowedFails} method for 
+     * more information about how this value is used. If this snake is {@link 
+     * #isValid valid} and the allowed number of fails changes, then this will 
+     * also {@link #revive revive} this snake if necessary. The default value 
      * for this is -1. 
      * @param value The amount of times that this snake will be allowed to fail 
      * consecutively before it crashes. If this is negative, then this snake 
      * will be allowed to fail an unlimited amount of times.
      * @return This snake.
      * @see #getAllowedFails 
+     * @see #getFailCount 
      * @see #isCrashed 
      * @see #revive 
-     * @see #getFailCount 
      * @see #canMoveInDirection 
      * @see #canMoveForward 
      * @see #add(int) 
@@ -2096,14 +3258,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * This returns the amount of times this snake has consecutively failed to 
      * {@link #add(int) add} or {@link #move(int) move} to a tile. This value is 
      * incremented whenever this snake fails to add or move to a tile, excluding 
-     * attempts to add or move the snake backwards and attempts to add or move 
-     * the snake when it has {@link #isCrashed() crashed}. This value is reset 
-     * to zero when either this snake successfully adds or moves to a tile or 
-     * when this snake is {@link #revive() revived}. If the {@link 
-     * #getAllowedFails() allowed number of failures} is not negative, then this 
-     * snake will crash when this value exceeds the allowed number of failures. 
-     * Refer to the documentation for {@link #getAllowedFails getAllowedFails} 
-     * for more information.
+     * attempts to add or move the snake backwards when it has a tail (when 
+     * {@link #getTail getTail} returns a non-null tile, or equivalently when 
+     * the snake is at least two tiles long) and attempts to add or move the 
+     * snake when it has {@link #isCrashed crashed}. This value is reset to zero 
+     * when either this snake successfully adds or moves to a tile, when this 
+     * snake is {@link #clear reset}, or when this snake is {@link #revive 
+     * revived}. If the {@link #getAllowedFails allowed number of failures} is 
+     * not negative, then this snake will crash when this value exceeds the 
+     * allowed number of failures. 
      * @return The amount of times this snake has failed consecutively.
      * @see #getAllowedFails 
      * @see #setAllowedFails 
@@ -2120,18 +3283,17 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         return failCount;
     }
     /**
-     * This sets the amount of times this snake has consecutively failed to 
-     * {@link #add(int) add} or {@link #move(int) move} to a tile. Refer to the 
-     * documentation for the {@link #getFailCount() getFailCount} method for 
-     * more information.
-     * @param count The amount of times this snake has failed consecutively.
+     * This sets the fail count for this snake. Refer to the documentation for 
+     * the {@link #getFailCount getFailCount} method for more information about 
+     * how the fail count is used.
+     * @param count The fail count for this snake.
      * @see #getFailCount 
      * @see #incrementFailCount 
      * @see #resetFailCount 
      * @see #isCrashed 
-     * @see #setCrashed(boolean, Integer) 
+     * @see #setCrashed(boolean, int, Tile) 
      * @see #setCrashed(boolean) 
-     * @see #updateCrashed 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #getAllowedFails 
      * @see #setAllowedFails 
@@ -2147,17 +3309,16 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         failCount = count;
     }
     /**
-     * This increments the amount of times that this snake has consecutively 
-     * failed to {@link #add(int) add} or {@link #move(int) move} to a tile. 
-     * Refer to the documentation for the {@link #getFailCount() getFailCount} 
-     * method for more information.
+     * This increments this snake's fail count. Refer to the documentation for 
+     * the {@link #getFailCount getFailCount} method for more information about 
+     * how the fail count is used.
      * @see #getFailCount 
      * @see #setFailCount 
      * @see #resetFailCount 
      * @see #isCrashed 
-     * @see #setCrashed(boolean, Integer) 
+     * @see #setCrashed(boolean, int, Tile) 
      * @see #setCrashed(boolean) 
-     * @see #updateCrashed 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #getAllowedFails 
      * @see #setAllowedFails 
@@ -2173,19 +3334,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         failCount++;
     }
     /**
-     * This clears the amount of times this snake has consecutively failed to 
-     * {@link #add(int) add} or {@link #move(int) move} to a tile. Refer to the 
-     * documentation for the {@link #getFailCount() getFailCount} method for 
-     * more information. Since this does not clear the snake's crashed status, 
-     * it is recommended to call {@link #revive() revive} instead if the desired 
-     * goal is to revive the snake.
+     * This clears the fail count for this snake, resetting it back to zero. 
+     * Refer to the documentation for the {@link #getFailCount getFailCount} 
+     * method for more information about how the fail count is used. This method 
+     * does not clear the snake's crashed status, and thus it is recommended to 
+     * call {@link #revive revive} if the desired goal is to revive the snake.
      * @see #getFailCount 
      * @see #setFailCount 
      * @see #incrementFailCount 
      * @see #isCrashed 
-     * @see #setCrashed(boolean, Integer) 
+     * @see #setCrashed(boolean, int, Tile) 
      * @see #setCrashed(boolean) 
-     * @see #updateCrashed 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #getAllowedFails 
      * @see #setAllowedFails 
@@ -2202,10 +3362,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This revives this snake after this snake has crashed. This will also 
-     * reset the {@link #getFailCount() number of fails} to zero and fire a 
-     * {@code SnakeEvent} indicating that the snake has been {@link 
+     * reset the {@link #getFailCount number of fails} to zero and fire a {@code 
+     * SnakeEvent} indicating that the snake has been {@link 
      * SnakeEvent#SNAKE_REVIVED revived}. Refer to the documentation for the 
-     * {@link #isCrashed() isCrashed} method for more information about what it 
+     * {@link #isCrashed isCrashed} method for more information about what it 
      * means for a snake to crash. 
      * @return This snake.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
@@ -2225,22 +3385,21 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     public Snake revive(){
         checkIfInvalid();       // Check if this snake is invalid
         resetFailCount();       // Reset the fail count
-            // Update if the snake has crashed (it shouldn't be)
-        updateCrashed(null);    
+        setCrashed(false);      // Clear the crashed status  
         return this;
     }
     /**
      * This checks to see if this snake can add or move to the given tile. If 
      * the given tile is null, then this will return false. If the tile is an 
-     * {@link Tile#isApple() apple tile}, then this returns whether this snake 
-     * {@link #isAppleConsumptionEnabled() can eat apples}. Otherwise, this 
-     * returns whether the tile is {@link #isEmpty() empty}. <p>
+     * {@link Tile#isApple apple tile}, then this returns whether this snake 
+     * {@link #isAppleConsumptionEnabled can eat apples}. Otherwise, this 
+     * returns whether the tile is {@link Tile#isEmpty empty}. <p>
      * 
      * This is called by the {@link #addOrMove addOrMove} method to see if the 
      * tile it is attempting to add/move to can be added or moved to. This is 
      * also called by the {@link #canMoveInDirection canMoveInDirection} method 
      * to get whether the snake can add/move to a tile {@link #getAdjacentToHead 
-     * adjacent} to the {@link #getHead() head}.
+     * adjacent} to the {@link #getHead head}.
      * 
      * @param tile The tile to check.
      * @return Whether this snake can add or move to the given tile.
@@ -2256,6 +3415,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isAppleConsumptionEnabled 
      * @see #setAppleConsumptionEnabled 
      * @see #getAdjacentToHead 
+     * @see #isCrashed 
      */
     protected boolean canAddTile(Tile tile){
         if (tile == null)               // If the tile is null
@@ -2266,29 +3426,30 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake can {@link #add(int) add} or {@link 
-     * #move(int) move} in the given direction. The direction must be either 
-     * zero or one of the four direction flags: {@link #UP_DIRECTION}, {@link 
-     * #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. 
-     * If the direction is zero, then this will return whether this snake can 
-     * add or move forward (i.e. whether this snake can add or move in the 
-     * {@link #getDirectionFaced() direction faced}). A snake can add or move in 
-     * a given direction if the snake has not {@link #isCrashed() crashed} and 
-     * the tile {@link #getAdjacentToHead(int) adjacent} to the snake's {@link 
-     * #getHead() head} is a non-null tile that is either {@link Tile#isEmpty() 
-     * empty} or an {@link Tile#isApple() apple tile}, with the latter being 
-     * dependent on whether the snake {@link #isAppleConsumptionEnabled() can 
-     * eat apples}. If a snake cannot eat apples, then it cannot add or move to 
-     * apple tiles. If a snake can {@link #isWrapAroundEnabled() wrap around}, 
-     * then attempting to add or move beyond the bounds of the {@link #getModel 
-     * play field} would result in the snake adding or moving to the tiles on 
-     * the other side of the play field. If the snake cannot wrap around, then 
-     * it will be stopped by the bounds of the play field. Refer to the 
-     * documentation for the {@link #getAdjacentToHead getAdjacentToHead} method 
-     * for more information on how this gets the tile adjacent to the head.
+     * #move(int) move} to the tile {@link #getAdjacentToHead adjacent} to the 
+     * {@link #getHead head} of this snake in the given direction. The direction 
+     * must be either zero or one of the four direction flags: {@link 
+     * #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, and 
+     * {@link #RIGHT_DIRECTION}. If the direction is zero, then this will return 
+     * whether this snake can {@link #add() add} or {@link #move() move} forward 
+     * (i.e. whether this snake can add or move in the {@link #getDirectionFaced 
+     * direction faced}). A snake can add or move in a given direction if the 
+     * snake has not {@link #isCrashed crashed} and the tile adjacent to the 
+     * snake's head is a non-null tile that is either {@link Tile#isEmpty empty} 
+     * or an {@link Tile#isApple apple tile}, with the latter being dependent on 
+     * whether the snake {@link #isAppleConsumptionEnabled can eat apples}. If a 
+     * snake cannot eat apples, then it cannot add or move to apple tiles. If a 
+     * snake can {@link #isWrapAroundEnabled wrap around}, then attempting to 
+     * add or move beyond the bounds of the {@link #getModel play field} would 
+     * result in the snake adding or moving to the tiles on the other side of 
+     * the play field. If the snake cannot wrap around, then it will be stopped 
+     * by the bounds of the play field. Refer to the documentation for the 
+     * {@link #getAdjacentToHead getAdjacentToHead} method for more information 
+     * on how this gets the tile adjacent to the head.
      * @param direction The direction in which to check for whether this snake 
      * can move. 
      * This should be one of the following: 
-     *      {@code 0} to get if the snake can move {@link #getDirectionFaced() 
+     *      {@code 0} to get if the snake can move {@link #getDirectionFaced 
      *          forward}, 
      *      {@link #UP_DIRECTION} to get if the snake can move up, 
      *      {@link #DOWN_DIRECTION} to get if the snake can move down, 
@@ -2298,9 +3459,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
      * @throws IllegalArgumentException If the given direction is neither zero 
-     * nor one of the direction flags.
+     * nor one of the four direction flags.
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
+     * @see #canMoveForward 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -2308,22 +3470,22 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getDirectionFaced
      * @see SnakeUtilities#getDirections 
      * @see #isValid 
-     * @see #getHead
+     * @see #getHead 
      * @see #isWrapAroundEnabled
      * @see #setWrapAroundEnabled
      * @see #isAppleConsumptionEnabled 
      * @see #setAppleConsumptionEnabled 
      * @see #isCrashed 
      * @see #revive 
-     * @see Tile#getRow 
-     * @see Tile#getColumn 
-     * @see Tile#isEmpty 
-     * @see Tile#isApple 
      * @see #add(int) 
      * @see #add() 
      * @see #move(int) 
      * @see #move() 
-     * @see #canMoveForward 
+     * @see #canPerformAction(SnakeCommand) 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     * @see Tile#isEmpty 
+     * @see Tile#isApple 
      */
     public boolean canMoveInDirection(int direction){
         checkIfInvalid();       // Check if this snake is invalid
@@ -2331,23 +3493,23 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This returns whether this snake can {@link #add() add} or {@link #move() 
-     * move} {@link #getDirectionFaced() forward}. A snake can add or move 
-     * forward if the snake has not {@link #isCrashed() crashed} and the tile 
-     * {@link #getTileBeingFaced() in front} of the snake is a non-null tile 
-     * that is either {@link Tile#isEmpty() empty} or an {@link Tile#isApple() 
-     * apple tile}, with the latter being dependent on whether the snake {@link 
-     * #isAppleConsumptionEnabled() can eat apples}. If a snake cannot eat 
-     * apples, then it cannot add or move to apple tiles. If a snake can {@link 
-     * #isWrapAroundEnabled() wrap around}, then attempting to add or move 
-     * beyond the bounds of the {@link #getModel play field} would result in the 
-     * snake adding or moving to the tiles on the other side of the play field. 
-     * If the snake cannot wrap around, then it will be stopped by the bounds of 
-     * the play field. Refer to the documentation for the {@link 
-     * #getTileBeingFaced() getTileBeingFaced} method for more information on 
-     * how this gets the tile in front of the snake. <p> 
+     * move} {@link #getDirectionFaced forward}. A snake can add or move forward 
+     * if the snake has not {@link #isCrashed crashed} and the tile {@link 
+     * #getTileBeingFaced in front} of the snake is a non-null tile that is 
+     * either {@link Tile#isEmpty empty} or an {@link Tile#isApple apple tile}, 
+     * with the latter being dependent on whether the snake {@link 
+     * #isAppleConsumptionEnabled can eat apples}. If a snake cannot eat apples, 
+     * then it cannot add or move to apple tiles. If a snake can {@link 
+     * #isWrapAroundEnabled wrap around}, then attempting to add or move beyond 
+     * the bounds of the {@link #getModel play field} would result in the snake 
+     * adding or moving to the tiles on the other side of the play field. If the 
+     * snake cannot wrap around, then it will be stopped by the bounds of the 
+     * play field. Refer to the documentation for the {@link #getTileBeingFaced 
+     * getTileBeingFaced} method for more information on how this gets the tile 
+     * in front of the snake. <p> 
      * 
-     * This is equivalent to calling {@link #canMoveInDirection(int) 
-     * canMoveInDirection}{@code (}{@link #getDirectionFaced() 
+     * This is equivalent to calling {@link #canMoveInDirection 
+     * canMoveInDirection}{@code (}{@link #getDirectionFaced 
      * getDirectionFaced()}{@code )}. 
      * 
      * @return Whether this snake can move forward.
@@ -2355,6 +3517,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * valid} state.
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
+     * @see #canMoveInDirection 
      * @see #isFacingUp 
      * @see #isFacingDown 
      * @see #isFacingLeft 
@@ -2368,15 +3531,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #setAppleConsumptionEnabled 
      * @see #isCrashed 
      * @see #revive 
-     * @see Tile#getRow 
-     * @see Tile#getColumn 
-     * @see Tile#isEmpty 
-     * @see Tile#isApple 
      * @see #add(int) 
      * @see #add() 
      * @see #move(int) 
      * @see #move() 
-     * @see #canMoveInDirection 
+     * @see #canPerformAction(SnakeCommand) 
+     * @see Tile#getRow 
+     * @see Tile#getColumn 
+     * @see Tile#isEmpty 
+     * @see Tile#isApple 
      */
     public boolean canMoveForward(){
         return canMoveInDirection(getDirectionFaced());
@@ -2389,57 +3552,58 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * {@code true}, then this will attempt to move the snake in the given 
      * direction. Otherwise, this will attempt to add a tile from the given 
      * direction to this snake. The main difference between adding a tile and 
-     * moving the snake is whether the current {@link #getTail() tail} gets 
+     * moving the snake is whether the current {@link #getTail tail} gets 
      * removed. A snake can only add or move if it has not {@link #isCrashed 
-     * crashed} and it {@link #canMoveInDirection(int) can move} in the given 
+     * crashed} and it {@link #canMoveInDirection can move} in the given 
      * direction. The direction must be either zero or one of the four direction 
      * flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
      * #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction is zero, 
-     * then this will use the {@link #getDirectionFaced() direction being faced} 
+     * then this will use the {@link #getDirectionFaced direction being faced} 
      * instead. Refer to the documentation for the {@link #canMoveInDirection 
      * canMoveInDirection} method for more information about how this checks to 
      * see if this snake can move in a given direction. <p>
      * 
-     * This starts by first checking to see if this snake has {@link #isCrashed 
-     * crashed}, and if so, this fires a {@link SnakeEvent#SNAKE_FAILED 
-     * SNAKE_FAILED} {@code SnakeEvent} and returns {@code false}. If this snake 
-     * has not crashed, then this will get the tile {@link #getAdjacentToHead 
-     * adjacent} to the {@link #getHead() head} in the given direction. If the 
-     * direction is zero, then this will use the tile {@link #getTileBeingFaced 
-     * in front} of this snake. Refer to the documentation for the {@link 
-     * #getAdjacentToHead getAdjacentToHead} method for more information about 
-     * how this gets the tile adjacent to the head. This will then check to see 
-     * if this can add the tile to the snake using the {@link #canAddTile 
-     * canAddTile} method. If this cannot add the tile, then this will fire a 
-     * {@code SNAKE_FAILED SnakeEvent} and return {@code false}. If the snake 
-     * is only a head (i.e. the snake is less than two tiles long) or if the 
-     * snake did not try to go backwards, then this will also {@link 
-     * #incrementFailCount() increment} the {@link #getFailCount() fail count} 
-     * and call {@link #updateCrashed updateCrashed} to update whether this 
-     * snake has crashed based off whether the fail count has exceeded a 
-     * non-negative {@link #getAllowedFails allowed number of failures}. If this 
-     * snake has crashed as a result, then a {@link SnakeEvent#SNAKE_CRASHED 
-     * SNAKE_CRASHED} {@code SnakeEvent} will be fired. <p>
+     * This starts by first checking to see if this snake has crashed, and if 
+     * so, this fires a {@link SnakeEvent#SNAKE_FAILED SNAKE_FAILED} {@code 
+     * SnakeEvent} and returns {@code false}. If this snake has not crashed, 
+     * then this will get the tile {@link #getAdjacentToHead adjacent} to the 
+     * {@link #getHead head} in the given direction. If the direction is zero, 
+     * then this will use the tile {@link #getTileBeingFaced in front} of this 
+     * snake. Refer to the documentation for the {@link #getAdjacentToHead 
+     * getAdjacentToHead} method for more information about how this gets the 
+     * tile adjacent to the head. This will then check to see if this can add 
+     * the tile to the snake using the {@link #canAddTile canAddTile} method. If 
+     * this cannot add the tile, then this will fire a {@code SNAKE_FAILED 
+     * SnakeEvent} and return {@code false}. If the snake is only a head (i.e. 
+     * the snake is less than two tiles long) or if the snake did not try to go 
+     * backwards, then this will also {@link #incrementFailCount increment} the 
+     * {@link #getFailCount fail count}. This will then call {@link #setCrashed 
+     * setCrashed} with the value returned by {@link #getSnakeWillNowCrash 
+     * getSnakeWillNowCrash}, so as to update whether this snake has crashed due 
+     * to it's fail count exceeding a non-negative {@link #getAllowedFails 
+     * allowed number of failures}. If this snake has crashed as a result, then 
+     * a {@link SnakeEvent#SNAKE_CRASHED SNAKE_CRASHED} {@code SnakeEvent} will 
+     * be fired. <p>
      * 
      * If this can add the tile, then this will check to see if the tile is an 
-     * {@link Tile#isApple() apple tile} before setting the tile to be a {@link 
-     * Tile#isSnake() snake tile} facing the given direction (or faced direction 
-     * if the given direction was zero) and {@link #addHead add} it to the body 
-     * of this snake as the new head. If the tile was an apple tile and this 
-     * snake {@link #getApplesCauseGrowth() grows when it eats apples}, then 
-     * {@code moveSnake} will be ignored and and the snake will grow by one 
+     * {@link Tile#isApple apple tile} before setting the tile to be a {@link 
+     * Tile#isSnake snake tile} facing the given direction (or faced direction 
+     * if the given direction was zero) and {@link #insertHead add} it to the 
+     * body of this snake as the new head. This will also result in the fail 
+     * count being {@link #resetFailCount reset}. If the tile was an apple tile 
+     * and this snake {@link #getApplesCauseGrowth grows when it eats apples}, 
+     * then {@code moveSnake} will be ignored and and the snake will grow by one 
      * tile. If this is moving the snake (i.e. {@code moveSnake} is {@code true} 
      * and either the tile that was added was not an apple tile or apples do not 
-     * cause this snake to grow), then the snake's tail is {@link #pollTail() 
-     * polled}. This will then {@link #resetFailCount() reset the fail count}, 
-     * call {@link #setConsumedApple setConsumedApple} to update whether this 
-     * snake ate an apple and fire a {@link SnakeEvent#SNAKE_CONSUMED_APPLE 
-     * SNAKE_CONSUMED_APPLE} {@code SnakeEvent} if it did, fire either a 
-     * {@link SnakeEvent#SNAKE_ADDED_TILE SNAKE_ADDED_TILE} {@code SnakeEvent} 
-     * or a {@link SnakeEvent#SNAKE_MOVED SNAKE_MOVED} {@code SnakeEvent}, 
-     * depending on whether this added a tile or moved the snake, and finally 
-     * return {@code true} to indicate that this succeeded in adding to or 
-     * moving the snake. <p>
+     * cause this snake to grow), then the snake's tail is {@link #pollTail 
+     * removed}. This will then call {@link #setConsumedApple setConsumedApple} 
+     * to update whether this snake ate an apple and fire a {@link 
+     * SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} {@code SnakeEvent} 
+     * if it did, fire either a {@link SnakeEvent#SNAKE_ADDED_TILE 
+     * SNAKE_ADDED_TILE} {@code SnakeEvent} or a {@link SnakeEvent#SNAKE_MOVED 
+     * SNAKE_MOVED} {@code SnakeEvent}, depending on whether this added a tile 
+     * or moved the snake, and finally return {@code true} to indicate that this 
+     * succeeded in adding to or moving the snake. <p>
      * 
      * The {@link #add(int) add} and {@link #move(int) move} methods delegate 
      * the task of adding and moving the snake to this method, forwarding the 
@@ -2450,7 +3614,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @param direction The direction to use when getting the adjacent tile to 
      * become the new head. 
      * This should be one of the following: 
-     *      {@code 0} to use the tile being {@link #getDirectionFaced() faced}, 
+     *      {@code 0} to use the tile being {@link #getDirectionFaced faced}, 
      *      {@link #UP_DIRECTION} to use the tile above the head, 
      *      {@link #DOWN_DIRECTION} to use the tile below the head, 
      *      {@link #LEFT_DIRECTION} to use the tile to the left of the head, or 
@@ -2469,6 +3633,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getDirectionFaced
      * @see SnakeUtilities#getDirections
      * @see SnakeUtilities#invertDirections 
+     * @see #add(int) 
+     * @see #add() 
+     * @see #move(int) 
+     * @see #move() 
+     * @see #removeTail 
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
      * @see #canAddTile 
@@ -2477,13 +3646,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getModel 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
-     * @see #addHead 
+     * @see #insertHead 
      * @see #pollTail 
      * @see #isValid 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #hasConsumedApple 
      * @see #setConsumedApple 
@@ -2499,7 +3669,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #flip 
      * @see #isCrashed 
      * @see #setCrashed 
-     * @see #updateCrashed 
+     * @see #getSnakeWillNowCrash 
      * @see #revive 
      * @see #getAllowedFails 
      * @see #setAllowedFails 
@@ -2507,6 +3677,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #setFailCount 
      * @see #incrementFailCount 
      * @see #resetFailCount 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #poll 
+     * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
@@ -2518,106 +3692,101 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#setState 
      * @see Tile#setType 
      * @see Tile#alterDirection(Tile) 
-     * @see #add(int) 
-     * @see #add() 
-     * @see #move(int) 
-     * @see #move() 
-     * @see #removeTail 
      */
     protected boolean addOrMove(int direction, boolean moveSnake){
         checkIfInvalid();       // Check if this snake is invalid
         direction = checkDirection(direction);  // Check the direction
-        if (isCrashed()){       // If the snake has crashed
-            fireSnakeFailed(direction);
-            return false;
-        }   // Get the tile adjacent to the head.
+            // Get the tile adjacent to the head.
         Tile tile = getAdjacentToHead(direction);   
-        if (!canAddTile(tile)){ // If the snake cannot add the tile
-                // If the snake is only a head or the snake was not attempting 
-                // to add or move backwards (if the snake was not trying to add 
-                // the tile in the snake that's behind the head)
-            if (size() < 2 || direction != 
-                    SnakeUtilities.invertDirections(getDirectionFaced()))
-                incrementFailCount();
-            fireSnakeFailed(direction);
-            updateCrashed(direction);
-            return false;
-        }   // Get whether the tiles in the model are currently adjusting, so as 
+            // Get whether the tiles in the model are currently adjusting, so as 
             // to restore this once done
         boolean adjusting = model.getTilesAreAdjusting();
         model.setTilesAreAdjusting(true);
-            // Get whether the tile being added is (or was) an apple
+            // If either the snake has crashed or the snake cannot add the tile
+        if (isCrashed() || !canAddTile(tile)){
+                // If the snake has not crashed (the snake must not have been 
+                // able to add the tile) and if the snake is only a head or the 
+                // snake was not attempting to add or move backwards (if the 
+                // snake was not trying to add the tile in the snake that's 
+            if (!isCrashed() && (!hasTail() || direction != // behind the head)
+                    SnakeUtilities.invertDirections(getDirectionFaced())))
+                incrementFailCount();       // Increment the fail count
+            fireSnakeFailed(direction,tile);// Fire a snake failed event
+            if (!isCrashed())               // If the snake has not crashed yet
+                    // Update whether the snake has now crashed
+                setCrashed(getSnakeWillNowCrash(),direction,tile);
+            model.setTilesAreAdjusting(adjusting);
+            return false;
+        }   // Get whether the tile being added is (or was) an apple
         boolean ateApple = tile.isApple();  
-        addHead(tile.setState(direction));  // Add the head to the snake
+        insertHead(tile.setState(direction));   // Add the tile to the snake
             // If the snake ate an apple and apples cause the snake to grow
         if (ateApple && getApplesCauseGrowth())
-            moveSnake = false;
-        if (moveSnake)      // If the snake is moving
-            pollTail();     // Remove the current tail
-        model.setTilesAreAdjusting(adjusting);
-        resetFailCount();   // Reset the fail count
+            moveSnake = false;  // Override moveSnake to make the snake grow
+        if (moveSnake)          // If the snake is moving
+            pollTail();         // Remove the current tail
             // Set whether the snake ate an apple based off whether the tile was 
             // an apple tile. This will also fire an event if an apple was eaten
-        setConsumedApple(ateApple,direction);
+        setConsumedApple(ateApple,direction,tile);
             // If the snake moved, fire a snake moved event. Otherise, fire a 
         fireSnakeChange((moveSnake)?SnakeEvent.SNAKE_MOVED:// snake added event
-                SnakeEvent.SNAKE_ADDED_TILE,direction);
+                SnakeEvent.SNAKE_ADDED_TILE,direction,tile);
+        model.setTilesAreAdjusting(adjusting);
         return true;
     }
     /**
-     * This attempts to add the tile {@link #getAdjacentToHead(int) adjacent} to 
-     * the {@link #getHead head} of this snake. This will return {@code true} if 
-     * the tile is successfully added to this snake, and {@code false} if this 
-     * fails to add the tile. The tile will only be added if this snake has not 
-     * {@link #isCrashed crashed} and {@link #canMoveInDirection(int) can move} 
-     * in the given direction. The direction must be either zero or one of the 
-     * four direction flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, 
-     * {@link #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction 
-     * is zero, then this will attempt to add the tile {@link #getTileBeingFaced 
-     * in front} of this snake (i.e. this will attempt to add the tile adjacent 
-     * to the head in the {@link #getDirectionFaced() direction being faced}). 
-     * Refer to the documentation for the {@link #getAdjacentToHead 
-     * getAdjacentToHead} method for more information about how this gets the 
-     * tile adjacent to the head, and to the documentation for the {@link 
-     * #canMoveInDirection canMoveInDirection} method for more information about 
-     * how this checks to see if this snake can move in a given direction. <p>
+     * This attempts to add the tile {@link #getAdjacentToHead adjacent} to the 
+     * {@link #getHead head} of this snake. This will return {@code true} if the 
+     * tile is successfully added to this snake, and {@code false} if this fails 
+     * to add the tile. The tile will only be added if this snake has not {@link 
+     * #isCrashed crashed} and {@link #canMoveInDirection can move} in the given 
+     * direction. The direction must be either zero or one of the four direction 
+     * flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
+     * #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction is zero, 
+     * then this will attempt to add the tile {@link #getTileBeingFaced in 
+     * front} of this snake (i.e. this will attempt to add the tile adjacent to 
+     * the head in the {@link #getDirectionFaced direction being faced}). Refer 
+     * to the documentation for the {@link #getAdjacentToHead getAdjacentToHead} 
+     * method for more information about how this gets the tile adjacent to the 
+     * head, and to the documentation for the {@link #canMoveInDirection 
+     * canMoveInDirection} method for more information about how this checks to 
+     * see if this snake can move in a given direction. <p>
      * 
      * If the tile is successfully added to this snake, then this snake will 
      * grow in length by one tile, the tile that was added will become the new 
-     * head, and this will fire a {@code SnakeEvent} indicating that a {@link 
+     * head, the snake's {@link #getFailCount fail count} will be reset to zero, 
+     * and this will fire a {@code SnakeEvent} indicating that a {@link 
      * SnakeEvent#SNAKE_ADDED_TILE tile was added}. If the tile was an {@link 
-     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
+     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
      * {@code true}. Snakes can only add apple tiles if they are able to {@link 
-     * #isAppleConsumptionEnabled() eat apples}. If the snake failed to add the 
+     * #isAppleConsumptionEnabled eat apples}. If the snake failed to add the 
      * tile, then this will fire a {@code SnakeEvent} indicating that the snake 
-     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake will crash 
-     * if the {@link #getFailCount amount of times it has consecutively failed} 
-     * to move or add a tile exceeds its {@link #getAllowedFails allowed number 
-     * of failures}. Attempting and failing to add or move the snake backwards 
-     * does not contribute to a snake crashing unless the snake does not have a 
-     * tail (i.e. the snake must be at least two tiles long for attempting to 
-     * add or move the snake backwards to not count towards the fail count). If 
-     * the allowed number of failures is negative, then the snake can fail to 
-     * add or move to a tile an unlimited amount of times without crashing. In 
-     * other words, if the allowed number of failures is negative, then the 
-     * snake cannot crash by failing to add or move to a tile. If this snake 
-     * crashes, then this will fire a {@code SnakeEvent} indicating that the 
-     * snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has 
-     * crashed, it will be unable to add or move to a tile until it has been 
-     * {@link #revive() revived}. <p>
+     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. When a snake fails 
+     * to move or add a tile, and it was not attempting to add or move to the 
+     * tile in the snake behind the head (if the snake was not attempting to add 
+     * or move backwards), then its fail count will be incremented. If a snake's 
+     * fail count exceeds its {@link #getAllowedFails allowed number of 
+     * failures}, then it will crash. If the allowed number of failures is 
+     * negative, then the snake will be allowed to fail an unlimited amount of 
+     * times without crashing. In other words, if the allowed number of failures 
+     * is negative, then the snake cannot crash by failing to add or move to a 
+     * tile. If this snake crashes, then this will fire a {@code SnakeEvent} 
+     * indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. 
+     * Once a snake has crashed, it will be unable to add or move to a tile 
+     * until it has been {@link #revive revived}. <p>
      * 
-     * The {@link #move(int) move} method works similarly to this, with the 
+     * The {@link #move(int) move(int)} method works similarly to this, with the 
      * exception being that this snake will remain the same length unless an 
-     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth() 
-     * grow when it eats an apple}.
+     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth grow 
+     * when it eats an apple}.
      * 
      * @param direction The direction in which to get the tile to add to this 
      * snake. 
      * This should be one of the following: 
-     *      {@code 0} to add the tile {@link #getDirectionFaced() in front} of 
-     *          the snake, 
+     *      {@code 0} to add the tile {@link #getDirectionFaced in front} of the 
+     *          snake, 
      *      {@link #UP_DIRECTION} to add the tile above the snake's head, 
      *      {@link #DOWN_DIRECTION} to add the tile below the snake's head, 
      *      {@link #LEFT_DIRECTION} to add the tile to the left of the snake's 
@@ -2635,6 +3804,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #RIGHT_DIRECTION
      * @see #getDirectionFaced
      * @see SnakeUtilities#getDirections
+     * @see #add() 
+     * @see #move(int) 
+     * @see #move() 
+     * @see #removeTail 
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
      * @see #canMoveInDirection 
@@ -2646,7 +3819,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isValid 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #hasConsumedApple 
      * @see #isAppleConsumptionEnabled 
@@ -2664,6 +3837,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getAllowedFails 
      * @see #setAllowedFails 
      * @see #getFailCount 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #peek 
+     * @see #poll 
+     * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      * @see SnakeEvent#SNAKE_FAILED
@@ -2674,54 +3852,51 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#setState 
      * @see Tile#setType 
      * @see Tile#alterDirection(Tile) 
-     * @see #add() 
-     * @see #move(int) 
-     * @see #move() 
-     * @see #removeTail 
      */
     public boolean add(int direction){
         return addOrMove(direction,false);
     }
     /**
-     * This attempts to add the tile {@link #getTileBeingFaced() in front} of 
-     * the {@link #getHead() head} of this snake. This will return {@code true} 
-     * if the tile is successfully added to this snake, and {@code false} if 
-     * this fails to add the tile. The tile will only be added if this snake has 
-     * not {@link #isCrashed() crashed} and {@link #canMoveForward() can move 
-     * forward}. Refer to the documentation for the {@link #getTileBeingFaced 
-     * getTileBeingFaced} method for more information about how this gets the 
-     * tile in front of the head, and to the documentation for the {@link 
-     * #canMoveForward() canMoveForward} method for more information about how 
-     * this checks to see if this snake can move forward. <p>
+     * This attempts to add the tile {@link #getTileBeingFaced in front} of the 
+     * {@link #getHead head} of this snake. This will return {@code true} if the 
+     * tile is successfully added to this snake, and {@code false} if this fails 
+     * to add the tile. The tile will only be added if this snake has not {@link 
+     * #isCrashed crashed} and {@link #canMoveForward can move forward}. Refer 
+     * to the documentation for the {@link #getTileBeingFaced getTileBeingFaced} 
+     * method for more information about how this gets the tile in front of the 
+     * head, and to the documentation for the {@link #canMoveForward 
+     * canMoveForward} method for more information about how this checks to see 
+     * if this snake can move forward. <p>
      * 
      * If the tile is successfully added to this snake, then this snake will 
      * grow in length by one tile, the tile that was added will become the new 
-     * head, and this will fire a {@code SnakeEvent} indicating that a {@link 
+     * head, the snake's {@link #getFailCount fail count} will be reset to zero, 
+     * and this will fire a {@code SnakeEvent} indicating that a {@link 
      * SnakeEvent#SNAKE_ADDED_TILE tile was added}. If the tile was an {@link 
-     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
+     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
      * {@code true}. Snakes can only add apple tiles if they are able to {@link 
-     * #isAppleConsumptionEnabled() eat apples}. If the snake failed to add the 
+     * #isAppleConsumptionEnabled eat apples}. If the snake failed to add the 
      * tile, then this will fire a {@code SnakeEvent} indicating that the snake 
-     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. A snake will crash 
-     * if the {@link #getFailCount amount of times it has consecutively failed} 
-     * to move or add a tile exceeds its {@link #getAllowedFails allowed number 
-     * of failures}, excluding attempts to add or move the snake backwards when 
-     * the snake is at least two tiles long. If the allowed number of failures 
-     * is negative, then the snake can fail to add or move to a tile an 
-     * unlimited amount of times without crashing. In other words, if the 
-     * allowed number of failures is negative, then the snake cannot crash by 
-     * failing to add or move to a tile. If this snake crashes, then this will 
-     * fire a {@code SnakeEvent} indicating that the snake has {@link 
-     * SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has crashed, it will be 
-     * unable to add or move to a tile until it has been {@link #revive() 
-     * revived}. <p>
+     * {@link SnakeEvent#SNAKE_FAILED failed} to add a tile. When a snake fails 
+     * to move or add a tile, and it was not attempting to add or move to the 
+     * tile in the snake behind the head (if the snake was not attempting to add 
+     * or move backwards), then its fail count will be incremented. If a snake's 
+     * fail count exceeds its {@link #getAllowedFails allowed number of 
+     * failures}, then it will crash. If the allowed number of failures is 
+     * negative, then the snake will be allowed to fail an unlimited amount of 
+     * times without crashing. In other words, if the allowed number of failures 
+     * is negative, then the snake cannot crash by failing to add or move to a 
+     * tile. If this snake crashes, then this will fire a {@code SnakeEvent} 
+     * indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. 
+     * Once a snake has crashed, it will be unable to add or move to a tile 
+     * until it has been {@link #revive revived}. <p>
      * 
-     * The {@link #move() move} method works similarly to this, with the 
+     * The {@link #move() move()} method works similarly to this, with the 
      * exception being that this snake will remain the same length unless an 
-     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth() 
-     * grow when it eats an apple}. <p>
+     * apple is eaten and the snake is set to {@link #getApplesCauseGrowth grow 
+     * when it eats an apple}. <p>
      * 
      * This is equivalent to calling {@link #add(int) add}{@code (}{@link 
      * #getDirectionFaced getDirectionFaced()}{@code )}.
@@ -2735,6 +3910,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isFacingLeft 
      * @see #isFacingRight 
      * @see #getDirectionFaced
+     * @see #add(int) 
+     * @see #move(int) 
+     * @see #move() 
+     * @see #removeTail 
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
      * @see #canMoveInDirection 
@@ -2746,7 +3925,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isValid 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #hasConsumedApple 
      * @see #isAppleConsumptionEnabled 
@@ -2764,6 +3943,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getAllowedFails 
      * @see #setAllowedFails 
      * @see #getFailCount 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #peek 
+     * @see #poll 
+     * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      * @see SnakeEvent#SNAKE_FAILED
@@ -2774,10 +3958,6 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#setState 
      * @see Tile#setType 
      * @see Tile#alterDirection(Tile) 
-     * @see #add(int) 
-     * @see #move(int) 
-     * @see #move() 
-     * @see #removeTail 
      */
     public boolean add(){
         return add(getDirectionFaced());
@@ -2786,7 +3966,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * This attempts to move this snake in the given direction. This will return 
      * {@code true} if this snake has successfully moved, and {@code false} if 
      * this fails to move the snake. Snakes can only move if they have not 
-     * {@link #isCrashed() crashed} and {@link #canMoveInDirection can move} in 
+     * {@link #isCrashed crashed} and {@link #canMoveInDirection can move} in 
      * the given direction. The direction must be either zero or one of the four 
      * direction flags: {@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
      * #LEFT_DIRECTION}, and {@link #RIGHT_DIRECTION}. If the direction is zero, 
@@ -2796,44 +3976,44 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * see if this snake can move in a given direction. <p>
      * 
      * If this snake successfully moved, then the tile {@link #getAdjacentToHead 
-     * adjacent} to the {@link #getHead() head} of this snake will become the 
-     * new head, the current {@link #getTail() tail} (or the current head if 
-     * this snake does not have a tail) will be removed from this snake, and 
-     * this will fire a {@code SnakeEvent} indicating that this snake has {@link 
+     * adjacent} to the {@link #getHead head} of this snake will become the new 
+     * head, the current {@link #peek tail} (or the current head if this snake 
+     * does not have a tail) will be removed from this snake, the snake's {@link 
+     * #getFailCount fail count} will be reset to zero, and this will fire a 
+     * {@code SnakeEvent} indicating that this snake has {@link 
      * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
      * #getAdjacentToHead getAdjacentToHead} method for more information about 
      * how this gets the tile adjacent to the head. If the tile was an {@link 
-     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
-     * {@code true}. If this snake {@link #getApplesCauseGrowth() grows when it 
-     * eats apples}, then eating an apple will cause a tile to be {@link #add 
-     * added} to this snake instead of moving this snake. Snakes can only move 
-     * to apple tiles if they are able to {@link #isAppleConsumptionEnabled eat 
-     * apples}. If the snake failed to move, then this will fire a {@code 
-     * SnakeEvent} indicating that the snake {@link SnakeEvent#SNAKE_FAILED 
-     * failed} to move. A snake will crash if the {@link #getFailCount amount of 
-     * times it has consecutively failed} to move or add a tile exceeds its 
-     * {@link #getAllowedFails allowed number of failures}. Attempting and 
-     * failing to add or move the snake backwards does not contribute to a snake 
-     * crashing unless the snake does not have a tail (i.e. the snake must be at 
-     * least two tiles long for attempting to add or move the snake backwards to 
-     * not count towards the fail count). If the allowed number of failures is 
-     * negative, then the snake can fail to add or move to a tile an unlimited 
-     * amount of times without crashing. In other words, if the allowed number 
-     * of failures is negative, then the snake cannot crash by failing to add or 
-     * move to a tile. If this snake crashes, then this will fire a {@code 
-     * SnakeEvent} indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED 
-     * crashed}. Once a snake has crashed, it will be unable to add or move to a 
-     * tile until it has been {@link #revive() revived}. <p>
+     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
+     * {@code true}. If this snake {@link #getApplesCauseGrowth grows when it 
+     * eats apples}, then eating an apple will cause a tile to be {@link 
+     * #add(int) added} to this snake instead of moving this snake. Snakes can 
+     * only move to apple tiles if they are able to {@link 
+     * #isAppleConsumptionEnabled eat apples}. If the snake failed to move, then 
+     * this will fire a {@code SnakeEvent} indicating that the snake {@link 
+     * SnakeEvent#SNAKE_FAILED failed} to move. When a snake fails to move or 
+     * add a tile, and it was not attempting to add or move to the tile in the 
+     * snake behind the head (if the snake was not attempting to add or move 
+     * backwards), then its fail count will be incremented. If a snake's fail 
+     * count exceeds its {@link #getAllowedFails allowed number of failures}, 
+     * then it will crash. If the allowed number of failures is negative, then 
+     * the snake will be allowed to fail an unlimited amount of times without 
+     * crashing. In other words, if the allowed number of failures is negative, 
+     * then the snake cannot crash by failing to add or move to a tile. If this 
+     * snake crashes, then this will fire a {@code SnakeEvent} indicating that 
+     * the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has 
+     * crashed, it will be unable to add or move to a tile until it has been 
+     * {@link #revive revived}. <p>
      * 
-     * The {@link #add(int) add} method works similarly to this, with the 
+     * The {@link #add(int) add(int)} method works similarly to this, with the 
      * exception being that this snake will become longer regardless of whether 
      * the snake ate an apple and would grow when it does.
      * 
      * @param direction The direction in which to move this snake. 
      * This should be one of the following: 
-     *      {@code 0} to move the snake {@link #getDirectionFaced() forward}, 
+     *      {@code 0} to move the snake {@link #getDirectionFaced forward}, 
      *      {@link #UP_DIRECTION} to move the snake up, 
      *      {@link #DOWN_DIRECTION} to move the snake down, 
      *      {@link #LEFT_DIRECTION} to move the snake left, or 
@@ -2849,6 +4029,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #RIGHT_DIRECTION
      * @see #getDirectionFaced
      * @see SnakeUtilities#getDirections
+     * @see #add(int) 
+     * @see #add() 
+     * @see #move() 
+     * @see #removeTail 
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
      * @see #canMoveInDirection 
@@ -2860,7 +4044,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isValid 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #hasConsumedApple 
      * @see #isAppleConsumptionEnabled 
@@ -2878,6 +4062,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getAllowedFails 
      * @see #setAllowedFails 
      * @see #getFailCount 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #peek 
+     * @see #poll 
+     * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
@@ -2889,59 +4078,57 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#setState 
      * @see Tile#setType 
      * @see Tile#alterDirection(Tile) 
-     * @see #add(int) 
-     * @see #add() 
-     * @see #move() 
-     * @see #removeTail 
      */
     public boolean move(int direction){
         return addOrMove(direction,true);
     }
     /**
-     * This attempts to move this snake {@link #getDirectionFaced() forward}. 
-     * This will return {@code true} if this snake has successfully moved, and 
-     * {@code false} if this fails to move the snake. Snakes can only move if 
-     * they have not {@link #isCrashed() crashed} and {@link #canMoveForward() 
-     * can move forward}. Refer to the documentation for the {@link 
-     * #canMoveForward() canMoveForward} method for more information about how 
-     * this checks to see if this snake can move forward. <p>
+     * This attempts to move this snake {@link #getDirectionFaced forward}. This 
+     * will return {@code true} if this snake has successfully moved, and {@code 
+     * false} if this fails to move the snake. Snakes can only move if they have 
+     * not {@link #isCrashed crashed} and {@link #canMoveForward can move 
+     * forward}. Refer to the documentation for the {@link #canMoveForward 
+     * canMoveForward} method for more information about how this checks to see 
+     * if this snake can move forward. <p>
      * 
      * If this snake successfully moved, then the tile {@link #getTileBeingFaced
-     * in front} of the {@link #getHead() head} of this snake will become the 
-     * new head, the current {@link #getTail() tail} (or the current head if 
-     * this snake does not have a tail) will be removed from this snake, and 
-     * this will fire a {@code SnakeEvent} indicating that this snake has {@link 
+     * in front} of the {@link #getHead head} of this snake will become the new 
+     * head, the current {@link #peek tail} (or the current head if this snake 
+     * does not have a tail) will be removed from this snake, the snake's {@link 
+     * #getFailCount fail count} will be reset to zero, and this will fire a 
+     * {@code SnakeEvent} indicating that this snake has {@link 
      * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
      * #getTileBeingFaced getTileBeingFaced} method for more information about 
      * how this gets the tile in front of the head. If the tile was an {@link 
-     * Tile#isApple() apple tile}, then this will also fire a {@code SnakeEvent} 
+     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
      * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple() hasConsumedApple} will return 
-     * {@code true}. If this snake {@link #getApplesCauseGrowth() grows when it 
+     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
+     * {@code true}. If this snake {@link #getApplesCauseGrowth grows when it 
      * eats apples}, then eating an apple will cause a tile to be {@link #add() 
      * added} to this snake instead of moving this snake. Snakes can only move 
      * to apple tiles if they are able to {@link #isAppleConsumptionEnabled eat 
      * apples}. If the snake failed to move, then this will fire a {@code 
      * SnakeEvent} indicating that the snake {@link SnakeEvent#SNAKE_FAILED 
-     * failed} to move. A snake will crash if the {@link #getFailCount amount of 
-     * times it has consecutively failed} to move or add a tile exceeds its 
-     * {@link #getAllowedFails() allowed number of failures}, excluding attempts 
-     * to add or move the snake backwards when the snake is at least two tiles 
-     * long. If the allowed number of failures is negative, then the snake can 
-     * fail to add or move to a tile an unlimited amount of times without 
-     * crashing. In other words, if the allowed number of failures is negative, 
-     * then the snake cannot crash by failing to add or move to a tile. If this 
-     * snake crashes, then this will fire a {@code SnakeEvent} indicating that 
-     * the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. If a snake has 
-     * crashed, it will be unable to add or move to a tile until it has been 
-     * {@link #revive revived}. <p>
+     * failed} to move. When a snake fails to move or add a tile, and it was not 
+     * attempting to add or move to the tile in the snake behind the head (if 
+     * the snake was not attempting to add or move backwards), then its fail 
+     * count will be incremented. If a snake's fail count exceeds its {@link 
+     * #getAllowedFails allowed number of failures}, then it will crash. If the 
+     * allowed number of failures is negative, then the snake will be allowed to 
+     * fail an unlimited amount of times without crashing. In other words, if 
+     * the allowed number of failures is negative, then the snake cannot crash 
+     * by failing to add or move to a tile. If this snake crashes, then this 
+     * will fire a {@code SnakeEvent} indicating that the snake has {@link 
+     * SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has crashed, it will be 
+     * unable to add or move to a tile until it has been {@link #revive 
+     * revived}. <p>
      * 
-     * The {@link #add() add} method works similarly to this, with the exception 
-     * being that this snake will become longer regardless of whether the snake 
-     * ate an apple and would grow when it does. <p>
+     * The {@link #add() add()} method works similarly to this, with the 
+     * exception being that this snake will become longer regardless of whether 
+     * the snake ate an apple and would grow when it does. <p>
      * 
      * This is equivalent to calling {@link #move(int) move}{@code (}{@link 
-     * #getDirectionFaced() getDirectionFaced()}{@code )}.
+     * #getDirectionFaced getDirectionFaced()}{@code )}.
      * 
      * @return Whether this snake successfully moved forward.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
@@ -2951,6 +4138,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isFacingLeft 
      * @see #isFacingRight 
      * @see #getDirectionFaced
+     * @see #add(int) 
+     * @see #add() 
+     * @see #move(int) 
+     * @see #removeTail 
      * @see #getAdjacentToHead 
      * @see #getTileBeingFaced 
      * @see #canMoveInDirection 
@@ -2962,7 +4153,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #isValid 
      * @see #initialize(Tile) 
      * @see #initialize(int, int) 
-     * @see #contains(Tile) 
+     * @see #contains(Object) 
      * @see #contains(int, int) 
      * @see #hasConsumedApple 
      * @see #isAppleConsumptionEnabled 
@@ -2980,6 +4171,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getAllowedFails 
      * @see #setAllowedFails 
      * @see #getFailCount 
+     * @see #offer 
+     * @see #add(Tile) 
+     * @see #peek 
+     * @see #poll 
+     * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
@@ -2991,51 +4187,43 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see Tile#setState 
      * @see Tile#setType 
      * @see Tile#alterDirection(Tile) 
-     * @see #add(int) 
-     * @see #add() 
-     * @see #move(int) 
-     * @see #removeTail 
      */
     public boolean move(){
         return move(getDirectionFaced());
     }
     /**
-     * This removes and returns the {@link #getTail() tail} of this snake. If 
-     * this snake does not have a tail (i.e. this snake is less than two tiles 
-     * long), then this will fire a {@code SnakeEvent} indicating that it {@link 
+     * This removes and returns the {@link #getTail tail} of this snake. If this 
+     * snake does not have a tail (i.e. this snake is less than two tiles long), 
+     * then this will fire a {@code SnakeEvent} indicating that it {@link 
      * SnakeEvent#SNAKE_FAILED failed} and return null. Otherwise, this will 
-     * remove the tail from this snake, {@link Tile#clear() clear} the tile, and 
+     * remove the tail from this snake, {@link Tile#clear clear} the tile, and 
      * fire a {@code SnakeEvent} indicating that a {@link 
-     * SnakeEvent#SNAKE_REMOVED_TILE tile was removed}. 
+     * SnakeEvent#SNAKE_REMOVED_TILE tile was removed}. This method is similar 
+     * to {@link #poll poll}, with the exception that this will fire a {@code 
+     * SnakeEvent}, leave the snake unchanged, and return null if this snake is 
+     * less than two tiles long.
      * @return The tile that was removed which use to be the tail of this snake, 
      * or null if this snake did not have a tail.
-     * @throws IllegalStateException If this snake is not in a {@link #isValid() 
-     * valid} state.
+     * @see #poll 
+     * @see #remove() 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isEmpty 
      * @see #isFlipped 
      * @see #flip 
+     * @see #isValid 
      * @see Tile#clear 
      * @see SnakeEvent#SNAKE_FAILED
      * @see SnakeEvent#SNAKE_REMOVED_TILE
      */
     public Tile removeTail(){
-        checkIfInvalid();       // Check if this snake is invalid
-        if (getTail() == null){ // If the snake doesn't have a tail
+            // If this snake has a tail, poll it and get the tile that was 
+            // removed. Otherwise, no tile will be removed
+        Tile tile = (hasTail()) ? poll() : null;
+        if (tile == null)       // If no tile was removed
             fireSnakeFailed(0);
-            return null;
-        }   // Get whether the tiles in the model are currently adjusting, so as 
-            // to restore this once we're done
-        boolean adjusting = model.getTilesAreAdjusting();
-        model.setTilesAreAdjusting(true);
-        Tile tile = pollTail(); // Poll the tail
-        model.setTilesAreAdjusting(adjusting);
-        if (tile == null)       // If a tile was not removed
-            fireSnakeFailed(0);
-        else
-            fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tile);
         return tile;
     }
     /**
@@ -3061,15 +4249,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This checks to see if the given {@code Consumer} is a {@link 
      * SnakeActionCommand SnakeActionCommand} with the {@link 
-     * SnakeActionCommand#getCommand() command} for invoking the default action, 
+     * SnakeActionCommand#getCommand command} for invoking the default action, 
      * and if so, throws an IllegalArgumentException stating that the default 
      * action should not invoke the default action. This is equivalent to 
      * checking to see if the given {@code Consumer} is a {@code 
      * SnakeActionCommand}, and if so, invoking {@link 
      * #checkDefaultAction(SnakeCommand) checkDefaultAction} on the command 
      * returned by the {@code SnakeActionCommand}'s {@link 
-     * SnakeActionCommand#getCommand() getCommand} method.
-     * @param action The consumer to check.
+     * SnakeActionCommand#getCommand getCommand} method.
+     * @param action The {@code Consumer} to check.
      * @throws IllegalArgumentException If the {@code Consumer} is a {@code 
      * SnakeActionCommand} that invokes the {@link SnakeCommand#DEFAULT_ACTION 
      * DEFAULT_ACTION} command.
@@ -3090,19 +4278,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This returns the {@code Consumer} used to perform the default action for 
      * this snake. This is the action performed by this snake when the {@link 
-     * #doDefaultAction() doDefaultAction} method is invoked when the default 
-     * action is {@link #isDefaultActionEnabled() enabled} and non-null. Refer 
-     * to the documentation for the {@link #doDefaultAction() doDefaultAction} 
-     * method for more information about how the default action is used by a 
-     * snake. The default value for this is a {@link SnakeActionCommand 
-     * SnakeActionCommand} that invokes the {@link SnakeCommand#MOVE_FORWARD 
-     * MOVE_FORWARD} command. <p>
-     * 
+     * #doDefaultAction doDefaultAction} method is invoked when the default 
+     * action is {@link #isDefaultActionEnabled enabled} and non-null. Refer to 
+     * the documentation for the {@link #doDefaultAction doDefaultAction} method 
+     * for more information about how the default action is used by a snake. The 
+     * default value for this is a {@link SnakeActionCommand SnakeActionCommand} 
+     * that invokes the {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} command. 
+     * <p>
      * The default action can be used as the action for a snake to perform when 
      * no action is specified. For example, the {@link #doNextAction 
      * doNextAction} method will invoke the {@code doDefaultAction} method when 
-     * the {@link #getActionQueue() action queue} is {@link #isActionQueueEmpty 
-     * empty}. 
+     * the {@link #getActionQueue action queue} is empty. Hence why it is called 
+     * the default action.
      * 
      * @return The {@code Consumer} that is used as the default action for this 
      * snake, or null.
@@ -3125,7 +4312,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This sets the default action for this snake to the given {@code 
-     * Consumer}. Refer to the documentation for the {@link #getDefaultAction() 
+     * Consumer}. Refer to the documentation for the {@link #getDefaultAction 
      * getDefaultAction} for more information about the default action. The 
      * default value for this is a {@link SnakeActionCommand SnakeActionCommand} 
      * that invokes the {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} command. 
@@ -3135,7 +4322,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * behavior. It is also recommended for the default action to not invoke the 
      * {@link #doNextAction doNextAction} method as the {@code doNextAction} may 
      * invoke the {@code doDefaultAction} method when the {@link #getActionQueue 
-     * action queue} is {@link #isActionQueueEmpty() empty}.
+     * action queue} is empty.
      * 
      * @param action The {@code Consumer} to use for the default action, or 
      * null. This {@code Consumer} should not invoke {@code doDefaultAction}.
@@ -3143,7 +4330,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws IllegalArgumentException If the given action is a {@link 
      * SnakeActionCommand SnakeActionCommand} with the {@link 
      * SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} command as the {@link 
-     * SnakeActionCommand#getCommand() command it invokes}.
+     * SnakeActionCommand#getCommand command it invokes}.
      * @see #getDefaultAction 
      * @see #setDefaultAction(SnakeCommand) 
      * @see #isDefaultActionEnabled 
@@ -3162,7 +4349,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      */
     public Snake setDefaultAction(Consumer<Snake> action){
             // If the old default action matches the current one
-        if (defaultAction == action)
+        if (Objects.equals(defaultAction, action))
             return this;
             // Check if the action tries to invoke the default action
         checkDefaultAction(action);
@@ -3223,12 +4410,12 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
                 SnakeCommand.getActionForCommand(command):null);
     }
     /**
-     * This returns whether the {@link #getDefaultAction() default action} is 
+     * This returns whether the {@link #getDefaultAction default action} is 
      * enabled. If the default action is enabled and non-null, then invoking the 
-     * {@link #doDefaultAction() doDefaultAction} method will cause the default 
+     * {@link #doDefaultAction doDefaultAction} method will cause the default 
      * action to be performed. Refer to the documentation for the {@link 
      * #getDefaultAction getDefaultAction} method and the {@link 
-     * #doDefaultAction() doDefaultAction} method for more information about the 
+     * #doDefaultAction doDefaultAction} method for more information about the 
      * default action and how it is used. The default value for this is {@code 
      * true}. 
      * @return Whether the default action is enabled.
@@ -3244,9 +4431,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         return getFlag(DEFAULT_ACTION_ENABLED_FLAG);
     }
     /**
-     * This sets whether the {@link #getDefaultAction() default action} is 
+     * This sets whether the {@link #getDefaultAction default action} is 
      * enabled. Refer to the documentation for the {@link 
-     * #isDefaultActionEnabled() isDefaultActionEnabled} method for more 
+     * #isDefaultActionEnabled isDefaultActionEnabled} method for more 
      * information. The default value for this is {@code true}. 
      * @param enabled Whether the default action should be enabled.
      * @return This snake.
@@ -3275,6 +4462,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * valid} state.
      * @see #isValid 
      * @see Consumer#accept 
+     * @see #doDefaultAction 
+     * @see #doNextAction 
      */
     protected void doAction(Consumer<? super Snake> action){
         if (action == null)     // If the action is null
@@ -3283,29 +4472,28 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         action.accept(this);
     }
     /**
-     * This performs the {@link #getDefaultAction() default action} if the 
-     * default action is {@link #isDefaultActionEnabled() enabled} and non-null. 
-     * If the default action is non-null and enabled, then this will call the 
-     * default action's {@link Consumer#accept accept} method and return {@code 
-     * true}. Otherwise, this will do nothing and return {@code false}. Refer to 
-     * the documentation for the {@link #getDefaultAction() getDefaultAction} 
-     * method for more information about the default action. If performing the 
-     * default action throws an exception, then the exception will be relayed to 
-     * the caller. <p>
+     * This performs the {@link #getDefaultAction default action} if the default 
+     * action is {@link #isDefaultActionEnabled enabled} and non-null. If the 
+     * default action is non-null and enabled, then this will call the default 
+     * action's {@link Consumer#accept accept} method and return {@code true}. 
+     * Otherwise, this will do nothing and return {@code false}. Refer to the 
+     * documentation for the {@link #getDefaultAction getDefaultAction} method 
+     * for more information about the default action. If performing the default 
+     * action throws an exception, then the exception will be relayed to the 
+     * caller. <p>
      * 
      * This method can be invoked either directly, by the {@link #doCommand 
      * doCommand} method when provided the {@link SnakeCommand#DEFAULT_ACTION 
      * DEFAULT_ACTION} command, or by the {@link #doNextAction doNextAction} 
-     * method either when the {@link #peekFirstAction() next action} to perform 
-     * invokes this method or when the {@link #getActionQueue() action queue} is 
-     * {@link #isActionQueueEmpty() empty}. The last method allows for the 
-     * default action to be used as the action to be performed when the snake 
-     * has run out of queued actions to perform but still needs to perform an 
-     * action on a regular basis. For example, the default action can be used to 
-     * have a snake {@link #move() move forward} when the snake is player 
-     * controlled, needs to move at a regular interval, and has not received any 
-     * input from the player. <p>
-     * 
+     * method either when the {@link ActionQueue#pollNext next action} to 
+     * perform invokes this method or when the {@link #getActionQueue action 
+     * queue} is empty. The last method allows for the default action to be used 
+     * as the action to be performed when the snake has run out of queued 
+     * actions to perform but still needs to perform an action on a regular 
+     * basis. For example, the default action can be used to have a snake {@link 
+     * #move() move forward} when the snake is player controlled, needs to move 
+     * at a regular interval, and has not received any input from the player. 
+     * <p>
      * Note that the default action should never invoke this method. If the 
      * default action were to invoke this, then this may result in undefined and 
      * unpredictable behavior. Most often this will either cause an exception to 
@@ -3351,41 +4539,51 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This performs the action associated with the given command. Depending on 
-     * the given command, this snake will do one of the following actions: <p>
+     * the given command, this snake will do one of the following actions: 
+     * <br><br>
+     * <ul>
+     * <li> {@link SnakeCommand#ADD_UP ADD_UP} - calls {@link #add(int) add} 
+     * with {@link #UP_DIRECTION up (UP_DIRECTION)} for the direction. </li>
+     * <li> {@link SnakeCommand#ADD_DOWN ADD_DOWN} - calls {@link #add(int) add} 
+     * with {@link #DOWN_DIRECTION down (DOWN_DIRECTION)} for the direction. 
+     * </li>
+     * <li> {@link SnakeCommand#ADD_LEFT ADD_LEFT} - calls {@link #add(int) add} 
+     * with {@link #LEFT_DIRECTION left (LEFT_DIRECTION)} for the direction. 
+     * </li>
+     * <li> {@link SnakeCommand#ADD_RIGHT ADD_RIGHT} - calls {@link #add(int) 
+     * add} with {@link #RIGHT_DIRECTION right (RIGHT_DIRECTION)} for the 
+     * direction. </li>
+     * <li> {@link SnakeCommand#ADD_FORWARD ADD_FORWARD} - calls {@link #add() 
+     * add} with no direction specified. </li>
+     * <li> {@link SnakeCommand#MOVE_UP MOVE_UP} - calls {@link #move move} with 
+     * {@link #UP_DIRECTION up (UP_DIRECTION)} for the direction. </li>
+     * <li> {@link SnakeCommand#MOVE_DOWN MOVE_DOWN} - calls {@link #move move} 
+     * with {@link #DOWN_DIRECTION down (DOWN_DIRECTION)} for the direction. 
+     * </li>
+     * <li> {@link SnakeCommand#MOVE_LEFT MOVE_LEFT} - calls {@link #move move} 
+     * with {@link #LEFT_DIRECTION left (LEFT_DIRECTION)} for the direction. 
+     * </li>
+     * <li> {@link SnakeCommand#MOVE_RIGHT MOVE_RIGHT} - calls {@link #move 
+     * move} with {@link #RIGHT_DIRECTION right (RIGHT_DIRECTION)} for the 
+     * direction. </li>
+     * <li> {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} - calls {@link 
+     * #move() move} with no direction specified. </li>
+     * <li> {@link SnakeCommand#FLIP FLIP} - calls {@link #flip() flip}. </li>
+     * <li> {@link SnakeCommand#REVIVE REVIVE} - calls {@link #revive() revive}. 
+     * </li>
+     * <li> {@link SnakeCommand#REMOVE_TAIL REMOVE_TAIL} - calls {@link 
+     * #removeTail removeTail}. </li>
+     * <li> {@link SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} - calls {@link 
+     * #doDefaultAction doDefaultAction}. </li>
+     * </ul> <p>
      * 
-     * {@link SnakeCommand#ADD_UP ADD_UP} - calls {@link #add add} with {@link 
-     * #UP_DIRECTION up (UP_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#ADD_DOWN ADD_DOWN} - calls {@link #add add} with 
-     * {@link #DOWN_DIRECTION down (DOWN_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#ADD_LEFT ADD_LEFT} - calls {@link #add add} with 
-     * {@link #LEFT_DIRECTION left (LEFT_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#ADD_RIGHT ADD_RIGHT} - calls {@link #add add} with 
-     * {@link #RIGHT_DIRECTION right (RIGHT_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#ADD_FORWARD ADD_FORWARD} - calls {@link #add() add} 
-     * with no direction specified. <br>
-     * {@link SnakeCommand#MOVE_UP MOVE_UP} - calls {@link #move move} with 
-     * {@link #UP_DIRECTION up (UP_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#MOVE_DOWN MOVE_DOWN} - calls {@link #move move} with 
-     * {@link #DOWN_DIRECTION down (DOWN_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#MOVE_LEFT MOVE_LEFT} - calls {@link #move move} with 
-     * {@link #LEFT_DIRECTION left (LEFT_DIRECTION)} for the direction. <br>
-     * {@link SnakeCommand#MOVE_RIGHT MOVE_RIGHT} - calls {@link #move move} 
-     * with {@link #RIGHT_DIRECTION right (RIGHT_DIRECTION)} for the direction. 
-     * <br>
-     * {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} - calls {@link #move() 
-     * move} with no direction specified. <br>
-     * {@link SnakeCommand#FLIP FLIP} - calls {@link #flip() flip}. <br>
-     * {@link SnakeCommand#REVIVE REVIVE} - calls {@link #revive() revive}. <br>
-     * {@link SnakeCommand#REMOVE_TAIL REMOVE_TAIL} - calls {@link #removeTail 
-     * removeTail}. <br>
-     * {@link SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} - calls {@link 
-     * #doDefaultAction() doDefaultAction}. <p>
-     * 
-     * If the command does not match any of the previously mention commands, 
+     * If the command does not match any of the previously mentioned commands, 
      * then this will do nothing and fire a {@code SnakeEvent} indicating that 
      * the snake {@link SnakeEvent#SNAKE_FAILED failed}. If performing the 
      * action for the command throws an exception, then the exception will be 
-     * relayed to the caller.
+     * relayed to the caller. To check if this snake is in a state where it will  
+     * most likely able to successfully perform the given command, use the 
+     * {@link #canPerformAction(SnakeCommand) canPerformAction} method.
      * 
      * @param command The command representing which action to perform (cannot 
      * be null).
@@ -3394,6 +4592,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @throws NullPointerException If the given command is null.
      * @throws IllegalStateException If this snake is not in a {@link #isValid() 
      * valid} state.
+     * @see #canPerformAction(SnakeCommand) 
      * @see SnakeCommand
      * @see SnakeCommand#getDirectionOf 
      * @see #isValid 
@@ -3466,64 +4665,223 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
                 return removeTail() != null;
             case DEFAULT_ACTION: // If the command is the default action command
                 return doDefaultAction();   // Invoke the default action
-            default:            // The command must be an unknown command
+            default:                // The command must be an unknown command
                 fireSnakeFailed();  // The snake failed to perform a command
                 return false;
         }
     }
     /**
-     * This returns whether this snake will skip actions in the {@link 
-     * #getActionQueue() action queue} when there are adjacent duplicates of an  
-     * action. If this is {@code true}, then the {@link #doNextAction 
-     * doNextAction} method will discard actions that match the action after it, 
-     * resulting in each action being performed once. In other words, if this is 
-     * {@code true}, then when this {@link #pollAction() polls} the next action 
-     * to perform, the polled action will be compared with what is now the 
-     * {@link #peekFirstAction() first action} in the action queue to see if 
-     * they are equal to each other, and if so, the polled action will be 
-     * discarded and the cycle will repeat until either the action queue is 
-     * {@link #isActionQueueEmpty() empty} or the two actions are not equal to 
-     * each other. If this is {@code false}, then the {@code doNextAction} 
-     * method will not discard repeated actions. The {@code doNextAction} method 
-     * may still discard an action for other reasons, such as if the action 
-     * cannot be performed due to the snake not being in a state to do so. Refer 
-     * to the documentation for the {@link #doNextAction() doNextAction} for 
-     * more information on how this determines whether to skip an action and how 
-     * this will perform the actions that it does not skip.
-     * @return Whether this snake will skip repeats in the action queue.
+     * This returns whether this snake will be able to perform the given 
+     * command. If the given command is null or this snake is not in a {@link 
+     * #isValid valid} state, then this will return {@code false}. Otherwise, 
+     * this will only return {@code true} if the command is one of the following 
+     * commands and the conditions for that command are met (it can be assumed 
+     * that the snake must be in a valid state for all of them): <br><br>
+     * 
+     * <ul>
+     * <li> {@link SnakeCommand#ADD_UP ADD_UP} - the snake must not have {@link 
+     * #isCrashed crashed} and must not be facing {@link #isFacingDown down}. 
+     * </li>
+     * <li> {@link SnakeCommand#ADD_DOWN ADD_DOWN} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing {@link #isFacingUp up}. 
+     * </li>
+     * <li> {@link SnakeCommand#ADD_LEFT ADD_LEFT} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing to the {@link 
+     * #isFacingRight right}. </li>
+     * <li> {@link SnakeCommand#ADD_RIGHT ADD_RIGHT} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing to the {@link 
+     * #isFacingLeft left}. </li>
+     * <li> {@link SnakeCommand#ADD_FORWARD ADD_FORWARD} - the snake must not 
+     * have {@link #isCrashed crashed}. </li>
+     * <li> {@link SnakeCommand#MOVE_UP MOVE_UP} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing {@link #isFacingDown 
+     * down}. </li>
+     * <li> {@link SnakeCommand#MOVE_DOWN MOVE_DOWN} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing {@link #isFacingUp up}. 
+     * </li>
+     * <li> {@link SnakeCommand#MOVE_LEFT MOVE_LEFT} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing to the {@link 
+     * #isFacingRight right}. </li>
+     * <li> {@link SnakeCommand#MOVE_RIGHT MOVE_RIGHT} - the snake must not have 
+     * {@link #isCrashed crashed} and must not be facing to the {@link 
+     * #isFacingLeft left}. </li>
+     * <li> {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} - the snake must not 
+     * have {@link #isCrashed crashed}. </li>
+     * <li> {@link SnakeCommand#FLIP FLIP} - there are no conditions for 
+     * flipping a {@link #isValid() valid} snake (this will always return {@code 
+     * true} if the snake is valid). </li>
+     * <li> {@link SnakeCommand#REVIVE REVIVE} - the snake must have {@link 
+     * #isCrashed crashed}. </li>
+     * <li> {@link SnakeCommand#REMOVE_TAIL REMOVE_TAIL} - the snake must have a 
+     * tail ({@link #getTail getTail} must return a non-null tile). </li>
+     * <li> {@link SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} - the snake's 
+     * {@link #getDefaultAction default action} must be non-null and {@link 
+     * #isDefaultActionEnabled enabled}. </li>
+     * </ul> <p>
+     * 
+     * If the command does not match any of the previously mentioned commands, 
+     * or if it does match one of the commands but this snake does not meet the 
+     * criteria for it to be able to perform the command, then this will return 
+     * {@code false}.
+     * 
+     * @param command The command that will be evaluated as to whether it can be 
+     * performed by this snake.
+     * @return Whether this snake can currently perform the given command.
+     * @see #canPerformAction(Consumer) 
+     * @see #isValid 
+     * @see #doCommand 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see #isFacingUp 
+     * @see #isFacingDown 
+     * @see #isFacingLeft 
+     * @see #isFacingRight 
+     * @see #getDirectionFaced 
+     * @see #isCrashed 
+     * @see #getDefaultAction 
+     * @see #isDefaultActionEnabled 
+     * @see SnakeUtilities#invertDirections 
+     * @see SnakeCommand
+     * @see SnakeCommand#getDirectionOf 
+     */
+    public boolean canPerformAction(SnakeCommand command){
+            // If the command is null or this snake is invalid
+        if (command == null || !isValid())  
+            return false;
+        if (hasTail()){             // If this snake has a tail
+                // Get the direction for the command
+            Integer dir = SnakeCommand.getDirectionOf(command);
+                    // If the command has a direction and that direction is 
+                    // opposite to the direction this snake is facing
+            if (dir != null && dir == 
+                    SnakeUtilities.invertDirections(getDirectionFaced()))
+                return false;
+        }
+        switch(command){        // Determine which command is this
+            case MOVE_UP:       // If the command is the move up command
+            case MOVE_DOWN:     // If the command is the move down command
+            case MOVE_LEFT:     // If the command is the move left command
+            case MOVE_RIGHT:    // If the command is the move right command
+            case MOVE_FORWARD:  // If the command is the move forward command
+            case ADD_UP:        // If the command is the add up command
+            case ADD_DOWN:      // If the command is the add down command
+            case ADD_LEFT:      // If the command is the add left command
+            case ADD_RIGHT:     // If the command is the add right command
+            case ADD_FORWARD:   // If the command is the add forward command
+                return !isCrashed();// The snake cannot move or add when crashed
+            case FLIP:          // If the command is the flip command
+                return true;    // The snake can always flip
+            case REVIVE:        // If the command is the revive command
+                    //The snake can really only be revived if crashed
+                return isCrashed();
+            case REMOVE_TAIL:   // If the command is the remove tail command
+                    // The tail can only be removed if the snake has one
+                return hasTail();   
+            case DEFAULT_ACTION:// If the command is the default action command
+                    // The default action can only be performed if it's non-null
+                    // and enabled
+                return getDefaultAction()!=null&&isDefaultActionEnabled();
+            default:            // The command must be an unknown command
+                    // The snake cannot perform the action since it's unknown
+                return false;   
+        }
+    }
+    /**
+     * This returns whether this snake will be able to perform the given {@code 
+     * Consumer}. If the given {@code Consumer} is null or this snake is not in 
+     * a {@link #isValid valid} state, then this will return {@code false}. 
+     * Otherwise, if the given {@code Consumer} is a {@link SnakeActionCommand 
+     * SnakeActionCommand}, then this will return whether this snake will be 
+     * able to perform the {@code SnakeActionCommand}'s {@link 
+     * SnakeActionCommand#getCommand command}. That is to say, if the {@code 
+     * Consumer} is a {@code SnakeActionCommand}, then this will forward the 
+     * call to {@link #canPerformAction(SnakeCommand) 
+     * canPerformAction(SnakeCommand)} with the given {@code 
+     * SnakeActionCommand}'s command. Otherwise, this will return {@code true}. 
+     * @param action The {@code Consumer} that will be evaluated as to whether 
+     * it can be performed by this snake.
+     * @return Whether this snake can currently perform the given {@code 
+     * Consumer}.
+     * @see #canPerformAction(SnakeCommand) 
+     * @see #isValid 
+     * @see #getHead 
+     * @see #getTail 
+     * @see #peek 
+     * @see #size 
+     * @see #isEmpty 
+     * @see SnakeCommand
+     * @see SnakeActionCommand
+     * @see SnakeActionCommand#getCommand 
+     */
+    public boolean canPerformAction(Consumer<? super Snake> action){
+            // If the action is a SnakeActionCommand
+        if (action instanceof SnakeActionCommand)
+            return canPerformAction(((SnakeActionCommand)action).getCommand());
+        else
+            return action != null && isValid();
+    }
+    /**
+     * This returns whether this snake's {@link #getActionQueue action queue} 
+     * will skip (discard) an action when there is an adjacent duplicate of that 
+     * action. If this is {@code true}, then the {@link ActionQueue#peekNext 
+     * peekNext}, {@link ActionQueue#getNext getNext}, {@link 
+     * ActionQueue#pollNext pollNext}, {@link ActionQueue#removeNext 
+     * removeNext}, and {@link ActionQueue#popNext popNext} methods of the 
+     * action queue for this snake, along with any other {@link ActionQueue 
+     * ActionQueues} constructed using this snake, will skip elements that match 
+     * the element that comes after it in the action queue. If this is {@code 
+     * false}, then the action queue will not skip repeated actions. The action 
+     * queue may still skip an action for other reasons, namely if the snake is 
+     * {@link #canPerformAction(Consumer) currently unable} to perform an 
+     * action. The action queue's {@link ActionQueue#willSkipNextAction 
+     * willSkipNextAction} method can be used to determine if the current head 
+     * of the action queue will be skipped. The action queue's own {@link 
+     * ActionQueue#getSkipsRepeatedActions getSkipsRepeatedActions} is a cover 
+     * method that delegates to this method.
+     * @return Whether the action queue for this snake should skip repeated 
+     * actions.
      * @see #setSkipsRepeatedActions 
      * @see #getActionQueue 
      * @see #doNextAction 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #clearActionQueue 
+     * @see #canPerformAction(Consumer) 
+     * @see #canPerformAction(SnakeCommand) 
+     * @see ActionQueue
+     * @see ActionQueue#willSkipNextAction 
+     * @see ActionQueue#getSkipsRepeatedActions 
+     * @see ActionQueue#setSkipsRepeatedActions 
+     * @see ActionQueue#peekNext 
+     * @see ActionQueue#getNext 
+     * @see ActionQueue#pollNext 
+     * @see ActionQueue#removeNext
+     * @see ActionQueue#popNext 
      */
     public boolean getSkipsRepeatedActions(){
         return getFlag(SKIPS_REPEATED_ACTIONS_FLAG);
     }
     /**
-     * This sets whether this snake will skip adjacent repeats of actions in the 
-     * {@link #getActionQueue() action queue}. Refer to the documentation for 
-     * the {@link #getSkipsRepeatedActions() getSkipsRepeatedActions} method for 
-     * more information.
+     * This sets whether the {@link #getActionQueue action queue} for this snake 
+     * will skip adjacent repeats of actions. Refer to the documentation for the 
+     * {@link #getSkipsRepeatedActions getSkipsRepeatedActions} method for more 
+     * information about how this affects the action queue. 
      * @param value Whether this snake should skip repeats in the action queue.
      * @return This snake.
      * @see #getSkipsRepeatedActions 
      * @see #getActionQueue 
      * @see #doNextAction 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #clearActionQueue 
+     * @see #canPerformAction(Consumer) 
+     * @see #canPerformAction(SnakeCommand) 
+     * @see ActionQueue
+     * @see ActionQueue#willSkipNextAction 
+     * @see ActionQueue#getSkipsRepeatedActions 
+     * @see ActionQueue#setSkipsRepeatedActions 
+     * @see ActionQueue#peekNext 
+     * @see ActionQueue#getNext 
+     * @see ActionQueue#pollNext 
+     * @see ActionQueue#removeNext
+     * @see ActionQueue#popNext 
      */
     public Snake setSkipsRepeatedActions(boolean value){
             // If the flag has changed
@@ -3534,411 +4892,56 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This returns the action queue for this snake. This is a queue of {@code 
      * Consumer}s to be {@link Consumer#accept performed} on this snake by the 
-     * {@link #doNextAction() doNextAction} method. This is intended to be used 
+     * {@link #doNextAction doNextAction} method. This is intended to be used 
      * for when the actions to be performed by a snake can be generated faster 
      * than a snake is allowed to act upon them. For example, if a snake is set 
      * up to perform an action only when a repeating timer has elapsed, this can 
      * be used to store the actions generated before said timer has elapsed. 
      * @return The action queue for this snake.
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #clearActionQueue 
      * @see #doNextAction 
+     * @see #getSkipsRepeatedActions 
+     * @see #setSkipsRepeatedActions 
+     * @see ActionQueue
+     * @see ActionQueue#getSkipsRepeatedActions 
+     * @see ActionQueue#setSkipsRepeatedActions 
      */
-    public SnakeActionQueue getActionQueue(){
+    public ActionQueue getActionQueue(){
             // If the action queue has not been initialized yet
         if (actionQueue == null)    
             actionQueue = Snake.this.createActionQueue();
         return actionQueue;
     }
     /**
-     * This attempts to insert the given action into the {@link #getActionQueue 
-     * action queue} and returns whether this was successful at doing so. 
-     * @param action The action to add to the action queue (cannot be null).
-     * @return Whether the action was added to the action queue.
-     * @throws NullPointerException If the given action is null.
-     * @see #offerAction(SnakeCommand) 
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     * @see Deque#offer 
-     * @see SnakeCommand
-     * @see SnakeActionCommand
-     * @see DefaultSnakeActionCommand
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
-     */
-    public boolean offerAction(Consumer<Snake> action){
-        Objects.requireNonNull(action); // Check if the action is null
-        return getActionQueue().offer(action);
-    }
-    /**
-     * This attempts to insert a {@link SnakeActionCommand SnakeActionCommand} 
-     * into the {@link #getActionQueue action queue} that will perform the given 
-     * command and returns whether this was successful at doing so. The {@code 
-     * SnakeActionCommand} for the given command will be retrieved by calling 
-     * {@link SnakeCommand#getActionForCommand SnakeCommand.getActionForCommand} 
-     * with the command. <p>
-     * 
-     * This is equivalent to calling {@link #offerAction(Consumer) offerAction} 
-     * with the {@code SnakeActionCommand} returned by {@link 
-     * SnakeCommand#getActionForCommand SnakeCommand.getActionForCommand} for 
-     * the given command.
-     * 
-     * @param command The command for the action to add to the action queue 
-     * (cannot be null).
-     * @return Whether the action for the command was added to the action queue.
-     * @throws NullPointerException If the given command is null.
-     * @see #offerAction(Consumer) 
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     * @see Deque#offer 
-     * @see SnakeCommand
-     * @see SnakeActionCommand
-     * @see SnakeActionCommand#getCommand 
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
-     */
-    public boolean offerAction(SnakeCommand command){
-        return offerAction(SnakeCommand.getActionForCommand(command));
-    }
-    /**
-     * This removes and returns the {@code Consumer} at the head of the {@link 
-     * #getActionQueue() action queue}. If the action queue is {@link 
-     * #isActionQueueEmpty() empty}, then this will do nothing and return null. 
-     * @return The head of the action queue, or null if the action queue is 
-     * empty.
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     * @see Deque#poll 
-     */
-    public Consumer<Snake> pollAction(){
-            // If the action queue is initialized, remove the next action in the 
-            // queue. Otherwise, return null.
-        return getActionQueue().poll();
-    }
-    /**
-     * This returns, but does not remove, the {@code Consumer} at the head of 
-     * the {@link #getActionQueue() action queue}. If the action queue is {@link 
-     * #isActionQueueEmpty() empty}, then this will return null. 
-     * @return The head of the action queue, or null if the action queue is 
-     * empty.
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     * @see Deque#peekFirst 
-     */
-    public Consumer<Snake> peekFirstAction(){
-        return getActionQueue().peekFirst();
-    }
-    /**
-     * This returns, but does not remove, the last {@code Consumer} in the 
-     * {@link #getActionQueue() action queue}. If the action queue is {@link 
-     * #isActionQueueEmpty() empty}, then this will return null. 
-     * @return The tail of the action queue, or null if the action queue is 
-     * empty.
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #pollAction 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     * @see Deque#peekLast 
-     */
-    public Consumer<Snake> peekLastAction(){
-        return getActionQueue().peekLast();
-    }
-    /**
-     * This returns the number of actions currently in the {@link 
-     * #getActionQueue() action queue}. This may not be entirely indicative of 
-     * how many actions this snake will perform as snakes may skip an action if 
-     * the action is a repeat or if the action could not be performed by the 
-     * snake.
-     * @return The size of the action queue.
-     * @see #getActionQueue 
-     * @see #isActionQueueEmpty 
-     * @see #clearActionQueue 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #doNextAction 
-     */
-    public int getActionQueueSize(){
-        return getActionQueue().size();
-    }
-    /**
-     * This returns whether the {@link #getActionQueue() action queue} is empty. 
-     * @return Whether the action queue is empty.
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #clearActionQueue 
-     * @see #doNextAction 
-     */
-    public boolean isActionQueueEmpty(){
-        return getActionQueue().isEmpty();
-    }
-    /**
-     * This removes all the actions currently in the {@link #getActionQueue() 
-     * action queue}. The action queue will be empty after this is called.
-     * @see #getActionQueue 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #doNextAction 
-     */
-    public void clearActionQueue(){
-        getActionQueue().clear();
-    }
-    /**
-     * This returns whether this snake should skip the given action. This is 
-     * called by {@link #pollNextAction() pollNextAction} to determine if an 
-     * action should be skipped. If the action is null, then this will return 
-     * {@code true}. If this snake {@link #getSkipsRepeatedActions() skips 
-     * repeated actions}, then this will return {@code true} if the given action 
-     * is equal to the {@link #peekFirstAction() next action} in the queue. 
-     * Otherwise, this will return {@code true} if this snake may not be able to 
-     * perform the given action at this moment. This can be the case if the 
-     * given action is a {@link SnakeActionCommand SnakeActionCommand} with a 
-     * {@link SnakeActionCommand#getCommand() command} that currently cannot be 
-     * performed by this snake, such as if the command would result in the snake 
-     * attempting to go backwards when the snake has a {@link #getTail() tail} 
-     * (i.e. the snake is at least two tiles long), or if the command would 
-     * result in the snake attempting to {@link #add(int) add} or {@link 
-     * #move(int) move} at all when the snake has {@link #isCrashed() crashed}. 
-     * Other such examples include actions with the {@link SnakeCommand#REVIVE 
-     * REVIVE} command when the snake has not crashed, actions with the {@link 
-     * SnakeCommand#REMOVE_TAIL REMOVE_TAIL} command when the snake does not 
-     * have a tail (i.e. the snake is less than two tiles long), and actions 
-     * with the {@link SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} when the 
-     * snake cannot {@link #doDefaultAction() perform} the {@link 
-     * #getDefaultAction() default action} due to it being either null or {@link 
-     * #isDefaultActionEnabled() disabled}. <p>
-     * 
-     * If the given action fits none of the previously mentioned criteria, then 
-     * this will return {@code false}.
-     * 
-     * @param action The action to either be performed or skipped by this snake.
-     * @return {@code true} if the given action should be skipped, and {@code 
-     * false} if the action should be {@link Consumer#accept performed}.
-     * @see #pollNextAction 
-     * @see #doNextAction 
-     * @see #doCommand 
-     * @see #doAction 
-     * @see #getActionQueue 
-     * @see #peekFirstAction 
-     * @see #pollAction 
-     * @see #isActionQueueEmpty 
-     * @see #getActionQueueSize 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see #getDirectionFaced 
-     * @see #getTail 
-     * @see #size 
-     * @see #isCrashed 
-     * @see #getDefaultAction 
-     * @see #isDefaultActionEnabled 
-     * @see #doDefaultAction 
-     * @see Consumer#accept 
-     * @see Object#equals 
-     * @see SnakeUtilities#invertDirections 
-     * @see SnakeCommand
-     * @see SnakeCommand#getDirectionOf 
-     * @see SnakeActionCommand
-     * @see SnakeActionCommand#getCommand 
-     */
-    protected boolean willSkipAction(Consumer<? super Snake> action){
-        if (action == null)                     // If the given action is null
-            return true;
-        else if (getSkipsRepeatedActions()){    // If this snake skips repeats
-                // Peek at the next action in the queue
-            Consumer<Snake> next = peekFirstAction();    
-                // If the next action is the same as the given action
-            if (action.equals(next))    
-                return true;
-        }   // If the action is a SnakeActionCommand
-        if (action instanceof SnakeActionCommand){
-                // Get the command for the action
-            SnakeCommand cmd = ((SnakeActionCommand)action).getCommand();
-            if (cmd == null)    // If the command is somehow null
-                return true;
-            if (getTail() != null){ // If the snake has a tail
-                    // Get the direction for the command
-                Integer dir = SnakeCommand.getDirectionOf(cmd);
-                    // If the command has a direction and that direction is 
-                    // opposite to the direction the snake is facing
-                if (dir != null && dir == 
-                        SnakeUtilities.invertDirections(getDirectionFaced()))
-                    return true;
-            }
-            switch(cmd){            // Determine which command is this
-                case MOVE_UP:       // If the command is the move up command
-                case MOVE_DOWN:     // If the command is the move down command
-                case MOVE_LEFT:     // If the command is the move left command
-                case MOVE_RIGHT:    // If the command is the move right command
-                case MOVE_FORWARD:  // If the command is the move forward command
-                case ADD_UP:        // If the command is the add up command
-                case ADD_DOWN:      // If the command is the add down command
-                case ADD_LEFT:      // If the command is the add left command
-                case ADD_RIGHT:     // If the command is the add right command
-                case ADD_FORWARD:   // If the command is the add forward command
-                    return isCrashed(); // Skip the action if the snake crashed
-                case FLIP:          // If the command is the flip command
-                    return false;       // Don't skip actions to flip
-                case REVIVE:        // If the command is the revive command
-                        // Skip the action if the snake hasn't crashed
-                    return !isCrashed();
-                case REMOVE_TAIL:   // If the command is the remove tail command
-                        // Skip the action if the snake doesn't have a tail
-                    return getTail() == null;   
-                case DEFAULT_ACTION:// If the command is the default action command
-                        // Skip the action if the default action is null or 
-                        // disabled
-                    return getDefaultAction()==null||!isDefaultActionEnabled();
-                default:            // The command must be an unknown command
-                    return true;    // Just skip this action, since it's unknown
-            }
-        }
-        return false;
-    }
-    /**
-     * This removes and returns the next action in the {@link #getActionQueue() 
-     * action queue} to be performed by the {@link #doNextAction doNextAction} 
-     * method. This will continuously {@link #pollAction() poll} the action 
-     * queue for the action queue until either the action queue is {@link 
-     * #isActionQueueEmpty() empty} or {@link #willSkipAction willSkipAction} 
-     * returns {@code false} for the polled action, after which the last action 
-     * to be polled will be returned. If the action queue is empty or {@code 
-     * willSkipAction} returned {@code true} for all the actions that were in 
-     * the queue, then this will return null to signify that {@code 
-     * doNextAction} should perform the {@link #doDefaultAction() default 
-     * action}. Refer to the documentation for the {@link #willSkipAction 
-     * willSkipAction} method for more information on how this decides to skip 
-     * an action, and for the {@link #doNextAction() doNextAction} method for 
-     * how this performs the returned action.
-     * @return The next action to be performed, or null to perform the default 
-     * action.
-     * @see #willSkipAction 
-     * @see #doNextAction 
-     * @see #doCommand 
-     * @see #doAction 
-     * @see #doDefaultAction 
-     * @see #getActionQueue 
-     * @see #pollAction 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #isActionQueueEmpty 
-     * @see #getActionQueueSize 
-     * @see #getSkipsRepeatedActions 
-     * @see #setSkipsRepeatedActions 
-     * @see Consumer#accept 
-     */
-    protected Consumer<? super Snake> pollNextAction(){
-        return getActionQueue().pollNext();
-    }
-    /**
-     * This performs the next action in the {@link #getActionQueue() action 
-     * queue}, or the {@link #doDefaultAction() default action} if no action 
-     * from the action queue can be performed. If the action queue is not {@link 
-     * #isActionQueueEmpty() empty}, then this will first {@link #pollAction() 
-     * poll} the next action to perform and checks to see if the action should 
-     * be skipped. When an action is skipped, it is discarded and the next 
-     * action is polled from the action queue and checked. This is repeated 
-     * until either this has reached an action in the action queue that should 
-     * not be skipped or the action queue is empty. Once this has reached an 
-     * action that can be performed, then this will call the action's {@link 
-     * Consumer#accept accept} method on this snake. If the action queue does 
-     * not contain any actions that can be performed, either because it is empty 
-     * or because all the actions in the action queue have been discarded, then 
-     * this will invoke the {@link #doDefaultAction() doDefaultAction} method to 
-     * perform the {@link #getDefaultAction() default action} for this snake. 
-     * Any exception thrown while performing the action will be relayed to the 
-     * caller of this method. <p>
-     * 
-     * When checking to see if an action should be skipped, this will first 
-     * check to see if the action is null. If the action is null, then it will 
-     * be skipped. If the action is not null, then this will check to see if 
-     * this snake {@link #getSkipsRepeatedActions skips repeated actions}. If 
-     * this snake skips repeated actions, then this will compare the action in 
-     * question with the action currently at the {@link #peekFirstAction front} 
-     * of the action queue, and if they are equal to each other, then the action 
-     * in question will be skipped. Otherwise, this checks to see if the action 
-     * is a {@link SnakeActionCommand SnakeActionCommand} that currently cannot 
-     * be performed by this snake due to its {@link 
-     * SnakeActionCommand#getCommand() command}. This is the case if the command 
-     * would result in the snake attempting to do one of the following: <p>
-     * 
-     * Attempt to {@link #add(int) add} or {@link #move(int) move} backwards 
-     * when it has a {@link #getTail() tail} (i.e. when the snake is at least 
-     * two tiles long). <br>
-     * Attempt to add or move when the snake has {@link #isCrashed() crashed}. 
-     * <br>
-     * Attempt to {@link SnakeCommand#REVIVE revive} the snake when the snake 
-     * has not crashed. <br>
-     * Attempt to {@link SnakeCommand#REMOVE_TAIL remove its tail} when the 
-     * snake does not have a tail (i.e. when the snake is less than two tiles 
-     * long). <br>
-     * Attempt to {@link SnakeCommand#DEFAULT_ACTION perform the default action} 
-     * when the default action is either null or {@link #isDefaultActionEnabled 
-     * disabled}. <p>
-     * 
-     * If an action does not fit any of the above criteria for being skipped, 
-     * then it will be performed by this snake.
-     * 
+     * This removes and performs the next action in the {@link #getActionQueue 
+     * action queue}, or performs the {@link #doDefaultAction default action} if 
+     * no action from the action queue can be performed. This will first attempt 
+     * to poll the action queue for the next action to perform using the action 
+     * queue's {@link ActionQueue#pollNext pollNext} method, which will remove 
+     * and return the first {@code Consumer} in the action queue that this snake 
+     * can perform, or will return null if it contains no such {@code Consumer}. 
+     * The action queue's {@link ActionQueue#willSkipNextAction 
+     * willSkipNextAction} can be used to determine if the current head of the 
+     * action queue will be skipped (discarded) or performed by this snake, and 
+     * the action queue's {@link ActionQueue#peekNext peekNext} method can be 
+     * used to peek at the next action that will be performed by this snake if 
+     * one is present. If the action queue's {@code pollNext} method returns a 
+     * non-null {@code Consumer}, then this will call the returned {@code 
+     * Consumer}'s {@link Consumer#accept accept} on this snake. If the action 
+     * queue's {@code pollNext} method returns null, either due to it being 
+     * empty or because all the {@code Consumer}s in it have been discarded 
+     * since none of them could be performed, then this will invoke the {@link 
+     * #doDefaultAction doDefaultAction} method to perform the {@link 
+     * #getDefaultAction default action} for this snake. Any exception thrown 
+     * while performing the action, whether it be the default action or an 
+     * action from the action queue, will be relayed to the caller of this 
+     * method. 
      * @throws IllegalStateException If this snake is not in a {@link #isValid 
      * valid} state.
      * @see #getActionQueue 
-     * @see #offerAction(Consumer) 
-     * @see #offerAction(SnakeCommand) 
-     * @see #peekFirstAction 
-     * @see #peekLastAction 
-     * @see #pollAction 
-     * @see #getActionQueueSize 
-     * @see #isActionQueueEmpty 
-     * @see #clearActionQueue 
      * @see #getSkipsRepeatedActions 
      * @see #setSkipsRepeatedActions 
+     * @see #canPerformAction(Consumer) 
+     * @see #canPerformAction(SnakeCommand) 
      * @see #doDefaultAction 
      * @see #getDefaultAction 
      * @see #setDefaultAction(Consumer) 
@@ -3950,24 +4953,35 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #getDirectionFaced 
      * @see #getHead 
      * @see #getTail 
+     * @see #peek 
      * @see #size 
      * @see #isCrashed 
      * @see #revive 
      * @see Consumer#accept 
-     * @see SnakeUtilities#invertDirections 
      * @see SnakeCommand
-     * @see SnakeCommand#getDirectionOf 
      * @see SnakeActionCommand
-     * @see SnakeActionCommand#getCommand 
+     * @see ActionQueue
+     * @see ActionQueue#willSkipNextAction 
+     * @see ActionQueue#getSkipsRepeatedActions 
+     * @see ActionQueue#setSkipsRepeatedActions 
+     * @see ActionQueue#peekNext 
+     * @see ActionQueue#getNext 
+     * @see ActionQueue#pollNext 
+     * @see ActionQueue#removeNext 
+     * @see ActionQueue#popNext 
      */
     public void doNextAction(){
-        checkIfInvalid();       // Check if this snake is invalid
-            // Get the next action for this snake to perform
-        Consumer<? super Snake> action = pollNextAction();
-        if (action != null)     // If the next action is not null
-            doAction(action);   // Do the next action
+        checkIfInvalid();           // Check if this snake is invalid
+            // This will get the next action for this snake to perform
+        Consumer<Snake> action = null;
+            // If the action queue has been initialized (don't use 
+            // getActionQueue, since it would trigger the creation of the action 
+        if (actionQueue != null)    // queue if it hasn't been created yet)
+            action = actionQueue.pollNext();
+        if (action != null)         // If the next action is not null
+            doAction(action);       // Do the next action
         else
-            doDefaultAction();  // Default to performing the default action
+            doDefaultAction();      // Default to performing the default action
     }
     /**
      * This returns a String representation of this snake. This method is 
@@ -3977,6 +4991,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @return A String representation of this snake.
      */
     protected String paramString(){
+            // Don't use getActionQueue, since it would trigger the creation of 
+            // the action queue if it hasn't been created yet.
         return Objects.toString(getName(),"")+
                     // If the snake is invalid, then say that the snake is 
                 ((isValid())?"":",invalid")+    // invalid
@@ -3987,8 +5003,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
                 ",allowedFails="+getAllowedFails()+
                 ",failCount="+getFailCount()+
                 ",defaultAction="+Objects.toString(getDefaultAction(), "")+
-                ",queuedActions="+getActionQueueSize()+
-                ",nextAction="+Objects.toString(peekFirstAction(), "");
+                    // If the action queue is initialized, get its size. 
+                    // Otherwise, use zero for the action queue's size.
+                ",queuedActions="+((actionQueue != null)?actionQueue.size():0)+
+                    // If the action queue is initialized, peek at the next 
+                    // action in the action queue. Otherwise, there is no next 
+                ",nextAction="+Objects.toString((actionQueue!=null)?  // action
+                        actionQueue.peekNext():null,"");
     }
     /**
      * This returns a String representation of this snake and its values.
@@ -3997,6 +5018,44 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     @Override
     public String toString(){
         return this.getClass().getName() + "[" + paramString() + "]";
+    }
+    /**
+     * This compares the specified object with this set for equality. This 
+     * returns {@code true} if the specified object is also a set, the two sets 
+     * are the same size, and every member of the specified set is contained in 
+     * this set and vice versa. This ensures that the {@code equals} method will 
+     * work properly across different implementations of the {@code Set} 
+     * interface.
+     * @param obj The object to be compared for equality with this set.
+     * @return {@code true} if the specified object is equal to this set.
+     */
+    @Override
+    public boolean equals(Object obj){
+        if (obj == this)                // If the object is this snake
+            return true;
+        else if (!(obj instanceof Set)) // If the object is not a set
+            return false;
+        Set<?> set = (Set<?>) obj;      // Get the object as a set
+        return size() == set.size() && containsAll(set);
+    }
+    /**
+     * This returns the hash code value for this set. The hash code of a set is 
+     * defined as the sum of the hash codes of the elements in the set, where 
+     * the hash code of a {@code null} element is defined to be zero. This 
+     * ensures that, for any two sets {@code s1} and {@code s2}, {@code 
+     * s1.equals(s2)} implies that {@code s1.hashCode()==s2.hashCode()}, as 
+     * required by the general contract of {@link Object#hashCode 
+     * Object.hashCode}.
+     * @return The hash code value for this set.
+     */
+    @Override
+    public int hashCode() {
+        int hash = 0;                   // This gets the hash code
+        for (Tile tile : snakeBody){    // Go through the tiles in the snake
+            if (tile != null)           //If the tile is not null (just in case)
+                hash += tile.hashCode();// Add the current tile's hash code
+        }
+        return hash;
     }
     /**
      * This returns an array of all the objects currently registered as 
@@ -4055,10 +5114,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake of the given event if the event is not null.
      * @param evt The {@code SnakeEvent} to be fired.
-     * @see #fireSnakeChange(int, Integer, Tile) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see #addSnakeListener 
      * @see #removeSnakeListener 
@@ -4075,17 +5137,17 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
-     * snake of an event with the given event ID, direction, and target tile. If 
-     * the given direction is null, then the {@link #getDirectionFaced() 
-     * direction currently being faced} will be used.
+     * snake of an event with the given event ID, direction, and target tile.
      * @param id The event ID indicating what type of event occurred.
-     * @param direction The direction for the event, or null to use the 
-     * direction that the snake is facing.
+     * @param direction The direction for the event.
      * @param target The tile that was the target for the event, or null.
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see SnakeEvent
      * @see #getDirectionFaced 
@@ -4093,24 +5155,22 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #removeSnakeListener 
      * @see #getSnakeListeners 
      */
-    protected void fireSnakeChange(int id, Integer direction,Tile target){
-        fireSnakeChange(new SnakeEvent(this,id,
-                    // If the direction is not null, use it. Otherwise, use the 
-                    // direction being faced by this snake
-                (direction!=null)?direction:getDirectionFaced(),target));
+    protected void fireSnakeChange(int id, int direction, Tile target){
+        fireSnakeChange(new SnakeEvent(this,id,direction,target));
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
-     * snake of an event with the given event ID and direction. If the given 
-     * direction is null, then the {@link #getDirectionFaced() direction 
-     * currently being faced} will be used. The target tile will be null.
+     * snake of an event with the given event ID and direction. The target tile 
+     * will be null.
      * @param id The event ID indicating what type of event occurred.
-     * @param direction The direction for the event, or null to use the 
-     * direction that the snake is facing.
+     * @param direction The direction for the event.
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer, Tile) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see SnakeEvent
      * @see #getDirectionFaced 
@@ -4118,7 +5178,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #removeSnakeListener 
      * @see #getSnakeListeners 
      */
-    protected void fireSnakeChange(int id, Integer direction){
+    protected void fireSnakeChange(int id, int direction){
         fireSnakeChange(id,direction,null);
     }
     /**
@@ -4128,8 +5188,12 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @param id The event ID indicating what type of event occurred.
      * @param target The tile that was the target for the event, or null.
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see SnakeEvent
      * @see #getDirectionFaced 
@@ -4147,8 +5211,12 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * will be null.
      * @param id The event ID indicating what type of event occurred.
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see SnakeEvent
      * @see #getDirectionFaced 
@@ -4162,15 +5230,16 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake that this snake has failed to perform an action in the given 
-     * direction and with the given target tile. If the given direction is null, 
-     * then the {@link #getDirectionFaced() direction currently being faced} 
-     * will be used.
-     * @param direction The direction for the event, or null to use the 
-     * direction that the snake is facing.
+     * direction and with the given target tile. 
+     * @param direction The direction for the event.
      * @param target The tile that was the target for the event, or null.
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
      * @see SnakeEvent
      * @see SnakeEvent#SNAKE_FAILED
@@ -4179,20 +5248,21 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #removeSnakeListener 
      * @see #getSnakeListeners 
      */
-    protected void fireSnakeFailed(Integer direction, Tile target){
+    protected void fireSnakeFailed(int direction, Tile target){
         fireSnakeChange(SnakeEvent.SNAKE_FAILED,direction,target);
     }
     /**
      * This notifies all the {@code SnakeListener}s that have been added to this 
      * snake that this snake has failed to perform an action in the given 
-     * direction. If the given direction is null, then the {@link 
-     * #getDirectionFaced() direction currently being faced} will be used. The 
-     * target tile will be null.
-     * @param direction The direction for the event, or null to use the 
-     * direction that the snake is facing.
+     * direction. The target tile will be null.
+     * @param direction The direction for the event.
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeFailed() 
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
      * @see SnakeEvent
      * @see SnakeEvent#SNAKE_FAILED
@@ -4201,7 +5271,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * @see #removeSnakeListener 
      * @see #getSnakeListeners 
      */
-    protected void fireSnakeFailed(Integer direction){
+    protected void fireSnakeFailed(int direction){
         fireSnakeFailed(direction,null);
     }
     /**
@@ -4210,9 +5280,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * #getDirectionFaced() direction currently being faced} by the snake and 
      * with the given target tile.
      * @param target The tile that was the target for the event, or null.
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed() 
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
      * @see SnakeEvent
      * @see SnakeEvent#SNAKE_FAILED
@@ -4229,9 +5303,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * snake that this snake has failed to perform an action in the {@link 
      * #getDirectionFaced() direction currently being faced} by the snake. The 
      * target tile will be null.
-     * @see #fireSnakeFailed(Integer) 
+     * @see #fireSnakeFailed(int, Tile) 
+     * @see #fireSnakeFailed(int) 
+     * @see #fireSnakeFailed(Tile) 
      * @see #fireSnakeChange(SnakeEvent) 
-     * @see #fireSnakeChange(int, Integer) 
+     * @see #fireSnakeChange(int, int, Tile) 
+     * @see #fireSnakeChange(int, int) 
+     * @see #fireSnakeChange(int, Tile) 
      * @see #fireSnakeChange(int) 
      * @see SnakeEvent
      * @see SnakeEvent#SNAKE_FAILED
@@ -4255,30 +5333,6 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
         changeSupport.addPropertyChangeListener(l);
     }
     /**
-     * This removes a {@code PropertyChangeListener} from this snake. This 
-     * method should be used to remove {@code PropertyChangeListener}s that were 
-     * registered for all bound properties of this snake. 
-     * @param l The listener to be removed.
-     * @see #addPropertyChangeListener(PropertyChangeListener) 
-     * @see #removePropertyChangeListener(String, PropertyChangeListener) 
-     * @see #getPropertyChangeListeners() 
-     */
-    public void removePropertyChangeListener(PropertyChangeListener l){
-        changeSupport.removePropertyChangeListener(l);
-    }
-    /**
-     * This returns an array of all {@code PropertyChangeListener}s that are 
-     * registered on this snake.
-     * @return An array of the {@code PropertyChangeListener}s that have been 
-     * added, or an empty array if no listeners have been added.
-     * @see #getPropertyChangeListeners(String) 
-     * @see #addPropertyChangeListener(PropertyChangeListener) 
-     * @see #removePropertyChangeListener(PropertyChangeListener) 
-     */
-    public PropertyChangeListener[] getPropertyChangeListeners(){
-        return changeSupport.getPropertyChangeListeners();
-    }
-    /**
      * This adds a {@code PropertyChangeListener} to this snake that listens for 
      * a specific property.
      * @param propertyName The name of the property to listen for.
@@ -4290,6 +5344,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     public void addPropertyChangeListener(String propertyName, 
             PropertyChangeListener l){
         changeSupport.addPropertyChangeListener(propertyName, l);
+    }
+    /**
+     * This removes a {@code PropertyChangeListener} from this snake. This 
+     * method should be used to remove {@code PropertyChangeListener}s that were 
+     * registered for all bound properties of this snake. 
+     * @param l The listener to be removed.
+     * @see #addPropertyChangeListener(PropertyChangeListener) 
+     * @see #removePropertyChangeListener(String, PropertyChangeListener) 
+     * @see #getPropertyChangeListeners() 
+     */
+    public void removePropertyChangeListener(PropertyChangeListener l){
+        changeSupport.removePropertyChangeListener(l);
     }
     /**
      * This removes a {@code PropertyChangeListener} to this snake that listens 
@@ -4304,6 +5370,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     public void removePropertyChangeListener(String propertyName, 
             PropertyChangeListener l){
         changeSupport.removePropertyChangeListener(propertyName, l);
+    }
+    /**
+     * This returns an array of all {@code PropertyChangeListener}s that are 
+     * registered on this snake.
+     * @return An array of the {@code PropertyChangeListener}s that have been 
+     * added, or an empty array if no listeners have been added.
+     * @see #getPropertyChangeListeners(String) 
+     * @see #addPropertyChangeListener(PropertyChangeListener) 
+     * @see #removePropertyChangeListener(PropertyChangeListener) 
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners(){
+        return changeSupport.getPropertyChangeListeners();
     }
     /**
      * This returns an array of all {@code PropertyChangeListener}s that are 
@@ -4357,6 +5435,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
     }
     /**
      * This fires a {@code PropertyChangeEvent} with the given property name, 
+     * old value, and new value. This method is for character properties.
+     * @param propertyName The name of the property.
+     * @param oldValue The old value.
+     * @param newValue The new value.
+     */
+    protected void firePropertyChange(String propertyName, char oldValue, 
+            char newValue){
+        firePropertyChange(propertyName,Character.valueOf(oldValue),
+                Character.valueOf(newValue));
+    }
+    /**
+     * This fires a {@code PropertyChangeEvent} with the given property name, 
      * old value, and new value. This method is for integer properties.
      * @param propertyName The name of the property.
      * @param oldValue The old value.
@@ -4379,18 +5469,6 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
             byte newValue){
         firePropertyChange(propertyName,Byte.valueOf(oldValue),
                 Byte.valueOf(newValue));
-    }
-    /**
-     * This fires a {@code PropertyChangeEvent} with the given property name, 
-     * old value, and new value. This method is for character properties.
-     * @param propertyName The name of the property.
-     * @param oldValue The old value.
-     * @param newValue The new value.
-     */
-    protected void firePropertyChange(String propertyName, char oldValue, 
-            char newValue){
-        firePropertyChange(propertyName,Character.valueOf(oldValue),
-                Character.valueOf(newValue));
     }
     /**
      * This fires a {@code PropertyChangeEvent} with the given property name, 
@@ -4449,16 +5527,18 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
      * iterator was constructed, with the {@link ArrayDeque#descendingIterator 
      * descending iterator} used when the snake is flipped and the {@link 
      * ArrayDeque#iterator() ascending iterator} used when the snake is not 
-     * flipped. If the snake is flipped or if any change is made to the snake's 
-     * body after this is created, then this will generally throw a {@link 
-     * ConcurrentModificationException}.
+     * flipped. If this is constructed with a value of {@code true} for {@code 
+     * descending}, then the internal iterators used will be swapped around. If 
+     * the snake is flipped, the model is changed, or if any change is made to 
+     * the snake's body after this is created, then this will generally throw a 
+     * {@link ConcurrentModificationException}.
      */
     private class SnakeIterator implements Iterator<Tile>{
         /**
          * The iterator from the ArrayDeque used to store the snake body. This 
          * is either the ascending iterator or the descending iterator 
          * depending on whether the snake was flipped when this iterator was 
-         * constructed.
+         * constructed, and whether this SnakeIterator is a descending iterator.
          */
         private final Iterator<Tile> iterator;
         /**
@@ -4466,36 +5546,1842 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants{
          * was constructed.
          */
         private final boolean flipped;
-        
+        /**
+         * This stores the snake's model when this iterator was constructed.
+         */
+        private final PlayFieldModel model;
+        /**
+         * This stores the length of the snake as it was when this iterator was 
+         * constructed. This is updated if a tile is removed via the {@code 
+         * remove} method of this iterator.
+         */
+        private int size;
+        /**
+         * This stores the head of the snake when this iterator was constructed. 
+         * This is updated if a tile is removed via the {@code remove} method of 
+         * this iterator.
+         */
+        private Tile head;
+        /**
+         * This stores the tail of the snake when this iterator was constructed. 
+         * This is updated if a tile is removed via the {@code remove} method of 
+         * this iterator.
+         */
+        private Tile tail;
+        /**
+         * This stores the tile that was previously returned by the {@code next} 
+         * method of this iterator. This will be null if the {@code next} method 
+         * has not been called at least twice yet. 
+         */
         private Tile previous = null;
-        
+        /**
+         * This stores the tile that was most recently returned by the {@code 
+         * next} method of the iterator. This will be null if the {@code next} 
+         * has not been called yet. 
+         */
         private Tile current = null;
         /**
-         * This constructs a SnakeIterator.
+         * This stores the tile to return the next time the {@code next} method 
+         * is called, or null if the internal iterator is to return the next 
+         * tile. This is used by the {@code remove} method to store the next 
+         * tile returned by the internal iterator when attempting to repair the 
+         * snake body after removing a tile, so that it can be returned by the 
+         * {@code next} method of this iterator.
          */
-        public SnakeIterator(){
-                // If the snake is flipped, get the descending iterator from the 
-                // snake body. Otherwise, get the normal iterator from the body
-            iterator = (isFlipped()) ? snakeBody.descendingIterator() : 
-                    snakeBody.iterator();
+        private Tile next = null;
+        /**
+         * This constructs a SnakeIterator.
+         * @param descending Whether this is an ascending or descending 
+         * iterator ({@code true} for descending, and {@code false} for 
+         * ascending).
+         */
+        SnakeIterator(boolean descending){
+                // If either the snake is flipped or this is a descending 
+                // iterator, but not both, then get the descending iterator from 
+                // the snake body. If either the snake is flipped and this is a 
+                // descending iterator or if the snake is not flipped and this 
+                // is an ascending iterator, then get the normal iterator from 
+            iterator = (isFlipped() != descending) ? // the body
+                    snakeBody.descendingIterator() : snakeBody.iterator();
             flipped = isFlipped();
+            model = getModel();
+            size = size();
+            head = getHead();
+            tail = peek();
         }
+        /**
+         * {@inheritDoc }
+         * @return {@inheritDoc }
+         */
         @Override
         public boolean hasNext() {
-            return iterator.hasNext();
+            return next != null || iterator.hasNext();
         }
+        /**
+         * {@inheritDoc }
+         * @return {@inheritDoc }
+         * @throws NoSuchElementException {@inheritDoc }
+         * @throws ConcurrentModificationException If the snake has been 
+         * modified while the iteration is in progress in any way other than via 
+         * the {@code remove} method of this iterator.
+         */
         @Override
         public Tile next() {
-                // If the snake has been flipped since this iterator's 
-            if (flipped != isFlipped()) // construction
-                throw new ConcurrentModificationException();
-            previous = current;
-            current = iterator.next();
+                // Check for concurrent modification
+            checkForConcurrentModification();
+            if (!hasNext())     // If there are no more tiles in this snake
+                throw new NoSuchElementException();
+            previous = current; 
+                // If the next tile is not null, then it will be returned. 
+                // Otherwise, get the tile to return from the internal iterator
+            current = (next != null) ? next : iterator.next();
+            next = null;    // Set the next tile to null
             return current;
         }
-        
-//        public void remove(){
-//            // Remove tile, then try to heal the snake by ensuring the previous tile will join up with the next
-//        }
+        /**
+         * {@inheritDoc }
+         * @throws IllegalStateException {@inheritDoc }
+         * @throws ConcurrentModificationException If the snake has been 
+         * modified while the iteration is in progress in any way other than via 
+         * this method.
+         */
+        @Override
+        public void remove() {
+                // If the previous and current tiles are the same tile (this is 
+                // the case if next has not been called yet since this iterator 
+                // was constructed or since this method was last called) or if 
+                // the next tile is not null (this will be the case after this 
+                // is called and before next is called)
+            if (previous == current || next != null)    
+                throw new IllegalStateException();
+                // Check for concurrent modification
+            checkForConcurrentModification();
+                // Get whether the tiles in the model are currently adjusting, 
+                // so as to restore this once we're done
+            boolean adjusting = model.getTilesAreAdjusting();
+            model.setTilesAreAdjusting(true);
+            iterator.remove();      // Remove the tile
+                // Get a sneak preview of the next tile to be returned if there 
+            next = (iterator.hasNext()) ? iterator.next() : null;   // is one
+                // Attempt to repair the snake by ensuring the previous tile 
+            repairAfterRemoval(previous,current,next); // joins up with the next
+            current.clear();        // Clear the removed tile
+            model.setTilesAreAdjusting(adjusting);
+            fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,current);
+            if (head == current)    // If the head was just removed
+                head = getHead();   // Update the head accordingly
+            if (tail == current)    // If the tail was just removed
+                tail = peek();      // Update the tail accordingly
+            size--;                 // Update the size accordingly
+            current = previous;     // The current tile is now the previous tile
+        }
+        /**
+         * This checks to see if the snake has been modified externally since 
+         * this iterator was constructed, and if so, throws a {@code 
+         * ConcurrentModificationException}.
+         * @throws ConcurrentModificationException If the snake was modified 
+         * since this iterator was constructed.
+         */
+        protected void checkForConcurrentModification(){
+                // If the snake's model has changed, the snake has been flipped, 
+                // or tiles have been added or removed from this snake via means 
+                // other than this iterator's methods since this iterator's 
+                // construction
+            if (model != getModel()||flipped != isFlipped() || size != size() || 
+                    head != getHead() || tail != peek())
+                throw new ConcurrentModificationException();
+        }
+    }
+    
+    /**
+     * This is a deque that can be used as an action queue for a snake to store 
+     * {@code Consumer}s to be performed later by or on that snake. Null 
+     * elements are prohibited. Any non-null {@code Consumer} can be added to an 
+     * action queue. In addition, {@link SnakeCommand SnakeCommands} can also be 
+     * added to an action queue, so long as they are not null and the protected 
+     * {@link #getActionForCommand getActionForCommand} method returns a 
+     * corresponding non-null {@code Consumer} for the command. Action queues 
+     * (currently) do not have any limitations on the number of {@code 
+     * Consumer}s they may contain. <p>
+     * 
+     * The {@link #peekNext peekNext}, {@link #getNext getNext}, {@link 
+     * #pollNext pollNext}, {@link #removeNext removeNext}, and {@link #popNext 
+     * popNext} methods can be used to retrieve the next action for a snake to 
+     * perform. These methods will skip (either ignore or discard, depending on 
+     * whether the method is used to examine or remove an element) {@code 
+     * Consumer}s that cannot or should not be performed by or on a snake. Refer 
+     * to the documentation for the {@link #willSkipNextAction 
+     * willSkipNextAction} method for more information on how the next action 
+     * methods decide whether to return or skip a {@code Consumer}. The 
+     * following table shows a comparison between the standard {@code Queue} and 
+     * {@code Deque} examine and removal methods verses the next action methods 
+     * provided by {@code ActionQueue}: 
+     * 
+     * <table class="striped">
+     * <caption>Comparison of {@code Queue}, {@code Deque}, and the {@code 
+     * ActionQueue} next action methods</caption>
+     * <thead>
+     *  <tr>
+     *      <th rowspan="2"></th>
+     *      <th scope="col" colspan="2" style="text-align:center;">
+     *          {@code Queue} Method</th>
+     *      <th scope="col" colspan="2" style="text-align:center;">
+     *          {@code Deque} Method</th>
+     *      <th scope="col" colspan="2" style="text-align:center;">
+     *          Next Action Method</th>
+     *  </tr>
+     *  <tr>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Throws exception</th>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Special value</th>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Throws exception</th>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Special value</th>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Throws exception</th>
+     *      <th scope="col" style="font-weight:normal; font-style:italic">
+     *          Special value</th>
+     *  </tr>
+     *  </thead>
+     *  <tbody>
+     *      <tr>
+     *          <th scope="row">Remove</th>
+     *          <td>{@link Queue#remove() remove()}</td>
+     *          <td>{@link Queue#poll() poll()}</td>
+     *          <td>{@link Deque#removeFirst() removeFirst()}</td>
+     *          <td>{@link Deque#pollFirst() pollFirst()}</td>
+     *          <td>{@link #removeNext() removeNext()}</td>
+     *          <td>{@link #pollNext() pollNext()}</td>
+     *      </tr>
+     *      <tr>
+     *          <th scope="row">Examine</th>
+     *          <td>{@link Queue#element() element()}</td>
+     *          <td>{@link Queue#peek() peek()}</td>
+     *          <td>{@link Deque#getFirst() getFirst()}</td>
+     *          <td>{@link Deque#peekFirst() peekFirst()}</td>
+     *          <td>{@link #getNext() getNext()}</td>
+     *          <td>{@link #peekNext() peekNext()}</td>
+     *      </tr>
+     *      <tr>
+     *          <th scope="row">Stack Remove</th>
+     *          <td></td>
+     *          <td></td>
+     *          <td>{@link Deque#pop() pop()}</td>
+     *          <td></td>
+     *          <td>{@link #popNext() popNext()}</td>
+     *          <td></td>
+     *      </tr>
+     *  </tbody>
+     * </table>
+     * <p>
+     * 
+     * The iterators returned by this class's {@code iterator} and {@code 
+     * descendingIterator} methods are fail-fast, i.e. if the action queue is 
+     * structurally modified in any way at any time after the iterator is 
+     * created except via the iterator's own {@code remove} method, the iterator 
+     * will generally throw a {@link ConcurrentModificationException 
+     * ConcurrentModificationException}. This way, when faced with concurrent 
+     * modification, the iterator will fail quickly and cleanly instead of 
+     * risking arbitrary, non-deterministic behavior. However, the fail-fast 
+     * behavior of the iterator cannot be guaranteed, especially when dealing 
+     * with unsynchronized concurrent modifications. The fail-fast iterators 
+     * throw {@code ConcurrentModificationExceptions} on a best-effort basis. As 
+     * such the fail-fast behavior should not be depended on for its correctness 
+     * and should only be used to detect bugs.
+     * 
+     * @author Milo Steier
+     * @see Snake
+     * @see Snake#getActionQueue 
+     * @see Snake#doNextAction
+     * @see SnakeCommand
+     * @see SnakeActionCommand
+     * @see DefaultSnakeActionCommand
+     * @see #getSnake 
+     * @see #willSkipNextAction 
+     * @see #peekNext 
+     * @see #getNext 
+     * @see #pollNext 
+     * @see #removeNext 
+     * @see #popNext 
+     */
+    public class ActionQueue extends AbstractCollection<Consumer<Snake>> 
+            implements Deque<Consumer<Snake>>, Cloneable{
+        /**
+         * The ArrayDeque that this uses to store the {@code Consumer}s in the 
+         * action queue.
+         */
+        private ArrayDeque<Consumer<Snake>> queue;
+        /**
+         * This constructs an empty ActionQueue.
+         */
+        public ActionQueue(){
+            queue = new ArrayDeque<>();
+        }
+        /**
+         * This constructs an ActionQueue containing the elements of the given 
+         * collection, in the order they are returned by the collection's 
+         * iterator.
+         * @param c The collection of elements to be placed into this action 
+         * queue (cannot be null)
+         * @throws NullPointerException If the collection contains a null 
+         * element, or if the collection itself is null.
+         */
+        public ActionQueue(Collection<? extends Consumer<Snake>>c){
+            queue = new ArrayDeque<>(c);
+        }
+        /**
+         * This returns the {@code ArrayDeque} used internally to store the 
+         * action queue. 
+         * @return The {@code ArrayDeque} used to store the queue.
+         */
+        protected ArrayDeque<Consumer<Snake>> getInternalQueue(){
+            return queue;
+        }
+        /**
+         * This returns the parent snake that this serves as an action queue 
+         * for. This is the snake that this action queue was constructed from 
+         * and which this inherits its settings from.
+         * @return The parent snake for this action queue.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see Snake#doNextAction 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         */
+        public Snake getSnake(){
+            return Snake.this;
+        }
+        /**
+         * This returns whether this action queue will skip (discard) an action 
+         * when there is an adjacent duplicate of that action. If this is {@code 
+         * true}, then the {@link #peekNext peekNext}, {@link #getNext getNext}, 
+         * {@link #pollNext pollNext}, {@link #removeNext removeNext}, and 
+         * {@link #popNext popNext} methods of this action queue will skip 
+         * elements that match the element that comes after it. If this is 
+         * {@code false}, then this action queue will not skip repeated actions. 
+         * This action queue may still skip an action for other reasons, namely 
+         * if the {@link #getSnake parent snake} is {@link 
+         * Snake#canPerformAction(Consumer) currently unable} to perform an 
+         * action. The {@link #willSkipNextAction willSkipNextAction} method can 
+         * be used to determine if the current head of the action queue will be 
+         * skipped. <p>
+         * 
+         * This is a cover method that delegates to the {@link 
+         * Snake#getSkipsRepeatedActions getSkipsRepeatedActions} method of the 
+         * {@link #getSnake() parent snake}.
+         * 
+         * @return Whether this action queue will skip repeated actions.
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see #willSkipNextAction 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         */
+        public boolean getSkipsRepeatedActions(){
+            return getSnake().getSkipsRepeatedActions();
+        }
+        /**
+         * This sets whether this action queue will skip adjacent repeats of 
+         * actions. Refer to the documentation for the {@link 
+         * #getSkipsRepeatedActions getSkipsRepeatedActions} method for more 
+         * information. <p>
+         * 
+         * This is a cover method that delegates to the {@link 
+         * Snake#setSkipsRepeatedActions setSkipsRepeatedActions} method of the 
+         * {@link #getSnake() parent snake}.
+         * 
+         * @param value Whether this action queue should skip repeated actions. 
+         * @see #getSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see #willSkipNextAction 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         */
+        public void setSkipsRepeatedActions(boolean value){
+            getSnake().setSkipsRepeatedActions(value);
+        }
+        /**
+         * This returns whether this will skip (discard) the given {@code 
+         * Consumer}. This is called by {@link #peekNext peekNext} and {@link 
+         * #pollNext pollNext} to determine if an action should be skipped. This 
+         * is also called by {@link #willSkipNextAction willSkipNextAction} to 
+         * return whether the {@link #peek next} {@code Consumer} in the action 
+         * queue will likely be skipped. If this returns {@code true}, then the 
+         * action will be skipped. <p>
+         * 
+         * This will always return {@code true} if the given action is null. If 
+         * the action is not null, then if {@code skipsRepeats} is {@code true}, 
+         * then this will return {@code true} if the given action matches the 
+         * given next action in the queue. That is to say, this will return 
+         * {@code true} if {@code skipRepeats} is {@code true} and {@code 
+         * Objects.equals(action, next)} returns {@code true}. Otherwise, this 
+         * will check to see if the {@link #getSnake parent snake} is in a state 
+         * where it can perform the given action using the snake's {@link 
+         * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
+         * snake will be unable to perform the given action at the current 
+         * moment, then this will return {@code true}. Otherwise, this will 
+         * return {@code false}. <p>
+         * 
+         * In other words, if {@code action} is null, then this will return 
+         * {@code true}. Otherwise, if {@code action} matches {@code next} and 
+         * {@code skipsRepeats} is {@code true}, then this will return {@code 
+         * true}. Otherwise, this will return {@code !}{@link #getSnake 
+         * getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
+         * canPerformAction}{@code (action)}. 
+         * 
+         * @param action The {@code Consumer} to be evaluated as to whether it 
+         * should be performed or skipped.
+         * @param next The next {@code Consumer} in the action queue.
+         * @param skipRepeats If the given {@code Consumer} should be skipped if 
+         * it is equal to the {@code next Consumer}.
+         * @return {@code true} if the given action should be skipped, otherwise 
+         * {@code false}.
+         * @see #willSkipAction(Consumer, boolean) 
+         * @see #willSkipAction(Consumer, Consumer) 
+         * @see #willSkipAction(Consumer) 
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #getSnake 
+         * @see #poll 
+         * @see #peek 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#doNextAction 
+         * @see Snake#doCommand 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see SnakeCommand
+         * @see SnakeActionCommand
+         * @see SnakeActionCommand#getCommand 
+         */
+        protected boolean willSkipAction(Consumer<? super Snake> action, 
+                Consumer<? super Snake> next, boolean skipRepeats){
+            if (action == null)     // If the given action is null
+                return true;
+            else if (skipRepeats){  // If this is to skip repeats
+                    // If the next action is the same as the given action
+                if (action.equals(next))    
+                    return true;
+            }   // Check with the snake to see if it can perform the action
+            return !getSnake().canPerformAction(action); 
+        }
+        /**
+         * This returns whether this will skip (discard) the given {@code 
+         * Consumer}. This is called by {@link #peekNext peekNext} and {@link 
+         * #pollNext pollNext} to determine if an action should be skipped. This 
+         * is also called by {@link #willSkipNextAction willSkipNextAction} to 
+         * return whether the {@link #peek next} {@code Consumer} in the action 
+         * queue will likely be skipped. If this returns {@code true}, then the 
+         * action will be skipped. <p>
+         * 
+         * This will always return {@code true} if the given action is null. If 
+         * the action is not null, then if {@code skipsRepeats} is {@code true}, 
+         * then this will return {@code true} if the given action matches the 
+         * next action in the queue. That is to say, this will return {@code 
+         * true} if {@code skipRepeats} is {@code true} and {@code 
+         * Objects.equals(action, } {@link #peek peek()}{@code )} returns {@code 
+         * true}. Otherwise, this will check to see if the {@link #getSnake 
+         * parent snake} is in a state where it can perform the given action 
+         * using the snake's {@link Snake#canPerformAction(Consumer) 
+         * canPerformAction} method. If the snake will be unable to perform the 
+         * given action at the current moment, then this will return {@code 
+         * true}. Otherwise, this will return {@code false}. <p>
+         * 
+         * In other words, if {@code action} is null, then this will return 
+         * {@code true}. Otherwise, if {@code skipsRepeats} is {@code true} and 
+         * {@code action} matches the {@code Consumer} returned by {@code 
+         * peek()}, then this will return {@code true}. Otherwise, this will 
+         * return {@code !}{@link #getSnake getSnake()}{@code .}{@link 
+         * Snake#canPerformAction(Consumer) canPerformAction}{@code (action)}. 
+         * <p>
+         * This is equivalent to calling {@link #willSkipAction(Consumer, 
+         * Consumer, boolean) willSkipAction}{@code (action, }{@link #peek 
+         * peek()}{@code , skipsRepeats)}.
+         * 
+         * @param action The {@code Consumer} to be evaluated as to whether it 
+         * should be performed or skipped.
+         * @param skipRepeats If the given {@code Consumer} should be skipped if 
+         * it is equal to the current head of this action queue.
+         * @return {@code true} if the given action should be skipped, otherwise 
+         * {@code false}.
+         * @see #willSkipAction(Consumer, Consumer, boolean) 
+         * @see #willSkipAction(Consumer, Consumer) 
+         * @see #willSkipAction(Consumer) 
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #getSnake 
+         * @see #poll 
+         * @see #peek 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#doNextAction 
+         * @see Snake#doCommand 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see SnakeCommand
+         * @see SnakeActionCommand
+         * @see SnakeActionCommand#getCommand 
+         */
+        protected boolean willSkipAction(Consumer<? super Snake> action, 
+                boolean skipRepeats){
+            return willSkipAction(action,peek(),skipRepeats);
+        }
+        /**
+         * This returns whether this will skip (discard) the given {@code 
+         * Consumer}. This is called by {@link #peekNext peekNext} and {@link 
+         * #pollNext pollNext} to determine if an action should be skipped. This 
+         * is also called by {@link #willSkipNextAction willSkipNextAction} to 
+         * return whether the {@link #peek next} {@code Consumer} in the action 
+         * queue will likely be skipped. If this returns {@code true}, then the 
+         * action will be skipped. <p>
+         * 
+         * This will always return {@code true} if the given action is null. If 
+         * the action is not null, then if this action queue {@link 
+         * #getSkipsRepeatedActions skips repeated actions}, then this will 
+         * return {@code true} if the given action matches the given next action 
+         * in the queue. That is to say, this will return {@code true} if both 
+         * {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and {@code 
+         * Objects.equals(action, next)} return {@code true}. Otherwise, this 
+         * will check to see if the {@link #getSnake parent snake} is in a state 
+         * where it can perform the given action using the snake's {@link 
+         * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
+         * snake will be unable to perform the given action at the current 
+         * moment, then this will return {@code true}. Otherwise, this will 
+         * return {@code false}. <p>
+         * 
+         * In other words, if {@code action} is null, then this will return 
+         * {@code true}. Otherwise, if {@code action} matches {@code next} and 
+         * {@code getSkipsRepeatedActions()} returns {@code true}, then this 
+         * will return {@code true}. Otherwise, this will return {@code !}{@link 
+         * #getSnake getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
+         * canPerformAction}{@code (action)}. <p>
+         * 
+         * This is equivalent to calling {@link #willSkipAction(Consumer, 
+         * Consumer, boolean) willSkipAction}{@code (action, next,} {@link 
+         * #getSkipsRepeatedActions getSkipsRepeatedActions()}{@code )}.
+         * 
+         * @param action The {@code Consumer} to be evaluated as to whether it 
+         * should be performed or skipped.
+         * @param next The next {@code Consumer} in the action queue.
+         * @return {@code true} if the given action should be skipped, otherwise 
+         * {@code false}.
+         * @see #willSkipAction(Consumer, Consumer, boolean) 
+         * @see #willSkipAction(Consumer, boolean) 
+         * @see #willSkipAction(Consumer) 
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #getSnake 
+         * @see #poll 
+         * @see #peek 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#doNextAction 
+         * @see Snake#doCommand 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see SnakeCommand
+         * @see SnakeActionCommand
+         * @see SnakeActionCommand#getCommand 
+         */
+        protected boolean willSkipAction(Consumer<? super Snake> action, 
+                Consumer<? super Snake> next){
+            return willSkipAction(action,next,getSkipsRepeatedActions());
+        }
+        /**
+         * This returns whether this will skip (discard) the given {@code 
+         * Consumer}. This is called by {@link #peekNext peekNext} and {@link 
+         * #pollNext pollNext} to determine if an action should be skipped. This 
+         * is also called by {@link #willSkipNextAction willSkipNextAction} to 
+         * return whether the {@link #peek next} {@code Consumer} in the action 
+         * queue will likely be skipped. If this returns {@code true}, then the 
+         * action will be skipped. <p>
+         * 
+         * This will always return {@code true} if the given action is null. If 
+         * the action is not null, then if this action queue {@link 
+         * #getSkipsRepeatedActions skips repeated actions}, then this will 
+         * return {@code true} if the given action matches the next action in 
+         * the queue. That is to say, this will return {@code true} if both 
+         * {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and {@code 
+         * Objects.equals(action, } {@link #peek peek()}{@code )} return {@code 
+         * true}. Otherwise, this will check to see if the {@link #getSnake 
+         * parent snake} is in a state where it can perform the given action 
+         * using the snake's {@link Snake#canPerformAction(Consumer) 
+         * canPerformAction} method. If the snake will be unable to perform the 
+         * given action at the current moment, then this will return {@code 
+         * true}. Otherwise, this will return {@code false}. <p>
+         * 
+         * In other words, if {@code action} is null, then this will return 
+         * {@code true}. Otherwise, if {@code getSkipsRepeatedActions()} returns 
+         * {@code true} and {@code action} matches the {@code Consumer} returned 
+         * by {@code peek()}, then this will return {@code true}. Otherwise, 
+         * this will return {@code !}{@link #getSnake getSnake()}{@code .}{@link 
+         * Snake#canPerformAction(Consumer) canPerformAction}{@code (action)}. 
+         * <p>
+         * This is equivalent to calling {@link #willSkipAction(Consumer, 
+         * boolean) willSkipAction}{@code (action, }{@link 
+         * #getSkipsRepeatedActions getSkipsRepeatedActions()}{@code )}.
+         * 
+         * @param action The {@code Consumer} to be evaluated as to whether it 
+         * should be performed or skipped.
+         * @return {@code true} if the given action should be skipped, otherwise 
+         * {@code false}.
+         * @see #willSkipAction(Consumer, Consumer, boolean) 
+         * @see #willSkipAction(Consumer, boolean) 
+         * @see #willSkipAction(Consumer, Consumer) 
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #getSnake 
+         * @see #poll 
+         * @see #peek 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#doNextAction 
+         * @see Snake#doCommand 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see SnakeCommand
+         * @see SnakeActionCommand
+         * @see SnakeActionCommand#getCommand 
+         */
+        protected boolean willSkipAction(Consumer<? super Snake> action){
+            return willSkipAction(action,getSkipsRepeatedActions());
+        }
+        /**
+         * This returns whether the {@link #peek current head} of this action 
+         * queue will be either skipped (discarded) or returned when getting the 
+         * next action for the {@link #getSnake parent snake} to perform. If 
+         * this returns {@code true} and this action queue is not {@link 
+         * #isEmpty empty}, then the {@link #peekNext peekNext}, {@link #getNext 
+         * getNext}, {@link #pollNext pollNext}, {@link #removeNext removeNext}, 
+         * and {@link #popNext popNext} methods will skip the current head of 
+         * this action queue. If this action queue is empty or if this returns 
+         * {@code false}, then the {@code peekNext}, {@code getNext}, {@code 
+         * pollNext}, {@code removeNext}, and {@code popNext} methods will act 
+         * like the {@link #peek peek}, {@link #element element}, {@link #poll 
+         * poll}, {@link #remove() remove}, and {@link #pop pop} methods, 
+         * respectively. <p>
+         * 
+         * If this action queue is empty, then this will return {@code true}. 
+         * Otherwise, if this queue {@link getSkipsRepeatedActions skips 
+         * repeated actions}, then this will return {@code true} if the current 
+         * head of this action queue matches the {@code Consumer} that comes 
+         * after it. In other words, this will return {@code true} if both the 
+         * {@link getSkipsRepeatedActions getSkipsRepeatedActions} method 
+         * returns {@code true} and {@code Objects.equals} returns {@code true} 
+         * when given the {@code Consumer} returned by {@code peek()} and the 
+         * {@code Consumer} that would be returned by {@code peek()} after 
+         * calling {@code poll()}. Otherwise, this will return whether the 
+         * parent snake will be unable to perform the current head of this 
+         * action queue. In other words, this will return {@code !}{@link 
+         * #getSnake getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
+         * canPerformAction}{@code (}{@link #peek peek()}{@code )}.
+         * 
+         * @return Whether the current head of this action queue will be skipped 
+         * or returned by the next action methods.
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #peek 
+         * @see #element 
+         * @see #poll 
+         * @see #remove() 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         * @see #getSnake 
+         * @see Snake#doNextAction 
+         * @see Snake#doCommand 
+         * @see Snake#getActionQueue 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#setSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         * @see Snake#canPerformAction(SnakeCommand) 
+         * @see SnakeCommand
+         * @see SnakeActionCommand
+         * @see SnakeActionCommand#getCommand 
+         */
+        public boolean willSkipNextAction(){
+            if (isEmpty())          // If this action queue is empty
+                return true;
+                // This will get the action after the current head of the queue
+            Consumer<Snake> next = null;    
+                // Create an iterator to get the action after the queue's head
+            Iterator<Consumer<Snake>> itr = iterator();
+                // Discard the first action in the iterator, as it's the head of 
+            itr.next();         // the queue
+            if (itr.hasNext())  // If there's an action after the queue's head
+                next = itr.next();
+            return willSkipAction(peek(),next);
+        }
+        /**
+         * This returns the number of elements in this action queue.
+         * @return The number of elements in this action queue.
+         */
+        @Override
+        public int size() {
+            return queue.size();
+        }
+        /**
+         * This returns whether this action queue is empty. In other words, this 
+         * returns whether this action queue contains no elements. 
+         * @return Whether this action queue is empty.
+         */
+        @Override
+        public boolean isEmpty(){
+            return queue.isEmpty();
+        }
+        /**
+         * This returns whether this action queue contains the specified 
+         * element. More formally, this returns {@code true} if this action 
+         * queue contains at least one element {@code e} such that {@code 
+         * Objects.equals(o, e)}.
+         * @param o The element to check for in this action queue.
+         * @return Whether this action queue contains the specified element.
+         */
+        @Override
+        public boolean contains(Object o){
+            return queue.contains(o);
+        }
+        /**
+         * This returns the {@code Consumer} to add to this action queue that 
+         * will perform the given command. <p>
+         * 
+         * This forwards the call to {@link SnakeCommand#getActionForCommand 
+         * SnakeCommand.getActionForCommand}, and throws an {@code 
+         * IllegalArgumentException} if it returns null. This method is here so 
+         * that a subclass could change the {@code Consumer} used to represent a 
+         * given command.
+         * 
+         * @param command The command to get the {@code Consumer} for (cannot be 
+         * null).
+         * @return The {@code Consumer} for the command.
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @see SnakeCommand#getCommandActionMap 
+         * @see SnakeCommand#getActionForCommand 
+         * @see SnakeActionCommand
+         * @see DefaultSnakeActionCommand
+         */
+        protected Consumer<Snake> getActionForCommand(SnakeCommand command){
+                // Get the Consumer for the given command
+            Consumer<Snake> action = SnakeCommand.getActionForCommand(command);
+            if (action == null) // If the Consumer is somehow null
+                throw new IllegalArgumentException(
+                        "No action available for command " + command);
+            return action;
+        }
+        /**
+         * This returns whether the given {@code Consumer} can be added to this 
+         * action queue without violating any capacity restrictions. This also 
+         * checks to see if the {@code Consumer} violates any other restrictions 
+         * imposed on the elements of this queue, and throws the appropriate 
+         * exception if it does. 
+         * @param e The {@code Consumer} to check (can be assumed to be 
+         * non-null).
+         * @return Whether the {@code Consumer} can be added without violating 
+         * any capacity restrictions.
+         * @throws IllegalArgumentException If some property of the given {@code 
+         * Consumer} prevents it from being added.
+         * @see #offerFirst(Consumer) 
+         * @see #offerLast(Consumer) 
+         * @see #offer(Consumer) 
+         */
+        protected boolean checkOffer(Consumer<? super Snake> e){
+            return true;
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the front of 
+         * this action queue, and returns whether this was successful at doing 
+         * so. If this action queue is capacity restricted, then this method is 
+         * generally preferable to the {@link #addFirst(Consumer) 
+         * addFirst(Consumer)} method, which can fail to insert an element only 
+         * by throwing an exception.
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @return {@code true} if the {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @see #offerFirst(SnakeCommand) 
+         * @see #offerLast(Consumer) 
+         * @see #offerLast(SnakeCommand) 
+         * @see #offer(Consumer) 
+         * @see #offer(SnakeCommand) 
+         * @see #addFirst(Consumer) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public boolean offerFirst(Consumer<Snake> e) {
+            Objects.requireNonNull(e);  // Check if the action is null
+            if (checkOffer(e))          // Check if the action can be added
+                return queue.offerFirst(e);
+            else
+                return false;
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the front of this action 
+         * queue that will perform the given command, and returns whether this 
+         * was successful at doing so. If this action queue is capacity 
+         * restricted, then this method is generally preferable to the {@link 
+         * #addFirst(SnakeCommand) addFirst(SnakeCommand)} method, which can 
+         * fail to insert an element only by throwing an exception. <p>
+         * 
+         * This method is equivalent to calling {@link #offerFirst(Consumer) 
+         * offerFirst(Consumer)} with the {@code Consumer} returned by the 
+         * protected {@link #getActionForCommand(SnakeCommand) 
+         * getActionForCommand} method.
+         * 
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @return {@code true} if a {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @see #offerFirst(Consumer) 
+         * @see #offerLast(Consumer) 
+         * @see #offerLast(SnakeCommand) 
+         * @see #offer(Consumer) 
+         * @see #offer(SnakeCommand) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #push(SnakeCommand) 
+         */
+        public boolean offerFirst(SnakeCommand command){
+            return offerFirst(getActionForCommand(
+                    Objects.requireNonNull(command)));
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the end of this 
+         * action queue, and returns whether this was successful at doing so. If 
+         * this action queue is capacity restricted, then this method is 
+         * generally preferable to the {@link #addLast(Consumer) 
+         * addLast(Consumer)} method, which can fail to insert an element only 
+         * by throwing an exception.
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @return {@code true} if the {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @see #offerFirst(Consumer) 
+         * @see #offerFirst(SnakeCommand) 
+         * @see #offerLast(SnakeCommand) 
+         * @see #offer(Consumer) 
+         * @see #offer(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public boolean offerLast(Consumer<Snake> e) {
+            Objects.requireNonNull(e);  // Check if the action is null
+            if (checkOffer(e))          // Check if the action can be added
+                return queue.offerLast(e);
+            else
+                return false;
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the end of this action 
+         * queue that will perform the given command, and returns whether this 
+         * was successful at doing so. If this action queue is capacity 
+         * restricted, then this method is generally preferable to the {@link 
+         * #addLast(SnakeCommand) addLast(SnakeCommand)} method, which can fail 
+         * to insert an element only by throwing an exception. <p>
+         * 
+         * This method is equivalent to calling {@link #offerLast(Consumer) 
+         * offerLast(Consumer)} with the {@code Consumer} returned by the 
+         * protected {@link #getActionForCommand(SnakeCommand) 
+         * getActionForCommand} method.
+         * 
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @return {@code true} if a {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @see #offerFirst(Consumer) 
+         * @see #offerFirst(SnakeCommand) 
+         * @see #offerLast(Consumer) 
+         * @see #offer(Consumer) 
+         * @see #offer(SnakeCommand) 
+         * @see #addLast(SnakeCommand) 
+         * @see #push(SnakeCommand) 
+         */
+        public boolean offerLast(SnakeCommand command){
+            return offerLast(getActionForCommand(
+                    Objects.requireNonNull(command)));
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the end of this 
+         * action queue, and returns whether this was successful at doing so. If 
+         * this action queue is capacity restricted, then this method is 
+         * generally preferable to the {@link #add(Consumer) add(Consumer)} 
+         * method, which can fail to insert an element only by throwing an 
+         * exception. <p>
+         * 
+         * This method is equivalent to calling {@link #offerLast(Consumer) 
+         * offerLast(Consumer)}.
+         * 
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @return {@code true} if the {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @see #offerFirst(Consumer) 
+         * @see #offerFirst(SnakeCommand) 
+         * @see #offerLast(Consumer) 
+         * @see #offerLast(SnakeCommand) 
+         * @see #offer(SnakeCommand) 
+         * @see #add(Consumer) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public boolean offer(Consumer<Snake> e) {
+            return offerLast(e);
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the end of this action 
+         * queue that will perform the given command, and returns whether this 
+         * was successful at doing so. If this action queue is capacity 
+         * restricted, then this method is generally preferable to the {@link 
+         * #add(SnakeCommand) add(SnakeCommand)} method, which can fail to 
+         * insert an element only by throwing an exception. <p>
+         * 
+         * This method is equivalent to calling {@link #offerLast(SnakeCommand) 
+         * offerLast(SnakeCommand)}.
+         * 
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @return {@code true} if a {@code Consumer} was added to this action 
+         * queue, else {@code false}.
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @see #offerFirst(Consumer) 
+         * @see #offerFirst(SnakeCommand) 
+         * @see #offerLast(Consumer) 
+         * @see #offerLast(SnakeCommand) 
+         * @see #offer(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #push(SnakeCommand) 
+         */
+        public boolean offer(SnakeCommand command){
+            return offerLast(command);
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the front of 
+         * this action queue, throwing an {@code IllegalStateException} if doing 
+         * so would violate any capacity restrictions. If this action queue is 
+         * capacity restricted, then it is generally preferable to use the 
+         * {@link #offerFirst(Consumer) offerFirst(Consumer)} method.
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerFirst(Consumer) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #addLast(SnakeCommand) 
+         * @see #add(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public void addFirst(Consumer<Snake> e) {
+            if (!offerFirst(e))     // If this failed to insert the given action
+                throw new IllegalStateException("Action queue is full");
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the front of this 
+         * action queue that will perform the given command, throwing an {@code 
+         * IllegalStateException} if doing so would violate any capacity 
+         * restrictions. If this action queue is capacity restricted, then it is 
+         * generally preferable to use the {@link #offerFirst(SnakeCommand) 
+         * offerFirst(SnakeCommand)} method.
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerFirst(SnakeCommand) 
+         * @see #addFirst(Consumer) 
+         * @see #addLast(Consumer) 
+         * @see #addLast(SnakeCommand) 
+         * @see #add(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #push(SnakeCommand) 
+         */
+        public void addFirst(SnakeCommand command){
+            addFirst(getActionForCommand(Objects.requireNonNull(command)));
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the end of this 
+         * action queue, throwing an {@code IllegalStateException} if doing so 
+         * would violate any capacity restrictions. If this action queue is 
+         * capacity restricted, then it is generally preferable to use the 
+         * {@link #offerLast(Consumer) offerLast(Consumer)} method.
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerLast(Consumer) 
+         * @see #addFirst(Consumer) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #addLast(SnakeCommand) 
+         * @see #add(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public void addLast(Consumer<Snake> e) {
+            if (!offerLast(e))      // If this failed to insert the given action
+                throw new IllegalStateException("Action queue is full");
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the end of this action 
+         * queue that will perform the given command, throwing an {@code 
+         * IllegalStateException} if doing so would violate any capacity 
+         * restrictions. If this action queue is capacity restricted, then it is 
+         * generally preferable to use the {@link #offerLast(SnakeCommand) 
+         * offerLast(SnakeCommand)} method.
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerLast(SnakeCommand) 
+         * @see #addFirst(Consumer) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #add(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #push(SnakeCommand) 
+         */
+        public void addLast(SnakeCommand command){
+            addLast(getActionForCommand(Objects.requireNonNull(command)));
+        }
+        /**
+         * This attempts to insert the given {@code Consumer} at the end of this 
+         * action queue, throwing an {@code IllegalStateException} if doing so 
+         * would violate any capacity restrictions. If this action queue is 
+         * capacity restricted, then it is generally preferable to use the 
+         * {@link #offer(Consumer) offer(Consumer)} method. <p>
+         * 
+         * This method is equivalent to {@link #addLast(Consumer) 
+         * addLast(Consumer)}.
+         * 
+         * @param e The {@code Consumer} to add (cannot be null).
+         * @return {@code true} (as specified by {@link Collection#add 
+         * Collection.add}).
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offer(Consumer) 
+         * @see #addFirst(Consumer) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #addLast(SnakeCommand) 
+         * @see #add(SnakeCommand) 
+         * @see #push(Consumer) 
+         */
+        @Override
+        public boolean add(Consumer<Snake> e) {
+            addLast(e);
+            return true;
+        }
+        /**
+         * This attempts to insert a {@code Consumer} at the end of this action 
+         * queue that will perform the given command, throwing an {@code 
+         * IllegalStateException} if doing so would violate any capacity 
+         * restrictions. If this action queue is capacity restricted, then it is 
+         * generally preferable to use the {@link #offer(SnakeCommand) 
+         * offer(SnakeCommand)} method. <p>
+         * 
+         * This method is equivalent to calling {@link #add(Consumer) 
+         * add(Consumer)} with the {@code Consumer} returned by the protected 
+         * {@link #getActionForCommand(SnakeCommand) getActionForCommand} 
+         * method.
+         * 
+         * @param command The command for the {@code Consumer} to add (cannot be 
+         * null).
+         * @return {@code true} (the value returned by {@link #add(Consumer) 
+         * add(Consumer)})
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerLast(SnakeCommand) 
+         * @see #addFirst(Consumer) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #add(SnakeCommand) 
+         * @see #addLast(Consumer) 
+         * @see #push(SnakeCommand) 
+         */
+        public boolean add(SnakeCommand command){
+            return add(getActionForCommand(Objects.requireNonNull(command)));
+        }
+        /**
+         * This attempts to push the given {@code Consumer} onto the stack 
+         * represented by this action queue, throwing an {@code 
+         * IllegalStateException} if doing so would violate any capacity 
+         * restrictions. <p>
+         * 
+         * This method is equivalent to {@link #addFirst(Consumer) 
+         * addFirst(Consumer)}.
+         * 
+         * @param e The {@code Consumer} to push (cannot be null).
+         * @throws NullPointerException If the given {@code Consumer} is null.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerFirst(Consumer) 
+         * @see #addFirst(Consumer) 
+         * @see #push(SnakeCommand) 
+         */
+        @Override
+        public void push(Consumer<Snake> e) {
+            addFirst(e);
+        }
+        /**
+         * This attempts to push a {@code Consumer} onto the stack represented 
+         * by this action queue that will perform the given command, throwing an 
+         * {@code IllegalStateException} if doing so would violate any capacity 
+         * restrictions. <p>
+         * 
+         * This method is equivalent to {@link #addFirst(SnakeCommand) 
+         * addFirst(SnakeCommand)}.
+         * 
+         * @param command The command for the {@code Consumer} to push (cannot 
+         * be null).
+         * @throws NullPointerException If the given command is null.
+         * @throws IllegalArgumentException If no {@code Consumer} is available 
+         * for the given command.
+         * @throws IllegalStateException If the {@code Consumer} cannot be added 
+         * at this time due to capacity restrictions.
+         * @see #offerFirst(SnakeCommand) 
+         * @see #addFirst(SnakeCommand) 
+         * @see #push(Consumer) 
+         */
+        public void push(SnakeCommand command){
+            addFirst(command);
+        }
+        /**
+         * This retrieves, but does not remove, the first element of this action 
+         * queue, or null if this action queue is {@link #isEmpty empty}.
+         * @return The head of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peekLast 
+         * @see #peek 
+         * @see #peekNext 
+         * @see #getFirst 
+         * @see #pollFirst 
+         * @see #removeFirst 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> peekFirst() {
+            return queue.peekFirst();
+        }
+        /**
+         * This retrieves, but does not remove, the last element of this action 
+         * queue, or null if this action queue is {@link #isEmpty empty}.
+         * @return The tail of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peekFirst
+         * @see #peek 
+         * @see #peekNext 
+         * @see #getLast 
+         * @see #pollLast 
+         * @see #removeLast 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> peekLast() {
+            return queue.peekLast();
+        }
+        /**
+         * This retrieves, but does not remove, the first element of this action 
+         * queue, or null if this action queue is {@link #isEmpty empty}. <p> 
+         * 
+         * This method is equivalent to {@link #peekFirst peekFirst}.
+         * 
+         * @return The head of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peekFirst 
+         * @see #peekLast 
+         * @see #peekNext 
+         * @see #element 
+         * @see #poll 
+         * @see #remove() 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> peek() {
+            return peekFirst();
+        }
+        /**
+         * This retrieves, but does not remove, the first {@code Consumer} in 
+         * this action queue that can be performed by the {@link #getSnake 
+         * parent snake}. The {@code Consumer} that is returned is the first 
+         * {@code Consumer} in this action queue that will not be skipped, with 
+         * all {@code Consumer}s preceding it ignored. In other words, this 
+         * returns the first {@code Consumer} in this action queue that, if all 
+         * the {@code Consumer}s preceding it were removed, {@link 
+         * #willSkipNextAction willSkipNextAction} would return {@code false}. 
+         * If this action queue is either {@link #isEmpty empty} or contains no 
+         * such {@code Consumer} for which {@code willSkipNextAction} would 
+         * return {@code false} if it were the head of the queue, then this will 
+         * return null.
+         * 
+         * @return The first {@code Consumer} in this action queue that can be 
+         * performed by the snake, or null if no such {@code Consumer} is in 
+         * this action queue.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #peek 
+         * @see #peekFirst 
+         * @see #peekLast 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#getActionQueue 
+         * @see Snake#doNextAction 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         */
+        public Consumer<Snake> peekNext(){
+            if (isEmpty())          // If the action queue is empty
+                return null;
+                // This creates an iterator to go through the queue
+            Iterator<Consumer<Snake>> itr = iterator();
+                // This gets the current action being checked
+            Consumer<Snake> action = itr.next();
+            while (itr.hasNext()){  // While there are actions in the iterator
+                    // Get the action that comes after the current one
+                Consumer<Snake> next = itr.next();
+                    // If the current action will not be skipped
+                if (!willSkipAction(action,next))
+                    return action;
+                action = next;
+            }   // If the last action is to be skipped, return null. Otherwise, 
+            return (willSkipAction(action,null))? null : action;   // return it.
+        }
+        /**
+         * This retrieves, but does not remove, the first element of this action 
+         * queue. This method differs from {@link #peekFirst peekFirst} only in 
+         * that it throws an exception if this action queue is {@link #isEmpty 
+         * empty}.
+         * @return The head of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peekFirst
+         * @see #getLast 
+         * @see #element 
+         * @see #getNext 
+         * @see #pollFirst 
+         * @see #removeFirst 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> getFirst() {
+            return queue.getFirst();
+        }
+        /**
+         * This retrieves, but does not remove, the last element of this action 
+         * queue. This method differs from {@link #peekLast peekLast} only in 
+         * that it throws an exception if this action queue is {@link #isEmpty 
+         * empty}.
+         * @return The tail of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peekLast 
+         * @see #getFirst 
+         * @see #element 
+         * @see #getNext 
+         * @see #pollLast 
+         * @see #removeLast 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> getLast() {
+            return queue.getLast();
+        }
+        /**
+         * This retrieves, but does not remove, the first element of this action 
+         * queue. This method differs from {@link #peek peek} only in that it 
+         * throws an exception if this action queue is {@link #isEmpty empty}. 
+         * <p>
+         * This method is equivalent to {@link #getFirst getFirst}.
+         * 
+         * @return The head of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peek 
+         * @see #getFirst 
+         * @see #getLast 
+         * @see #getNext 
+         * @see #poll 
+         * @see #remove() 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> element() {
+            return getFirst();
+        }
+        /**
+         * This retrieves, but does not remove, the first {@code Consumer} in 
+         * this action queue that can be performed by the {@link #getSnake 
+         * parent snake}. The {@code Consumer} that is returned is the first 
+         * {@code Consumer} in this action queue that will not be skipped, with 
+         * all {@code Consumer}s preceding it ignored. In other words, this 
+         * returns the first {@code Consumer} in this action queue that, if all 
+         * the {@code Consumer}s preceding it were removed, {@link 
+         * #willSkipNextAction willSkipNextAction} would return {@code false}. 
+         * This method differs from {@link #peekNext peekNext} only in that it 
+         * throws an exception if this action queue is either {@link #isEmpty 
+         * empty} or contains no such {@code Consumer} for which {@code 
+         * willSkipNextAction} would return {@code false} if the {@code 
+         * Consumer} was the head of the queue. In other words, where {@code 
+         * peekNext} would return null, this would throw an exception.
+         * 
+         * @return The first {@code Consumer} in this action queue that can be 
+         * performed by the snake.
+         * @throws NoSuchElementException If this action queue is either empty 
+         * or does not contain a {@code Consumer} that can be performed by the 
+         * snake.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see #peekNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #element 
+         * @see #getFirst 
+         * @see #getLast 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#getActionQueue 
+         * @see Snake#doNextAction 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         */
+        public Consumer<Snake> getNext(){
+                // Peek at the next action to return
+            Consumer<Snake> action = peekNext();    
+            if (action == null) // If the next action to return is null
+                throw new NoSuchElementException();
+            return action;
+        }
+        /**
+         * This retrieves and removes the first element of this action queue, or 
+         * returns null if this action queue is {@link #isEmpty empty}.
+         * @return The head of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peekFirst 
+         * @see #getFirst 
+         * @see #pollLast 
+         * @see #poll 
+         * @see #pollNext 
+         * @see #removeFirst 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> pollFirst() {
+            return queue.pollFirst();
+        }
+        /**
+         * This retrieves and removes the last element of this action queue, or 
+         * returns null if this action queue is {@link #isEmpty empty}.
+         * @return The tail of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peekLast 
+         * @see #getLast 
+         * @see #pollFirst 
+         * @see #poll 
+         * @see #pollNext 
+         * @see #removeLast 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> pollLast() {
+            return queue.pollLast();
+        }
+        /**
+         * This retrieves and removes the first element of this action queue, or 
+         * returns null if this action queue is {@link #isEmpty empty}. <p> 
+         * 
+         * This method is equivalent to {@link #pollFirst pollFirst}.
+         * 
+         * @return The head of this action queue, or null if this action queue 
+         * is empty.
+         * @see #peek
+         * @see #element 
+         * @see #pollFirst
+         * @see #pollLast 
+         * @see #pollNext 
+         * @see #remove()
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> poll() {
+            return pollFirst();
+        }
+        /**
+         * This retrieves and removes the first {@code Consumer} in this action 
+         * queue that can be performed by the {@link #getSnake parent snake}. 
+         * The {@code Consumer} that is removed and returned is the first {@code 
+         * Consumer} in this action queue that will not be skipped, with all 
+         * {@code Consumer}s preceding it discarded. In other words, this 
+         * removes and returns the first {@code Consumer} in this action queue 
+         * that, once all the {@code Consumer}s preceding it have been removed, 
+         * {@link #willSkipNextAction willSkipNextAction} would return {@code 
+         * false}. If this action queue is {@link #isEmpty empty}, then this 
+         * will return null. If this action queue does not contain any {@code 
+         * Consumer}s for which {@code willSkipNextAction} would return {@code 
+         * false} if it were the head of the queue, then this will empty this 
+         * action queue and return null. <p>
+         * 
+         * This is equivalent to {@link #poll polling} this action queue until 
+         * either {@code willSkipNextAction} returns {@code false} or this 
+         * action queue is empty, and then polling one more time to dequeue the 
+         * desired {@code Consumer}.
+         * 
+         * @return The first {@code Consumer} in this action queue that can be 
+         * performed by the snake, or null if no such {@code Consumer} is in 
+         * this action queue.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #removeNext 
+         * @see #popNext 
+         * @see #peek 
+         * @see #pollFirst 
+         * @see #pollLast 
+         * @see #poll 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#getActionQueue 
+         * @see Snake#doNextAction 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         */
+        public Consumer<Snake> pollNext(){
+            if (isEmpty())          // If the action queue is empty
+                return null;
+                // This will get the next action for the snake to perform
+            Consumer<Snake> action;
+            do{ // A do while loop to get the next action to perform
+                action = poll();    // Poll the next action in the queue
+            }   // While the queue is not empty and the action should be skipped
+            while (!isEmpty() && willSkipAction(action));
+                // If the retrieved action should be skipped, return null. 
+                // Otherwise, return the action to perform (this accounts for 
+                // whether the action was the last action in the queue, yet 
+                // should still be skipped)
+            return (willSkipAction(action)) ? null : action;
+        }
+        /**
+         * This retrieves and removes the first element of this action queue. 
+         * This method differs from {@link #pollFirst pollFirst} only in that it 
+         * throws an exception if this action queue is {@link #isEmpty empty}.
+         * @return The head of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peekFirst
+         * @see #getFirst
+         * @see #pollFirst 
+         * @see #removeLast 
+         * @see #remove() 
+         * @see #removeNext 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> removeFirst() {
+            return queue.removeFirst();
+        }
+        /**
+         * This retrieves and removes the last element of this action queue. 
+         * This method differs from {@link #pollLast pollLast} only in that it 
+         * throws an exception if this action queue is {@link #isEmpty empty}.
+         * @return The tail of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peekLast 
+         * @see #getLast 
+         * @see #pollLast 
+         * @see #removeFirst 
+         * @see #remove() 
+         * @see #removeNext 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> removeLast() {
+            return queue.removeLast();
+        }
+        /**
+         * This retrieves and removes the first element of this action queue. 
+         * This method differs from {@link #poll poll} only in that it throws an 
+         * exception if this action queue is {@link #isEmpty empty}. <p> 
+         * 
+         * This method is equivalent to {@link #removeFirst removeFirst}.
+         * 
+         * @return The head of this action queue.
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peek 
+         * @see #element 
+         * @see #poll 
+         * @see #removeFirst 
+         * @see #removeLast 
+         * @see #removeNext 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> remove() {
+            return removeFirst();
+        }
+        /**
+         * This retrieves and removes the first {@code Consumer} in this action 
+         * queue that can be performed by the {@link #getSnake parent snake}. 
+         * The {@code Consumer} that is removed and returned is the first {@code 
+         * Consumer} in this action queue that will not be skipped, with all 
+         * {@code Consumer}s preceding it discarded. In other words, this 
+         * removes and returns the first {@code Consumer} in this action queue 
+         * that, once all the {@code Consumer}s preceding it have been removed, 
+         * {@link #willSkipNextAction willSkipNextAction} would return {@code 
+         * false}. This method differs from {@link #pollNext pollNext} only in 
+         * that it throws an exception if this action queue is either {@link 
+         * #isEmpty empty} or contains no such {@code Consumer} for which {@code 
+         * willSkipNextAction} would return {@code false} if the {@code 
+         * Consumer} was the head of the queue. In other words, where {@code 
+         * pollNext} would return null, this would throw an exception. <p>
+         * 
+         * This is equivalent to {@link #remove() removing} the head of this 
+         * action queue until either {@code willSkipNextAction} returns {@code 
+         * false} or this action queue is empty, and then removing the head one 
+         * more time to dequeue the desired {@code Consumer}.
+         * 
+         * @return The first {@code Consumer} in this action queue that can be 
+         * performed by the snake.
+         * @throws NoSuchElementException If this action queue is either empty 
+         * or does not contain a {@code Consumer} that can be performed by the 
+         * snake.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #popNext 
+         * @see #peek 
+         * @see #element 
+         * @see #removeFirst 
+         * @see #removeLast 
+         * @see #remove() 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#getActionQueue 
+         * @see Snake#doNextAction 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         */
+        public Consumer<Snake> removeNext(){
+                // Poll the next action to return
+            Consumer<Snake> action = pollNext();  
+            if (action == null)     // If the next action to return is null
+                throw new NoSuchElementException();
+            return action;
+        }
+        /**
+         * This pops an element from the stack represented by this action queue. 
+         * In other words, this removes and returns the first element of this 
+         * action queue. <p>
+         * 
+         * This method is equivalent to {@link #removeFirst removeFirst}.
+         * 
+         * @return The element at the front of this action queue (which is the 
+         * top of the stack represented by this action queue).
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #peekFirst 
+         * @see #peek 
+         * @see #getFirst 
+         * @see #element 
+         * @see #pollFirst 
+         * @see #poll 
+         * @see #removeFirst 
+         * @see #remove() 
+         * @see #popNext 
+         * @see #isEmpty 
+         * @see #size 
+         */
+        @Override
+        public Consumer<Snake> pop() {
+            return removeFirst();
+        }
+        /**
+         * This pops the first {@code Consumer} from the stack represented by 
+         * this action queue that can be performed by the {@link #getSnake 
+         * parent snake}. The {@code Consumer} that is popped is the first 
+         * {@code Consumer} in the stack that will not be skipped, with all 
+         * {@code Consumer}s preceding it discarded. In other words, this pops 
+         * the first {@code Consumer} in this action queue that, once all the 
+         * {@code Consumer}s preceding it have been removed, {@link 
+         * #willSkipNextAction willSkipNextAction} would return {@code false}. 
+         * <p>
+         * This is equivalent to {@link #removeNext removeNext}, which is 
+         * equivalent to {@link #pop popping} the stack represented by this 
+         * action queue until either {@code willSkipNextAction} returns {@code 
+         * false} or this action queue is empty, and then popping the stack one 
+         * more time to retrieve the desired {@code Consumer}.
+         * 
+         * @return The first {@code Consumer} in this action queue that can be 
+         * performed by the snake (which is the closest {@code Consumer} to the 
+         * top of the stack represented by this action queue).
+         * @throws NoSuchElementException If this action queue is empty.
+         * @see #willSkipNextAction 
+         * @see #getSkipsRepeatedActions 
+         * @see #setSkipsRepeatedActions 
+         * @see #getSnake 
+         * @see #peekNext 
+         * @see #getNext 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #peek 
+         * @see #element 
+         * @see #pop 
+         * @see #isEmpty 
+         * @see #size 
+         * @see Snake#getActionQueue 
+         * @see Snake#doNextAction 
+         * @see Snake#getSkipsRepeatedActions 
+         * @see Snake#canPerformAction(Consumer) 
+         */
+        public Consumer<Snake> popNext(){
+            return removeNext();
+        }
+        /**
+         * This removes the first occurrence of the specified element from this 
+         * action queue. If this action queue does not contain the element, then 
+         * no change will be made. More formally, this removes the first element 
+         * {@code e} such that {@code Objects.equals(o, e)} if one is present. 
+         * If this action queue contained the specified element (or 
+         * equivalently, if this action queue changed as a result of the call), 
+         * then this will return {@code true}.
+         * @param o The element to be removed from this action queue, if 
+         * present.
+         * @return {@code true} if an element was removed from this action 
+         * queue, else {@code false}.
+         * @see #removeLastOccurrence 
+         * @see #remove(Object) 
+         */
+        @Override
+        public boolean removeFirstOccurrence(Object o) {
+            return queue.removeFirstOccurrence(o);
+        }
+        /**
+         * This removes the last occurrence of the specified element from this 
+         * action queue. If this action queue does not contain the element, then 
+         * no change will be made. More formally, this removes the last element 
+         * {@code e} such that {@code Objects.equals(o, e)} if one is present. 
+         * If this action queue contained the specified element (or 
+         * equivalently, if this action queue changed as a result of the call), 
+         * then this will return {@code true}.
+         * @param o The element to be removed from this action queue, if 
+         * present.
+         * @return {@code true} if an element was removed from this action 
+         * queue, else {@code false}.
+         * @see #removeFirstOccurrence 
+         * @see #remove(Object) 
+         */
+        @Override
+        public boolean removeLastOccurrence(Object o) {
+            return queue.removeLastOccurrence(o);
+        }
+        /**
+         * This removes the first occurrence of the specified element from this 
+         * action queue. If this action queue does not contain the element, then 
+         * no change will be made. More formally, this removes the first element 
+         * {@code e} such that {@code Objects.equals(o, e)} if one is present. 
+         * If this action queue contained the specified element (or 
+         * equivalently, if this action queue changed as a result of the call), 
+         * then this will return {@code true}. <p>
+         * 
+         * This method is equivalent to {@link #removeFirstOccurrence 
+         * removeFirstOccurrence}.
+         * 
+         * @param o The element to be removed from this action queue, if 
+         * present.
+         * @return {@code true} if an element was removed from this action 
+         * queue, else {@code false}.
+         * @see #removeFirstOccurrence 
+         * @see #removeLastOccurrence 
+         */
+        @Override
+        public boolean remove(Object o){
+            return removeFirstOccurrence(o);
+        }
+        /**
+         * This removes all the elements from this action queue. The action 
+         * queue will be empty after this call returns.
+         */
+        @Override
+        public void clear(){
+            queue.clear();
+        }
+        /**
+         * This returns an iterator over the elements in this action queue in 
+         * sequential order. That is to say, the iterator iterates over the 
+         * elements in this action queue in order from first (head) to last 
+         * (tail). This is the same order that the elements would be dequeued 
+         * via successful calls to either {@link #poll poll}, {@link #remove 
+         * remove}, or {@link #pop pop}.
+         * @return An iterator over the elements in this action queue in proper 
+         * sequence.
+         */
+        @Override
+        public Iterator<Consumer<Snake>> iterator() {
+            return queue.iterator();
+        }
+        /**
+         * This returns an iterator over the elements in this action queue in 
+         * reverse sequential order. That is to say, the iterator iterates over 
+         * the elements in this action queue in order from last (tail) to first 
+         * (head). This is the same order that the elements would be dequeued 
+         * via successful calls to {@link #pollLast pollLast} or {@link 
+         * #removeLast removeLast}.
+         * @return An iterator over the elements in this action queue in reverse 
+         * sequence.
+         */
+        @Override
+        public Iterator<Consumer<Snake>> descendingIterator() {
+            return queue.descendingIterator();
+        }
+        /**
+         * This returns an array containing all of the elements in this action 
+         * queue in proper sequence (from the first element to the last 
+         * element). <p>
+         * 
+         * The returned array will be "safe" in that no references to the array 
+         * will be maintained by this action queue. (In other words, this method 
+         * must allocate a new array). The caller is thus free to modify the 
+         * returned array.
+         * 
+         * @return An array containing all of the elements in this action queue.
+         */
+        @Override
+        public Object[] toArray(){
+            return queue.toArray();
+        }
+        /**
+         * This creates and returns a copy of this action queue. 
+         * @return A clone of this action queue.
+         */
+        @Override
+        public ActionQueue clone(){
+            try{    // Create a clone of this action queue
+                ActionQueue clone = (ActionQueue) super.clone();
+                    // Set the clone's internal queue to a clone of this action 
+                clone.queue = queue.clone();    // queue's internal queue
+                return clone;
+            }
+            catch(CloneNotSupportedException ex){
+                throw new AssertionError();
+            }
+        }
     }
 }

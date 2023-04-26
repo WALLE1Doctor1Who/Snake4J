@@ -13,8 +13,8 @@ import snake.*;
  * Snake snake} to perform some action based off a {@link SnakeCommand command}. 
  * When the {@link #accept accept} method is invoked with a non-null snake, it  
  * will call the snake's {@link Snake#doCommand doCommand} method with the 
- * command returned by the {@link #getCommand() getCommand} method. If the 
- * {@code accept} method is invoked with a null snake, then it will do nothing.
+ * command returned by the {@link #getCommand getCommand} method. If the {@code 
+ * accept} method is invoked with a null snake, then it will do nothing.
  * @author Milo Steier
  * @see Snake
  * @see SnakeCommand
@@ -44,7 +44,7 @@ public abstract class SnakeActionCommand implements Consumer<Snake>,SnakeConstan
      * 
      * @implSpec The default implementation calls {@link Snake#doCommand 
      * doCommand} on the given snake with the command returned by {@link 
-     * #getCommand() getCommand}. If the given snake is null, then this will do 
+     * #getCommand getCommand}. If the given snake is null, then this will do 
      * nothing.
      * 
      * @param snake The snake to perform the operation on.
@@ -115,7 +115,7 @@ public abstract class SnakeActionCommand implements Consumer<Snake>,SnakeConstan
     /**
      * This compares the given object with this operation and returns whether 
      * the given object is a {@code SnakeActionCommand} object with the same 
-     * {@link #getCommand() command} as this operation.
+     * {@link #getCommand command} as this operation.
      * @param obj The object to be compared with.
      * @return Whether the object is an operation that is the same as this 
      * operation.

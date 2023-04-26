@@ -4,8 +4,7 @@
  */
 package snake.event;
 
-import java.util.EventObject;
-import java.util.Objects;
+import java.util.*;
 import snake.*;
 import snake.playfield.*;
 
@@ -29,53 +28,59 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
     /**
      * The first number in the range of IDs used for snake events.
      */
-    public static final int SNAKE_FIRST = 0x00;
+    public static final int SNAKE_FIRST = 0;
     /**
      * The ID for the event that indicates that a snake failed to perform an 
      * action. 
      */
-    public static final int SNAKE_FAILED = 0x00;
+    public static final int SNAKE_FAILED = 0;
     /**
      * The ID for the event that indicates that a tile was added to a snake.
      */
-    public static final int SNAKE_ADDED_TILE = 0x01;
+    public static final int SNAKE_ADDED_TILE = 1;
     /**
      * The ID for the event that indicates that a snake moved to a tile.
      */
-    public static final int SNAKE_MOVED = 0x02;
+    public static final int SNAKE_MOVED = 2;
     /**
      * The ID for the event that indicates that a tile was removed from a snake.
      */
-    public static final int SNAKE_REMOVED_TILE = 0x03;
+    public static final int SNAKE_REMOVED_TILE = 3;
     /**
      * The ID for the event that indicates that a snake consumed an apple.
      */
-    public static final int SNAKE_CONSUMED_APPLE = 0x04;
+    public static final int SNAKE_CONSUMED_APPLE = 4;
     /**
      * The ID for the event that indicates that a snake has been flipped.
      */
-    public static final int SNAKE_FLIPPED = 0x05;
+    public static final int SNAKE_FLIPPED = 5;
     /**
      * The ID for the event that indicates that a snake had crashed into 
      * something.
      */
-    public static final int SNAKE_CRASHED = 0x06;
+    public static final int SNAKE_CRASHED = 6;
     /**
      * The ID for the event that indicates that a snake has been revived.
      */
-    public static final int SNAKE_REVIVED = 0x07;
+    public static final int SNAKE_REVIVED = 7;
     /**
      * The ID for the event that indicates that a snake has been initialized.
      */
-    public static final int SNAKE_INITIALIZED = 0x08;
+    public static final int SNAKE_INITIALIZED = 8;
     /**
-     * The ID for the event that indicates that a snake has been reset.
+     * The ID for the event that indicates that a snake has been reset. This 
+     * will typically entail all tiles being removed from the snake and the 
+     * snake's status being reset.
      */
-    public static final int SNAKE_RESET = 0x09;
+    public static final int SNAKE_RESET = 9;
+    /**
+     * The ID for the event that indicates that a snake has been repaired.
+     */
+    public static final int SNAKE_REPAIRED = 10;
     /**
      * The last number in the range of IDs used for snake events.
      */
-    public static final int SNAKE_LAST = SNAKE_RESET;
+    public static final int SNAKE_LAST = SNAKE_REPAIRED;
     /**
      * This stores event ID for this event.
      */
@@ -220,6 +225,7 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
      * @see #SNAKE_REVIVED
      * @see #SNAKE_INITIALIZED
      * @see #SNAKE_RESET
+     * @see #SNAKE_REPAIRED
      * @see #getSnake 
      * @see #getDirection 
      * @see #getTarget 
@@ -280,6 +286,8 @@ public class SnakeEvent extends EventObject implements SnakeConstants{
                 return "SNAKE_INITIALIZED";
             case(SNAKE_RESET):          // If the snake has been reset
                 return "SNAKE_RESET";
+            case(SNAKE_REPAIRED):       // If the snake has been repaired
+                return "SNAKE_REPAIRED";
             default:
                 return null;
         }

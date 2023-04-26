@@ -6,8 +6,7 @@ package snake.action;
 
 import java.util.EnumMap;
 import java.util.Map;
-import snake.Snake;
-import snake.SnakeConstants;
+import snake.*;
 
 /**
  * This is an enumeration type for the instructions used to instruct a {@link 
@@ -16,7 +15,7 @@ import snake.SnakeConstants;
  * 
  * This also provides immutable implementations of {@link SnakeActionCommand 
  * SnakeActionCommand} for each command, which can be accessed either via the 
- * map returned by the {@link #getCommandActionMap() getCommandActionMap} method 
+ * map returned by the {@link #getCommandActionMap getCommandActionMap} method 
  * or via the {@link #getActionForCommand getActionForCommand} method to get the 
  * action for a specific command.
  * 
@@ -134,7 +133,7 @@ public enum SnakeCommand implements SnakeConstants{
      */
     ADD_FORWARD,
     /**
-     * This is the instruction for a {@link Snake snake} to {@link Snake#flip() 
+     * This is the instruction for a {@link Snake snake} to {@link Snake#flip 
      * flip}.
      * @see Snake
      * @see Snake#doCommand
@@ -143,7 +142,7 @@ public enum SnakeCommand implements SnakeConstants{
     FLIP,
     /**
      * This is the instruction for a {@link snake.Snake snake} to be {@link 
-     * snake.Snake#revive() revived}.
+     * snake.Snake#revive revived}.
      * @see snake.Snake
      * @see snake.Snake#doCommand
      * @see snake.Snake#revive 
@@ -151,7 +150,7 @@ public enum SnakeCommand implements SnakeConstants{
     REVIVE,
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
-     * Snake#removeTail() remove its tail}.
+     * Snake#removeTail remove its tail}.
      * @see Snake
      * @see Snake#doCommand
      * @see Snake#removeTail 
@@ -159,8 +158,8 @@ public enum SnakeCommand implements SnakeConstants{
     REMOVE_TAIL,
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
-     * Snake#doDefaultAction() invoke} its {@link Snake#getDefaultAction() 
-     * default action}.
+     * Snake#doDefaultAction invoke} its {@link Snake#getDefaultAction default 
+     * action}.
      * @see Snake
      * @see Snake#doCommand
      * @see Snake#doDefaultAction 
@@ -223,8 +222,8 @@ public enum SnakeCommand implements SnakeConstants{
     private static EnumMap<SnakeCommand,SnakeActionCommand> commandMap = null;
     /**
      * This is an immutable implementation of SnakeActionCommand used in the map 
-     * returned by {@link #getCommandActionMap() getCommandActionMap}, which 
-     * maps the snake commands to default {@code SnakeActionCommands}.
+     * returned by {@link #getCommandActionMap getCommandActionMap}, which maps 
+     * the snake commands to default {@code SnakeActionCommands}.
      */
     private static final class SimpleSnakeActionCommand extends SnakeActionCommand{
         /**
@@ -242,9 +241,19 @@ public enum SnakeCommand implements SnakeConstants{
                 throw new NullPointerException();
             this.command = command;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public SnakeCommand getCommand() {
             return command;
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
+        public String toString(){
+            return getClass().getSimpleName() + "["+paramString()+"]";
         }
     }
     /**
@@ -268,7 +277,7 @@ public enum SnakeCommand implements SnakeConstants{
     /**
      * This returns an immutable implementation of {@link SnakeActionCommand 
      * SnakeActionCommand} that will perform the given command. This is 
-     * equivalent to calling {@link #getCommandActionMap() getCommandActionMap} 
+     * equivalent to calling {@link #getCommandActionMap getCommandActionMap} 
      * and then getting the action associated with the given command.
      * @param command The command to get the action for (cannot be null).
      * @return An action that performs the given command.

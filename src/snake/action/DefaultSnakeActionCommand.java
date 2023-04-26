@@ -6,7 +6,7 @@ package snake.action;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import snake.Snake;
+import snake.*;
 
 /**
  * This is a default implementation of {@link SnakeActionCommand 

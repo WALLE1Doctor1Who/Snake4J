@@ -192,54 +192,58 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
     }
     /**
      * This returns whether the tile background should be painted by default for 
-     * the given JPlayField.
+     * the given JPlayField. If null is returned, then this property will 
+     * default to {@code true}.
      * 
-     * @implSpec The default implementation returns true.
+     * @implSpec The default implementation returns null.
      * 
      * @param c The JPlayField which is being queried as to whether to paint the 
      * tile background.
-     * @return Whether the tile background should be painted.
+     * @return Whether the tile background should be painted, or null.
      * @see JPlayField#isTileBackgroundPainted 
      * @see JPlayField#setTileBackgroundPainted 
      * @see #getTileBackground 
      * @see JPlayField#getTileBackground 
      * @see JPlayField#setTileBackground 
      */
-    public default boolean isTileBackgroundPainted(JPlayField c){
-        return true;
+    public default Boolean isTileBackgroundPainted(JPlayField c){
+        return null;
     }
     /**
      * This returns whether the tile border should be painted by default for the 
-     * given JPlayField.
+     * given JPlayField. If null is returned, then this property will default to 
+     * {@code true}.
      * 
-     * @implSpec The default implementation returns true.
+     * @implSpec The default implementation returns null.
      * 
      * @param c The JPlayField which is being queried as to whether to paint the 
      * tile border.
-     * @return Whether the tile border should be painted.
+     * @return Whether the tile border should be painted, or null.
      * @see JPlayField#isTileBorderPainted 
      * @see JPlayField#setTileBorderPainted 
      * @see #getTileBorder 
      * @see JPlayField#getTileBorder 
      * @see JPlayField#setTileBorder 
      */
-    public default boolean isTileBorderPainted(JPlayField c){
-        return true;
+    public default Boolean isTileBorderPainted(JPlayField c){
+        return null;
     }
     /**
      * This returns whether the play field should be rendered in high quality by 
-     * default for the given JPlayField.
+     * default for the given JPlayField. If null is returned, then this property 
+     * will default to {@code true}.
      * 
-     * @implSpec The default implementation returns true.
+     * @implSpec The default implementation returns null.
      * 
      * @param c The JPlayField which is being queried as to whether to render 
      * the play field in high quality.
-     * @return Whether the play field should be rendered in high quality.
+     * @return Whether the play field should be rendered in high quality, or 
+     * null.
      * @see JPlayField#isHighQuality 
      * @see JPlayField#setHighQuality 
      */
-    public default boolean isHighQuality(JPlayField c){
-        return true;
+    public default Boolean isHighQuality(JPlayField c){
+        return null;
     }
     /**
      * This installs this renderer onto the given JPlayField. This can be used 
@@ -525,7 +529,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * region. It is assumed that the play field should be rendered at the 
      * origin.
      * 
-     * @param g {@inheritDoc }
+     * @param g The {@code Graphics2D} object to render to (cannot be null).
      * @param c The JPlayField being rendered. While this may be null, it may 
      * result in undefined and unpredictable behavior.
      * @param width The width of the area to paint the play field in.

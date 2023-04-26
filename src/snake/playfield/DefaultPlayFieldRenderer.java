@@ -25,50 +25,42 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      */
     public static final Color DISABLED_OVERLAY_COLOR=new Color(0x60000000,true);
     /**
+     * A scratch Path2D object used for rendering the play field. This is 
+     * initialized the first time it is used.
+     */
+    private Path2D path = null;
+    /**
+     * A scratch Rectangle2D object used for rendering the play field. This is 
+     * initialized the first time it is used.
+     */
+    private Rectangle2D rect = null;
+    /**
+     * A scratch Ellipse2D object used for rendering the play field. This is 
+     * initialized the first time it is used.
+     */
+    private Ellipse2D ellipse = null;
+    /**
+     * A scratch Point2D object used for rendering the play field. This is 
+     * initialized the first time it is used.
+     */
+    private Point2D point1 = null;
+    /**
+     * A second scratch Point2D object used for rendering the play field. This 
+     * is initialized the first time it is used.
+     */
+    private Point2D point2 = null;
+    /**
      * This constructs a DefaultPlayFieldRenderer.
      */
     public DefaultPlayFieldRenderer(){
     };
     /**
-     * This returns the size for the given JPlayField based off its model and 
-     * the given multiplier. The width is calculated by multiplying the {@link 
-     * JPlayField#getColumnCount() column count} by the {@code multiplier}, 
-     * which is then added to the left and right insets. The height is 
-     * calculated by multiplying the {@link JPlayField#getRowCount() row count} 
-     * by the {@code multiplier}, which is then added to the top and bottom 
-     * insets.
-     * @param c The JPlayField to get the size for.
-     * @param multiplier The multiplier to use to multiply the row and column 
-     * count to get the width and height to get the size.
-     * @return The dimensions derived from the JPlayField and multiplier, or 
-     * null if the JPlayField or its model are null.
-     * @see JPlayField#getModel 
-     * @see JPlayField#getRowCount 
-     * @see JPlayField#getColumnCount 
-     * @see JPlayField#getInsets 
-     */
-    protected Dimension getSizeFromModel(JPlayField c, int multiplier){
-            // If the play field or its model are null
-        if (c == null || c.getModel() == null)
-            return null;
-            // Get the dimensions with the columns, rows, and multiplier
-        Dimension dim = new Dimension(c.getColumnCount()*multiplier,
-                c.getRowCount()*multiplier);
-        Insets insets = c.getInsets();  // Get the insets from the play field
-        if (insets != null){            // If the insets are not null
-            dim.width += insets.left + insets.right;
-            dim.height += insets.top + insets.bottom;
-        }
-        return dim;
-    }
-    /**
      * {@inheritDoc } <p>
      * 
-     * The minimum size will be calculated by adding the {@link 
-     * JPlayField#getColumnCount() column count} to the left and right insets 
-     * to get the width, and by adding the {@link JPlayField#getRowCount() row 
-     * count} to the top and bottom insets to get the height. If the JPlayField 
-     * and/or its model are null, then this will return null.
+     * This forwards the call to {@link SnakeUtilities#computePlayFieldSize 
+     * SnakeUtilities.computePlayFieldSize} with the given JPlayField and a 
+     * multiplier of {@code 1}. If the JPlayField and/or its model are null, 
+     * then this will return null.
      * 
      * @param c {@inheritDoc }
      * @return {@inheritDoc }
@@ -77,10 +69,11 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see JPlayField#getModel 
      * @see JPlayField#getColumnCount 
      * @see JPlayField#getRowCount 
+     * @see SnakeUtilities#computePlayFieldSize 
      */
     @Override
     public Dimension getMinimumSize(JPlayField c){
-        return getSizeFromModel(c,1);
+        return SnakeUtilities.computePlayFieldSize(c,1,null);
     }
     /**
      * {@inheritDoc } <p>
@@ -100,12 +93,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
      * {@inheritDoc } <p>
      * 
-     * The preferred size will be calculated by multiplying the {@link 
-     * JPlayField#getColumnCount() column count} by 32 and then adding the left 
-     * and right insets to get the width, and by multiplying the {@link 
-     * JPlayField#getRowCount() row count} by 32 and then adding the top and 
-     * bottom insets to get the height. If the JPlayField and/or its model are 
-     * null, then this will return null.
+     * This forwards the call to {@link SnakeUtilities#computePlayFieldSize 
+     * SnakeUtilities.computePlayFieldSize} with the given JPlayField and a 
+     * multiplier of {@code 32}. If the JPlayField and/or its model are null, 
+     * then this will return null.
      * 
      * @param c {@inheritDoc }
      * @return {@inheritDoc }
@@ -114,10 +105,11 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @see JPlayField#getModel 
      * @see JPlayField#getColumnCount 
      * @see JPlayField#getRowCount 
+     * @see SnakeUtilities#computePlayFieldSize 
      */
     @Override
     public Dimension getPreferredSize(JPlayField c){
-        return getSizeFromModel(c,32);
+        return SnakeUtilities.computePlayFieldSize(c,32,null);
     }
     /**
      * This checks to see if the source of the event is a component, and if so, 
@@ -152,37 +144,11 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      */
     @Override
     public void tilesChanged(PlayFieldEvent evt) {
-        // TODO: Remove the commented out code if it turns out there is no 
-        // significant downside to repainting the entire play field when a tile 
-        // changes. However, if there is a downside, rework the commented out 
-        // code to work with the current system.
-//            // If the play field has changed completely
-//        if (evt.getFirstRow() < 0 || evt.getFirstColumn() < 0){
-//            repaintField(evt.getSource());
-//        }   // If the source is a JPlayField
-//        else if (evt.getSource() instanceof JPlayField){
-//                // Get the JPlayField that originated the event
-//            JPlayField c = (JPlayField)evt.getSource();
-//                // Get the bounds of the region of tiles that were affected
-//            Rectangle2D bounds = getTileBounds(c,evt.getFirstRow(),
-//                    evt.getLastRow(),evt.getFirstColumn(),evt.getLastColumn());
-//                // If the returned bounds is not null
-//            if (bounds != null){    
-//                    // Get the bound in integer precision
-//                Rectangle rect = bounds.getBounds();
-//                    // Expand it by one pixel in all directions to ensure that 
-//                    // the affected tiles are completely repainted
-//                rect.grow(1, 1);    
-//                c.repaint(rect);
-//            }
-//            else
-//                c.repaint();
-//        }
         repaintField(evt.getSource());
     }
     /**
      * This checks to see if either the given JPlayField or its {@link 
-     * JPlayField#getModel() model} are null, and if so, throws a 
+     * JPlayField#getModel model} are null, and if so, throws a 
      * NullPointerException.
      * @param c The JPlayField to check.
      * @return The given JPlayField.
@@ -196,10 +162,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
      * {@inheritDoc } <p>
      * 
-     * This forwards the call to {@link 
-     * SnakeUtilities#calculateTileSize SnakeUtilities.calculateTileSize} with 
-     * the given JPlayField's {@link JPlayField#getModel() model} and the size 
-     * of the {@link #getPlayFieldBounds(JPlayField) play field bounds}.
+     * This forwards the call to {@link SnakeUtilities#calculateTileSize 
+     * SnakeUtilities.calculateTileSize} with the given JPlayField's {@link 
+     * JPlayField#getModel() model} and the size of the {@link 
+     * #getPlayFieldBounds(JPlayField) play field bounds}.
      * 
      * @param c {@inheritDoc }
      * @param dim {@inheritDoc }
@@ -218,9 +184,9 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     public Dimension2D getTileSize(JPlayField c, Dimension2D dim) {
             // Check if the component or its model are null
         requireNonNullModel(c);
-        Rectangle2D rect = getPlayFieldBounds(c);
-        return SnakeUtilities.calculateTileSize(c.getModel(), rect.getWidth(), 
-                rect.getHeight(), dim);
+        Rectangle2D r = getPlayFieldBounds(c);
+        return SnakeUtilities.calculateTileSize(c.getModel(), r.getWidth(), 
+                r.getHeight(), dim);
     }
     /**
      * {@inheritDoc } <p>
@@ -228,7 +194,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * This forwards the call to {@link 
      * SnakeUtilities#calculatePlayFieldBounds(PlayFieldModel, Rectangle2D, 
      * Rectangle2D) SnakeUtilities.calculatePlayFieldBounds} with the given 
-     * JPlayField's {@link JPlayField#getModel() model} and {@link 
+     * JPlayField's {@link JPlayField#getModel model} and {@link 
      * SwingUtilities#calculateInnerArea inner area}. 
      * 
      * @param c {@inheritDoc }
@@ -498,10 +464,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * 
      * This is effectively equivalent to calling {@link 
      * #setFrameFromTileDiagonal setFrameFromTileDiagonal}{@code (shape, c, 
-     * tile0.}{@link Tile#getRow() getRow()}{@code , tile1.}{@link 
-     * Tile#getRow() getRow()}{@code , tile0.}{@link Tile#getColumn() 
-     * getColumn()}{@code , tile1.}{@link Tile#getColumn() getColumn()}{@code , 
-     * tileS, fieldR, xOff1, yOff1, xOff2, yOff2, point1, point2)}.
+     * tile0.}{@link Tile#getRow getRow()}{@code , tile1.}{@link Tile#getRow 
+     * getRow()}{@code , tile0.}{@link Tile#getColumn getColumn()}{@code , 
+     * tile1.}{@link Tile#getColumn getColumn()}{@code , tileS, fieldR, xOff1, 
+     * yOff1, xOff2, yOff2, point1, point2)}.
      * 
      * @param shape The shape to set the frame of. If this is null, then a 
      * Rectangle2D object will be returned instead.
@@ -614,8 +580,8 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             // Calculate the row and column based off the x and y and the tile 
             // width and height
         return c.getTile(
-                Math.min((int)Math.floor(y/tileS.getHeight()),c.getColumnCount()-1), 
-                Math.min((int)Math.floor(x/tileS.getWidth()),c.getRowCount()-1));
+                Math.min((int)Math.floor(y/tileS.getHeight()),c.getRowCount()-1), 
+                Math.min((int)Math.floor(x/tileS.getWidth()),c.getColumnCount()-1));
     }
     /**
      * {@inheritDoc }
@@ -670,10 +636,10 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * get the y offset. <p>
      * 
      * This forwards the call to {@link SnakeUtilities#computeTileContentsOffset 
-     * SnakeUtilities.computeTileContentsOffset}. This method is here so that 
-     * a subclass could do JPlayField specific things or to change the offset 
-     * for the contents of the tiles. Note that changing the offset will change 
-     * the size at which the contents are rendered at.
+     * SnakeUtilities.computeTileContentsOffset}. This method is here so that a 
+     * subclass could do JPlayField specific things or to change the offset for 
+     * the contents of the tiles. Note that changing the offset will change the 
+     * size at which the contents are rendered at.
      * 
      * @param c The JPlayField being rendered.
      * @param tile The tile currently being rendered.
@@ -693,15 +659,15 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * This returns the color to use for the given tile from the given 
-     * JPlayField. If the tile is an {@link Tile#isApple() apple tile}, then 
-     * this will return the JPlayField's {@link JPlayField#getAppleColor() apple 
-     * color}. If the tile is a {@link Tile#isSnake() snake tile} with its 
-     * {@link Tile#getType() type flag} set, then this will return the 
-     * JPlayField's {@link JPlayField#getSecondarySnakeColor() secondary snake 
-     * color}. If the tile is a {@link Tile#isSnake() snake tile} that does not 
-     * have its {@link Tile#getType() type flag} set, then this will return the 
-     * JPlayField's {@link JPlayField#getPrimarySnakeColor() primary snake 
-     * color}. Otherwise, this returns null.
+     * JPlayField. If the tile is an {@link Tile#isApple apple tile}, then this 
+     * will return the JPlayField's {@link JPlayField#getAppleColor apple 
+     * color}. If the tile is a {@link Tile#isSnake snake tile} with its {@link 
+     * Tile#getType type flag} set, then this will return the JPlayField's 
+     * {@link JPlayField#getSecondarySnakeColor secondary snake color}. If the 
+     * tile is a {@link Tile#isSnake snake tile} that does not have its {@link 
+     * Tile#getType type flag} set, then this will return the JPlayField's 
+     * {@link JPlayField#getPrimarySnakeColor primary snake color}. Otherwise, 
+     * this returns null.
      * @param c The JPlayField to query for the color. This cannot be null.
      * @param tile The tile to get the color for.
      * @return The color for the given tile, or null.
@@ -769,7 +735,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
      * This returns whether this should render the tile border. <p>
      * 
-     * This calls the given JPlayField's {@link JPlayField#isTileBorderPainted() 
+     * This calls the given JPlayField's {@link JPlayField#isTileBorderPainted 
      * isTileBorderPainted} and checks to see if the tile size is at least 3x3 
      * (since the tile border ends up effectively covering some of the tiles at 
      * tile sizes smaller than 3x3) to see if the tile border should be 
@@ -799,17 +765,17 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     /**
      * {@inheritDoc } <p>
      * 
-     * This method actually delegates the work of rendering the play field to 
-     * five protected methods: {@code configureGraphics}, {@code 
-     * paintTileBackground}, {@code paintTiles}, {@code paintTileBorder}, and 
-     * {@code paintDisabledOverlay}. They are called in the order listed to 
-     * ensure that the given graphics context is configured before anything is 
-     * rendered, the tiles appear on top of the tile background, the tile border 
-     * appears on top of the tiles, and the disabled overlay appears above all. 
-     * The {@code paintDisabledOverlay} method is only called if the given 
-     * JPlayField is disabled. The {@code paintTiles} method is also responsible 
-     * for outlining and returning the path {@code paintTileBorder} will take 
-     * when rendering the tile border.
+     * This method delegates the work of rendering the play field to five 
+     * protected methods: {@code configureGraphics}, {@code paintTileBackground}, 
+     * {@code paintTiles}, {@code paintTileBorder}, and {@code 
+     * paintDisabledOverlay}. They are called in the order listed to ensure that 
+     * the given graphics context is configured before anything is rendered, the 
+     * tiles appear on top of the tile background, the tile border appears on 
+     * top of the tiles, and the disabled overlay appears above all. The {@code 
+     * paintDisabledOverlay} method is only called if the given JPlayField is 
+     * disabled. In addition to rendering the tiles, the {@code paintTiles} 
+     * method is also responsible for outlining and returning the path {@code 
+     * paintTileBorder} will use when rendering the tile border.
      * 
      * @param g {@inheritDoc }
      * @param c {@inheritDoc }
@@ -894,9 +860,9 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     }
     /**
      * This is used to render the tile background. If the {@link 
-     * JPlayField#isTileBackgroundPainted() tile background is to be painted}, 
+     * JPlayField#isTileBackgroundPainted tile background is to be painted}, 
      * then this will fill the play field area (the area defined by {@code 
-     * fieldR}) with the {@link JPlayField#getTileBackground() tile background 
+     * fieldR}) with the {@link JPlayField#getTileBackground tile background 
      * color}. This renders to a copy of the given graphics context, so as to 
      * protect the rest of the paint code from changes made to the graphics 
      * context while rendering the tile background.
@@ -966,16 +932,20 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
             Rectangle2D fieldR){
         g = (Graphics2D) g.create();
         g.clip(fieldR);
-            // The path object to return for rendering the border
-        Path2D borderP = new Path2D.Double(fieldR);
-            // An ellipse to use to get the center circle of the tiles
-        Ellipse2D circle = new Ellipse2D.Double();
-            // A rectangle to use to get snake segments
-        Rectangle2D rect = new Rectangle2D.Double();
-            // A point object to use for the tile diagonal calculations
-        Point2D point1 = new Point2D.Double();
-            // A second point object to use for the tile diagonal calculations
-        Point2D point2 = new Point2D.Double();
+        if (path == null)   // If the path to use is not initialized yet
+            path = new Path2D.Double(fieldR);
+        else{   // Reset the path before adding the fieldR
+            path.reset();
+            path.append(fieldR, false);
+        }
+        if (ellipse == null)    // If the ellipse to use is not initialized yet
+            ellipse = new Ellipse2D.Double();
+        if (rect == null)   // If the rectangle to use is not initialized yet
+            rect = new Rectangle2D.Double();
+        if (point1 == null) // If the first point to use is not initialized yet
+            point1 = new Point2D.Double();
+        if (point2 == null) // If the second point to use is not initialized yet
+            point2 = new Point2D.Double();
             // An array of tiles to contain the tiles at the start of the 
             // current snake segments. The last one in the array (index is 
             // c.getColumnCount()) is the start of the current horizontal snake 
@@ -990,7 +960,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
                 Tile tile = c.getTile(r, col);
                     // If the tile is not null, paint the tile
                 if (tile != null)
-                    paintTile(g,c,tile,tileS,fieldR,start,circle,rect,point1,
+                    paintTile(g,c,tile,tileS,fieldR,start,ellipse,rect,point1,
                             point2);
                     // If this is the first row and not the first column (this 
                     // is to prevent adding repeated vertical lines to the 
@@ -999,8 +969,8 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
                         // to get the x-coordinate for the vertical border line 
                         // between this column and the previous column
                     point1 = tileToLocation(c,0,col,tileS,fieldR,point1);
-                    borderP.moveTo(point1.getX(), fieldR.getMinY());
-                    borderP.lineTo(point1.getX(), fieldR.getMaxY());
+                    path.moveTo(point1.getX(), fieldR.getMinY());
+                    path.lineTo(point1.getX(), fieldR.getMaxY());
                 }
             }   // If this is not the first row (this is to prevent adding 
             if (r > 0){ // repeated horizontal lines to the border path)
@@ -1008,12 +978,12 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
                     // the y-coordinate for the horizontal border line between 
                     // this row and the previous row
                 point1 = tileToLocation(c,r,0,tileS,fieldR,point1);
-                borderP.moveTo(fieldR.getMinX(), point1.getY());
-                borderP.lineTo(fieldR.getMaxX(), point1.getY());
+                path.moveTo(fieldR.getMinX(), point1.getY());
+                path.lineTo(fieldR.getMaxX(), point1.getY());
             }
         }
         g.dispose();
-        return borderP;
+        return path;
     }
     /**
      * This is used to render the given tile in the play field. This is called 
@@ -1021,23 +991,22 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * <p>
      * 
      * When rendering a tile, it is first checked to see what kind tile it is. 
-     * An {@link Tile#isEmpty() empty tile} results in this method doing 
-     * nothing since empty tiles are, well, empty, and thus have nothing to 
-     * render. If the tile is not empty, then the color to use for the tile is 
-     * retrieved using the {@link #getTileColor getTileColor} method, and the x 
-     * and y offsets for the contents of the tile are retrieved using the {@link 
+     * An {@link Tile#isEmpty empty tile} results in this method doing nothing 
+     * since empty tiles are, well, empty, and thus have nothing to render. If 
+     * the tile is not empty, then the color to use for the tile is retrieved 
+     * using the {@link #getTileColor getTileColor} method, and the x and y 
+     * offsets for the contents of the tile are retrieved using the {@link 
      * #getTileContentsOffset getTileContentsOffset} method using the width and 
      * height from the given tile size, respectively. The tile is then checked 
-     * to see if it is either an {@link Tile#isApple() apple tile} or if it at 
+     * to see if it is either an {@link Tile#isApple apple tile} or if it at 
      * least isn't facing opposing directions simultaneously (i.e. the tile is 
-     * not facing both {@link Tile#isFacingUp() up} and {@link 
-     * Tile#isFacingDown() down} or both {@link Tile#isFacingLeft() left} and 
-     * {@link Tile#isFacingRight() right} at the same tile), and if so, this 
-     * will render the tile's center circle, as provided by the {@link 
-     * #getTileCenterCircle getTileCenterCircle} method. The reason why this is 
-     * checked for is to avoid pointlessly rendering the center circle if it 
-     * will be covered up by a snake segment, and thus will not be visible 
-     * anyway. <p>
+     * not facing both {@link Tile#isFacingUp up} and {@link Tile#isFacingDown 
+     * down} or both {@link Tile#isFacingLeft left} and {@link 
+     * Tile#isFacingRight right} at the same tile), and if so, this will render 
+     * the tile's center circle, as provided by the {@link #getTileCenterCircle 
+     * getTileCenterCircle} method. The reason why this is checked for is to 
+     * avoid pointlessly rendering the center circle if it will be covered up by 
+     * a snake segment, and thus will not be visible anyway. <p>
      * 
      * Afterwards, this will call {@link #getSnakeSegment getSnakeSegment} with 
      * the given {@code startTiles} array so as to get any snake segments to be 
@@ -1062,7 +1031,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param tileS The size for the tile.
      * @param fieldR The bounds of the play field. 
      * @param startTiles The array storing the start tiles for the snake 
-     * segments (should be 1+{@link JPlayField#getColumnCount() 
+     * segments (should be 1+{@link JPlayField#getColumnCount 
      * c.getColumnCount()} in length). 
      * @param circle An ellipse to reuse for getting the center circle, or null.
      * @param rect A rectangle to reuse for getting snake segments, or null.
@@ -1098,7 +1067,8 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     protected void paintTile(Graphics2D g, JPlayField c, Tile tile, 
             Dimension2D tileS, Rectangle2D fieldR, Tile[] startTiles, 
             Ellipse2D circle, Rectangle2D rect, Point2D point1, Point2D point2){
-        if (tile.isEmpty()) // If the tile is empty (nothing is to be rendered)
+            // If the tile is null or empty (nothing is to be rendered)
+        if (tile == null || tile.isEmpty()) 
             return;
         g.setColor(getTileColor(c,tile));
             // Get the x offset for the tile contents
@@ -1187,15 +1157,15 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * The {@code vertical} value determines whether this will be a vertical or 
      * horizontal snake segment. When getting a vertical snake segment, the 
      * snake segment will start at either the top or middle of the first tile, 
-     * depending on whether the first tile is facing {@link Tile#isFacingDown() 
+     * depending on whether the first tile is facing {@link Tile#isFacingDown 
      * down} or not, and will end at either the bottom or middle of the last 
      * tile, depending on whether the last tile is facing {@link Tile#isFacingUp 
      * up} or not. When getting a horizontal snake segment, the snake segment 
      * will start at either the left side or middle of the first tile, depending 
-     * on whether the first tile is facing to the {@link Tile#isFacingRight() 
+     * on whether the first tile is facing to the {@link Tile#isFacingRight 
      * right} or not, and will end at either the right side or middle of the 
      * last tile, depending on whether the last tile is facing to the {@link 
-     * Tile#isFacingLeft() left} or not. The given x offset is only applied when 
+     * Tile#isFacingLeft left} or not. The given x offset is only applied when 
      * getting a vertical snake segment, and the given y offset is only applied 
      * when getting a horizontal snake segment. <p>
      * 
@@ -1289,7 +1259,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * This stores the rectangle to use to render the snake segment that ends at 
      * the given tile into the given Rectangle2D object and returns it. If 
      * {@code rect} is null, then a new Rectangle2D object will be returned. 
-     * This will return null if the tile is not a {@link Tile#isSnake() snake 
+     * This will return null if the tile is not a {@link Tile#isSnake snake 
      * tile} that contains a snake segment of the requested orientation (as 
      * determined by the {@code vertical} value) or if the snake segment should 
      * not be rendered yet. <p>
@@ -1302,8 +1272,8 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * has been reached. To accomplish this, a buffer is used to store the tiles 
      * at the start of the snake segment. The {@code startTiles} array is used 
      * for this purpose. The {@code startTiles} array should be at least 1 + 
-     * {@link JPlayField#getColumnCount() c.getColumnCount()} in length, with 
-     * the last index in that range used to store the start of the current 
+     * {@link JPlayField#getColumnCount c.getColumnCount()} in length, with the 
+     * last index in that range used to store the start of the current 
      * horizontal snake segment, and the rest are used to store the start of the 
      * current vertical snake segments in the index corresponding to their 
      * column. When this reaches a tile at the start of a snake segment, then 
@@ -1313,26 +1283,26 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * 
      * The {@code vertical} value determines whether this will be a vertical or 
      * horizontal snake segment. Vertical snake segments depend on whether tiles 
-     * are facing {@link Tile#isFacingUp() up} and/or {@link Tile#isFacingDown() 
+     * are facing {@link Tile#isFacingUp up} and/or {@link Tile#isFacingDown 
      * down}, whereas horizontal snake segments depend on whether tiles are 
-     * facing {@link Tile#isFacingLeft() left} and/or {@link Tile#isFacingRight 
+     * facing {@link Tile#isFacingLeft left} and/or {@link Tile#isFacingRight 
      * right}. If a tile is not facing at least one of the directions listed for 
      * the snake segment that is being retrieved, then this returns null since 
      * the tile does not contain a snake segment of the requested orientation. 
      * Otherwise, this will get the tile in the {@code startTiles} array at the 
      * index corresponding to the snake segment to return. If this is getting a 
      * vertical snake segment, then the starting tile for the segment will be at 
-     * the index equal to the given tile's {@link Tile#getColumn() column}. If 
+     * the index equal to the given tile's {@link Tile#getColumn column}. If 
      * this is getting a horizontal snake segment, then the starting tile for 
      * the segment will be at the index equal to the {@link 
-     * JPlayField#getColumnCount() number of columns} in the play field (i.e. 
-     * the index will be {@code c.getColumnCount()}). If the starting tile is 
-     * null, then the given tile is the start of the current snake segment. This 
-     * will then get the tile {@link JPlayField#getAdjacentTile adjacent} to the 
+     * JPlayField#getColumnCount number of columns} in the play field (i.e. the 
+     * index will be {@code c.getColumnCount()}). If the starting tile is null, 
+     * then the given tile is the start of the current snake segment. This will 
+     * then get the tile {@link JPlayField#getAdjacentTile adjacent} to the 
      * given tile that might be the next tile in the snake segment. That is to 
      * say, this will get the tile {@link #DOWN_DIRECTION under} the given tile 
      * if this is getting a vertical snake segment, and the tile to the {@link 
-     * #LEFT_DIRECTION left} of the given tile if this getting a horizontal 
+     * #RIGHT_DIRECTION right} of the given tile if this getting a horizontal 
      * snake segment. If the given tile is facing up (vertical) or to the left 
      * (horizontal) and the next tile is a non-null snake tile that is facing 
      * down (vertical) or to the right (horizontal) and that is the same {@link 
@@ -1358,7 +1328,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param c The JPlayField being rendered.
      * @param tile The tile currently being rendered.
      * @param startTiles The array storing the start tiles for the snake 
-     * segments (should be 1+{@link JPlayField#getColumnCount() 
+     * segments (should be 1+{@link JPlayField#getColumnCount 
      * c.getColumnCount()} in length). 
      * @param tileS The size for the tile.
      * @param fieldR The bounds of the play field. 
@@ -1450,7 +1420,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * path for the border ({@code borderP}) is not null, then this will render 
      * the given border path using the {@link JPlayField#getTileBorder tile 
      * border color}. The border is rendered with no antialiasing, regardless of 
-     * whether the play field is rendered in {@link JPlayField#isHighQuality() 
+     * whether the play field is rendered in {@link JPlayField#isHighQuality 
      * high quality}, and uses the {@link #getBorderStroke border stroke} if not 
      * null. This renders to a copy of the given graphics context, so as to 
      * protect the rest of the paint code from changes made to the graphics 
@@ -1501,9 +1471,9 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
         }
     }
     /**
-     * This is used to render the disabled overlay when the JPlayField is 
-     * {@link JPlayField#isEnabled() disabled}. This is only called by {@link 
-     * paint paint} when it is given a disabled JPlayField. If the JPlayField is 
+     * This is used to render the disabled overlay when the JPlayField is {@link 
+     * JPlayField#isEnabled disabled}. This is only called by {@link #paint 
+     * paint} when it is given a disabled JPlayField. If the JPlayField is 
      * disabled, then this will fill the play field area (the area defined by 
      * {@code fieldR}) with the {@link DISABLED_OVERLAY_COLOR disabled overlay 
      * color}. This renders to a copy of the given graphics context, so as to 

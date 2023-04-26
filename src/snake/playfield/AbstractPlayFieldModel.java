@@ -57,6 +57,11 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      */
     private EventFlag pausedFlag = new EventFlag();
     /**
+     * This constructs an AbstractPlayFieldModel.
+     */
+    public AbstractPlayFieldModel(){
+    }
+    /**
      * {@inheritDoc }
      * @see #getTilesAreAdjusting 
      * @see PlayFieldEvent#getTilesAreAdjusting 
@@ -1184,15 +1189,20 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
          */
         private int index;
         /**
-         * This stores the number of rows that were being displayed when this 
+         * This stores the number of rows that were in this model when this 
          * iterator was constructed.
          */
         private final int rows;
         /**
-         * This stores the number of columns that were being displayed when this 
+         * This stores the number of columns that were in this model when this 
          * iterator was constructed.
          */
         private final int columns;
+        /**
+         * This stores the total number of tiles that were in this model when 
+         * this iterator was constructed.
+         */
+        private final int tileCount;
         /**
          * This constructs a PlayFieldIterator.
          */
@@ -1200,11 +1210,23 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
             index = 0;
             rows = getRowCount();
             columns = getColumnCount();
+            tileCount = getTileCount();
         }
+        /**
+         * {@inheritDoc }
+         * @return {@inheritDoc }
+         */
         @Override
         public boolean hasNext() {
-            return index < getTileCount();
+            return index < tileCount;
         }
+        /**
+         * {@inheritDoc }
+         * @return {@inheritDoc }
+         * @throws NoSuchElementException {@inheritDoc}
+         * @throws ConcurrentModificationException If the model was modified 
+         * since this iterator was constructed.
+         */
         @Override
         public Tile next() {
                 // Check for concurrent modification
@@ -1224,9 +1246,10 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
          * since this iterator was constructed.
          */
         protected void checkForConcurrentModification(){
-                // If the amount of rows or columns has changed since this 
-                // iterator was created
-            if (rows != getRowCount() || columns != getColumnCount())
+                // If the amount of rows, columns, or tiles has changed since 
+                // this iterator was created
+            if (rows != getRowCount() || columns != getColumnCount() || 
+                    tileCount != getTileCount())
                 throw new ConcurrentModificationException();
         }
     }
