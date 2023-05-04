@@ -112,6 +112,21 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
         return SnakeUtilities.computePlayFieldSize(c,32,null);
     }
     /**
+     * {@inheritDoc} <p>
+     * 
+     * This returns {@code true}, so as to indicate that the JPlayField should 
+     * be rendered in high quality by default.
+     * 
+     * @param c {@inheritDoc }
+     * @return {@inheritDoc }
+     * @see JPlayField#isHighQuality 
+     * @see JPlayField#setHighQuality 
+     */
+    @Override
+    public Boolean isHighQuality(JPlayField c){
+        return true;
+    }
+    /**
      * This checks to see if the source of the event is a component, and if so, 
      * revalidate and repaints it.
      * @param source The source of the event being processed.

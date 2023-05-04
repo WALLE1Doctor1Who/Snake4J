@@ -3599,11 +3599,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * removed}. This will then call {@link #setConsumedApple setConsumedApple} 
      * to update whether this snake ate an apple and fire a {@link 
      * SnakeEvent#SNAKE_CONSUMED_APPLE SNAKE_CONSUMED_APPLE} {@code SnakeEvent} 
-     * if it did, fire either a {@link SnakeEvent#SNAKE_ADDED_TILE 
-     * SNAKE_ADDED_TILE} {@code SnakeEvent} or a {@link SnakeEvent#SNAKE_MOVED 
-     * SNAKE_MOVED} {@code SnakeEvent}, depending on whether this added a tile 
-     * or moved the snake, and finally return {@code true} to indicate that this 
-     * succeeded in adding to or moving the snake. <p>
+     * if it did. This will then fire a {@link SnakeEvent#SNAKE_ADDED_TILE 
+     * SNAKE_ADDED_TILE} {@code SnakeEvent}. If this moved the snake, then this 
+     * will also fire a {@link SnakeEvent#SNAKE_REMOVED_TILE SNAKE_REMOVED_TILE} 
+     * {@code SnakeEvent} and a {@link SnakeEvent#SNAKE_MOVED SNAKE_MOVED} 
+     * {@code SnakeEvent} to indicate that the tail was removed and that the 
+     * snake has moved. Afterwards, this will finally return {@code true} to 
+     * indicate that this succeeded in adding to or moving the snake. <p>
      * 
      * The {@link #add(int) add} and {@link #move(int) move} methods delegate 
      * the task of adding and moving the snake to this method, forwarding the 
@@ -3682,6 +3684,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see #poll 
      * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
+     * @see SnakeEvent#SNAKE_REMOVED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      * @see SnakeEvent#SNAKE_FAILED
@@ -3723,14 +3726,21 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             // If the snake ate an apple and apples cause the snake to grow
         if (ateApple && getApplesCauseGrowth())
             moveSnake = false;  // Override moveSnake to make the snake grow
+        Tile tail = null;       // This gets the tail if the snake is moving
         if (moveSnake)          // If the snake is moving
-            pollTail();         // Remove the current tail
+            tail = pollTail();  // Remove the current tail
             // Set whether the snake ate an apple based off whether the tile was 
             // an apple tile. This will also fire an event if an apple was eaten
         setConsumedApple(ateApple,direction,tile);
-            // If the snake moved, fire a snake moved event. Otherise, fire a 
-        fireSnakeChange((moveSnake)?SnakeEvent.SNAKE_MOVED:// snake added event
-                SnakeEvent.SNAKE_ADDED_TILE,direction,tile);
+            // Fire a snake added tile event
+        fireSnakeChange(SnakeEvent.SNAKE_ADDED_TILE,direction,tile);
+        if (moveSnake){         // If the snake moved
+            if (tail != null)   // If a tile was removed
+                    // Fire a snake removed tile event
+                fireSnakeChange(SnakeEvent.SNAKE_REMOVED_TILE,0,tail);
+                // Fire a snake moved event
+            fireSnakeChange(SnakeEvent.SNAKE_MOVED,direction,tile);
+        }
         model.setTilesAreAdjusting(adjusting);
         return true;
     }
@@ -3981,31 +3991,33 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * does not have a tail) will be removed from this snake, the snake's {@link 
      * #getFailCount fail count} will be reset to zero, and this will fire a 
      * {@code SnakeEvent} indicating that this snake has {@link 
-     * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
-     * #getAdjacentToHead getAdjacentToHead} method for more information about 
-     * how this gets the tile adjacent to the head. If the tile was an {@link 
-     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
-     * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
-     * {@code true}. If this snake {@link #getApplesCauseGrowth grows when it 
-     * eats apples}, then eating an apple will cause a tile to be {@link 
-     * #add(int) added} to this snake instead of moving this snake. Snakes can 
-     * only move to apple tiles if they are able to {@link 
-     * #isAppleConsumptionEnabled eat apples}. If the snake failed to move, then 
-     * this will fire a {@code SnakeEvent} indicating that the snake {@link 
-     * SnakeEvent#SNAKE_FAILED failed} to move. When a snake fails to move or 
-     * add a tile, and it was not attempting to add or move to the tile in the 
-     * snake behind the head (if the snake was not attempting to add or move 
-     * backwards), then its fail count will be incremented. If a snake's fail 
-     * count exceeds its {@link #getAllowedFails allowed number of failures}, 
-     * then it will crash. If the allowed number of failures is negative, then 
-     * the snake will be allowed to fail an unlimited amount of times without 
-     * crashing. In other words, if the allowed number of failures is negative, 
-     * then the snake cannot crash by failing to add or move to a tile. If this 
-     * snake crashes, then this will fire a {@code SnakeEvent} indicating that 
-     * the snake has {@link SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has 
-     * crashed, it will be unable to add or move to a tile until it has been 
-     * {@link #revive revived}. <p>
+     * SnakeEvent#SNAKE_MOVED moved}, along with {@code SnakeEvent}s indicating 
+     * that a tile was {@link SnakeEvent#SNAKE_ADDED_TILE added} and that a tile 
+     * was {@link SnakeEvent#SNAKE_REMOVED_TILE removed}. Refer to the 
+     * documentation for the {@link #getAdjacentToHead getAdjacentToHead} method 
+     * for more information about how this gets the tile adjacent to the head. 
+     * If the tile was an {@link Tile#isApple apple tile}, then this will also 
+     * fire a {@code SnakeEvent} indicating that an {@link 
+     * SnakeEvent#SNAKE_CONSUMED_APPLE apple was consumed} and {@link 
+     * #hasConsumedApple hasConsumedApple} will return {@code true}. If this 
+     * snake {@link #getApplesCauseGrowth grows when it eats apples}, then 
+     * eating an apple will cause a tile to be {@link #add(int) added} to this 
+     * snake instead of moving this snake. Snakes can only move to apple tiles 
+     * if they are able to {@link #isAppleConsumptionEnabled eat apples}. If the 
+     * snake failed to move, then this will fire a {@code SnakeEvent} indicating 
+     * that the snake {@link SnakeEvent#SNAKE_FAILED failed} to move. When a 
+     * snake fails to move or add a tile, and it was not attempting to add or 
+     * move to the tile in the snake behind the head (if the snake was not 
+     * attempting to add or move backwards), then its fail count will be 
+     * incremented. If a snake's fail count exceeds its {@link #getAllowedFails 
+     * allowed number of failures}, then it will crash. If the allowed number of 
+     * failures is negative, then the snake will be allowed to fail an unlimited 
+     * amount of times without crashing. In other words, if the allowed number 
+     * of failures is negative, then the snake cannot crash by failing to add or 
+     * move to a tile. If this snake crashes, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED 
+     * crashed}. Once a snake has crashed, it will be unable to add or move to a 
+     * tile until it has been {@link #revive revived}. <p>
      * 
      * The {@link #add(int) add(int)} method works similarly to this, with the 
      * exception being that this snake will become longer regardless of whether 
@@ -4068,6 +4080,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see #poll 
      * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
+     * @see SnakeEvent#SNAKE_REMOVED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      * @see SnakeEvent#SNAKE_FAILED
@@ -4097,31 +4110,33 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * does not have a tail) will be removed from this snake, the snake's {@link 
      * #getFailCount fail count} will be reset to zero, and this will fire a 
      * {@code SnakeEvent} indicating that this snake has {@link 
-     * SnakeEvent#SNAKE_MOVED moved}. Refer to the documentation for the {@link 
-     * #getTileBeingFaced getTileBeingFaced} method for more information about 
-     * how this gets the tile in front of the head. If the tile was an {@link 
-     * Tile#isApple apple tile}, then this will also fire a {@code SnakeEvent} 
-     * indicating that an {@link SnakeEvent#SNAKE_CONSUMED_APPLE apple was 
-     * consumed} and {@link #hasConsumedApple hasConsumedApple} will return 
-     * {@code true}. If this snake {@link #getApplesCauseGrowth grows when it 
-     * eats apples}, then eating an apple will cause a tile to be {@link #add() 
-     * added} to this snake instead of moving this snake. Snakes can only move 
-     * to apple tiles if they are able to {@link #isAppleConsumptionEnabled eat 
-     * apples}. If the snake failed to move, then this will fire a {@code 
-     * SnakeEvent} indicating that the snake {@link SnakeEvent#SNAKE_FAILED 
-     * failed} to move. When a snake fails to move or add a tile, and it was not 
-     * attempting to add or move to the tile in the snake behind the head (if 
-     * the snake was not attempting to add or move backwards), then its fail 
-     * count will be incremented. If a snake's fail count exceeds its {@link 
-     * #getAllowedFails allowed number of failures}, then it will crash. If the 
-     * allowed number of failures is negative, then the snake will be allowed to 
-     * fail an unlimited amount of times without crashing. In other words, if 
-     * the allowed number of failures is negative, then the snake cannot crash 
-     * by failing to add or move to a tile. If this snake crashes, then this 
-     * will fire a {@code SnakeEvent} indicating that the snake has {@link 
-     * SnakeEvent#SNAKE_CRASHED crashed}. Once a snake has crashed, it will be 
-     * unable to add or move to a tile until it has been {@link #revive 
-     * revived}. <p>
+     * SnakeEvent#SNAKE_MOVED moved}, along with {@code SnakeEvent}s indicating 
+     * that a tile was {@link SnakeEvent#SNAKE_ADDED_TILE added} and that a tile 
+     * was {@link SnakeEvent#SNAKE_REMOVED_TILE removed}. Refer to the 
+     * documentation for the {@link #getTileBeingFaced getTileBeingFaced} method 
+     * for more information about how this gets the tile in front of the head. 
+     * If the tile was an {@link Tile#isApple apple tile}, then this will also 
+     * fire a {@code SnakeEvent} indicating that an {@link 
+     * SnakeEvent#SNAKE_CONSUMED_APPLE apple was consumed} and {@link 
+     * #hasConsumedApple hasConsumedApple} will return {@code true}. If this 
+     * snake {@link #getApplesCauseGrowth grows when it eats apples}, then 
+     * eating an apple will cause a tile to be {@link #add() added} to this 
+     * snake instead of moving this snake. Snakes can only move to apple tiles 
+     * if they are able to {@link #isAppleConsumptionEnabled eat apples}. If the 
+     * snake failed to move, then this will fire a {@code SnakeEvent} indicating 
+     * that the snake {@link SnakeEvent#SNAKE_FAILED failed} to move. When a 
+     * snake fails to move or add a tile, and it was not attempting to add or 
+     * move to the tile in the snake behind the head (if the snake was not 
+     * attempting to add or move backwards), then its fail count will be 
+     * incremented. If a snake's fail count exceeds its {@link #getAllowedFails 
+     * allowed number of failures}, then it will crash. If the allowed number of 
+     * failures is negative, then the snake will be allowed to fail an unlimited 
+     * amount of times without crashing. In other words, if the allowed number 
+     * of failures is negative, then the snake cannot crash by failing to add or 
+     * move to a tile. If this snake crashes, then this will fire a {@code 
+     * SnakeEvent} indicating that the snake has {@link SnakeEvent#SNAKE_CRASHED 
+     * crashed}. Once a snake has crashed, it will be unable to add or move to a 
+     * tile until it has been {@link #revive revived}. <p>
      * 
      * The {@link #add() add()} method works similarly to this, with the 
      * exception being that this snake will become longer regardless of whether 
@@ -4177,6 +4192,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see #poll 
      * @see #remove() 
      * @see SnakeEvent#SNAKE_ADDED_TILE
+     * @see SnakeEvent#SNAKE_REMOVED_TILE
      * @see SnakeEvent#SNAKE_MOVED
      * @see SnakeEvent#SNAKE_CONSUMED_APPLE
      * @see SnakeEvent#SNAKE_FAILED

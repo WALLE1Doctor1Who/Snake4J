@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="215">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="217">
+        <file>
+            <url>src/snake/SnakeGame4J.java</url>
+            <bookmark id="216">
+                <name/>
+                <line>972</line>
+                <key/>
+            </bookmark>
+            <bookmark id="217">
+                <name/>
+                <line>1064</line>
+                <key/>
+            </bookmark>
+        </file>
         <file>
             <url>src/snake/JSnakePlayField.java</url>
             <bookmark id="1">

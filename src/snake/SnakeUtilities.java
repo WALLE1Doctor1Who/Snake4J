@@ -557,16 +557,19 @@ public class SnakeUtilities implements SnakeConstants{
      * their {@link Snake#doNextAction() doNextAction} methods. If any of the 
      * snakes throws an exception while performing their next action, the 
      * exception will be relayed to the caller and the remaining snakes will not 
-     * perform their next action.
+     * perform their next action. Any null snakes and snakes that are in an 
+     * {@link Snake#isValid invalid} state will be skipped.
      * @param snakes The collection of snakes that are to perform their next 
      * actions (cannot be null).
      * @throws NullPointerException If the given collection is null.
      * @see Snake#doNextAction 
+     * @see Snake#isValid 
      */
     public static void snakesDoNextAction(Collection<? extends Snake> snakes){
         Objects.requireNonNull(snakes); // Check to see if the collection is null
         for (Snake snake : snakes){     // A for loop to go through the snakes
-            if (snake != null)          // If the current snake is non-null
+                // If the current snake is non-null and is in a valid state.
+            if (snake != null && snake.isValid())          
                 snake.doNextAction();   // Have the snake perform its next action
         }
     }

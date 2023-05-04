@@ -19,8 +19,8 @@ import snake.event.*;
 import snake.playfield.*;
 
 /**
- * This is a panel that displays the play field for the game Snake. The play 
- * field is made up of a grid of {@link Tile tiles}, which is maintained by the 
+ * This is a component that displays the play field for the game Snake. The play 
+ * field is made up of a grid of {@link Tile tiles} which is maintained by the 
  * model for {@code JPlayField}, the {@link PlayFieldModel PlayFieldModel}. <p>
  * 
  * The contents of the {@code PlayFieldModel} do not need to be static, as the 
@@ -528,10 +528,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return (getRenderer() != null)?getRenderer().getTileSize(this):null;
     }
     /**
-     * This stores the bounds, in this panel's coordinate system, for the play 
-     * field into the given Rectangle2D object. If the given Rectangle2D object 
-     * is null, then a new Rectangle2D object will be returned. This version is 
-     * useful as to avoid creating a new Rectangle2D object. <p>
+     * This stores the bounds, in this component's coordinate system, for the 
+     * play field into the given Rectangle2D object. If the given Rectangle2D 
+     * object is null, then a new Rectangle2D object will be returned. This 
+     * version is useful as to avoid creating a new Rectangle2D object. <p>
      * 
      * This delegates to the {@link 
      * PlayFieldRenderer#getPlayFieldBounds(JPlayField, Rectangle2D) 
@@ -559,8 +559,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 rect) : null;
     }
     /**
-     * This returns the bounds, in this panel's coordinate system, for the play 
-     * field. This is equivalent to calling {@link 
+     * This returns the bounds, in this component's coordinate system, for the 
+     * play field. This is equivalent to calling {@link 
      * #getPlayFieldBounds(Rectangle2D) getPlayFieldBounds}{@code (null)}. <p>
      * 
      * This delegates to the {@link 
@@ -587,12 +587,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 null;
     }
     /**
-     * This returns the bounds, in this panel's coordinate system, for the range 
-     * of tiles specified by the rows {@code row0} and {@code row1} and the 
-     * columns {@code column0} and {@code column1}. Note that {@code row0} does 
-     * not necessarily need to be less than or equal to {@code row1}, and that 
-     * {@code column0} does not necessarily need to be less than or equal to 
-     * {@code column1}. <p>
+     * This returns the bounds, in this component's coordinate system, for the 
+     * range of tiles specified by the rows {@code row0} and {@code row1} and 
+     * the columns {@code column0} and {@code column1}. Note that {@code row0} 
+     * does not necessarily need to be less than or equal to {@code row1}, and 
+     * that {@code column0} does not necessarily need to be less than or equal 
+     * to {@code column1}. <p>
      * 
      * If the smaller row and/or column are outside the play field's range of 
      * tiles, then this method will return null. If the smaller row and column 
@@ -633,9 +633,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 row1,column0,column1) : null;
     }
     /**
-     * This returns the bounds, in this panel's coordinate system, for the tile 
-     * at the given row and column. If the row and/or column are outside the 
-     * range of the play field, then this returns null. <p>
+     * This returns the bounds, in this component's coordinate system, for the 
+     * tile at the given row and column. If the row and/or column are outside 
+     * the range of the play field, then this returns null. <p>
      * 
      * This is equivalent to calling {@link #getTileBounds(int, int, int, int) 
      * getTileBounds} with the given row for {@code row0} and {@code row1}, and 
@@ -665,12 +665,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return getTileBounds(row,row,column,column);
     }
     /**
-     * This returns the bounds, in this panel's coordinate system, for the given 
-     * tile. If the given tile is not in the play field, then this returns null. 
-     * <p>
+     * This returns the bounds, in this component's coordinate system, for the 
+     * given tile. If the given tile is not in the play field, then this returns 
+     * null. <p>
+     * 
      * This is equivalent to calling {@link #getTileBounds(int, int) 
      * getTileBounds} with the tile's {@link Tile#getRow() row} and {@link 
-     * Tile#getColumn() column} if this panel {@link #containsTile(Tile) 
+     * Tile#getColumn() column} if this component {@link #containsTile(Tile) 
      * contains} the tile. As such, this will return null if either the play 
      * field does not contain the tile or if the {@link #getRenderer() play 
      * field renderer} is null.
@@ -696,13 +697,13 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldRenderer#getTileBounds 
      */
     public Rectangle2D getTileBounds(Tile tile){
-            // If this panel contains the tile, return its bounds. Otherwise, 
-        return (containsTile(tile))?getTileBounds(tile.getRow(),  // return null
-                tile.getColumn()):null;
+            // If this play field contains the tile, return its bounds. 
+        return (containsTile(tile))?getTileBounds(tile.getRow(),
+                tile.getColumn()):null;     // Otherwise, return null
     }
     /**
      * This returns the origin of the tile at the given row and column, in this 
-     * panel's coordinate system, or null if the given row and/or column are 
+     * component's coordinate system, or null if the given row and/or column are 
      * invalid. <p>
      * 
      * This delegates to the {@link PlayFieldRenderer#tileToLocation 
@@ -736,12 +737,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 column) : null;
     }
     /**
-     * This returns the origin of the given tile, in this panel's coordinate 
+     * This returns the origin of the given tile, in this component's coordinate 
      * system, or null if the given tile is not in the play field. <p>
      * 
      * This is equivalent to calling {@link #tileToLocation(int, int) 
      * tileToLocation} with the tile's {@link Tile#getRow() row} and {@link 
-     * Tile#getColumn() column} if this panel {@link #containsTile(Tile) 
+     * Tile#getColumn() column} if this component {@link #containsTile(Tile) 
      * contains} the tile. As such, this will return null if either the play 
      * field does not contain the tile or if the {@link #getRenderer() play 
      * field renderer} is null.
@@ -770,14 +771,14 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * @see PlayFieldRenderer#tileToLocation 
      */
     public Point2D tileToLocation(Tile tile){
-        // If this panel contains the tile, return its location. Otherwise, 
+        // If this play field contains the tile, return its location. Otherwise, 
         return (containsTile(tile))?tileToLocation(tile.getRow(),// return null
                 tile.getColumn()):null;
     }
     /**
      * This returns the tile that is closest to the given location in this 
-     * panel's coordinate system. To determine if the tile actually contains the 
-     * specified location, compare the point against the {@link 
+     * component's coordinate system. To determine if the tile actually contains 
+     * the specified location, compare the point against the {@link 
      * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
      * tile at the given location. <p> 
      * 
@@ -817,8 +818,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns the tile that is closest to the given location in this 
-     * panel's coordinate system. To determine if the tile actually contains the 
-     * specified location, compare the point against the {@link 
+     * component's coordinate system. To determine if the tile actually contains 
+     * the specified location, compare the point against the {@link 
      * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
      * tile at the given location. <p> 
      * 
@@ -856,8 +857,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns the tile that is closest to the given location in this 
-     * panel's coordinate system. To determine if the tile actually contains the 
-     * specified location, compare the point against the {@link 
+     * component's coordinate system. To determine if the tile actually contains 
+     * the specified location, compare the point against the {@link 
      * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
      * tile at the given location. <p> 
      * 
@@ -892,8 +893,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns the tile that is closest to the given location in this 
-     * panel's coordinate system. To determine if the tile actually contains the 
-     * specified location, compare the point against the {@link 
+     * component's coordinate system. To determine if the tile actually contains 
+     * the specified location, compare the point against the {@link 
      * #getTileBounds(Tile) tile's bounds}. This returns null if there is no 
      * tile at the given location. <p> 
      * 
@@ -1602,11 +1603,11 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 //Get whether the renderer says this is rendered in high quality
             value = getRenderer().isHighQuality(this);
             // If the high quality property is not null, return it. Otherwise, 
-        return (value != null) ? value : true;  // return true.
+        return (value != null) ? value : false;     // return false.
     }
     /**
      * This sets whether the play field will be rendered in high quality. What 
-     * this means is up to the interpretation of the {@link #getRenderer() play 
+     * this means is up to the interpretation of the {@link #getRenderer play 
      * field renderer}, with some choosing to use different rendering algorithms 
      * and settings to favor quality over speed or to use different techniques 
      * to render the tiles. Some renderers may choose to ignore this property. 
@@ -1628,10 +1629,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This returns whether the tile background will be painted. If this is 
      * true, then the {@link #getTileBackground() tile background color} will be 
      * used to fill the area behind the tiles. Otherwise, the tiles will have no 
-     * background other than the panel's {@link #getBackground() background} if 
-     * {@link #isOpaque() opaque}, and whatever is behind the panel if it's not.
-     * The default value for this is defined by the {@link #getRenderer() play 
-     * field renderer}.
+     * background other than the component's {@link #getBackground background} 
+     * if {@link #isOpaque opaque}, and whatever is behind the component if it's 
+     * not. The default value for this is defined by the {@link #getRenderer 
+     * play field renderer}.
      * @return Whether the tile background should be painted.
      * @see #setTileBackgroundPainted 
      * @see #setTileBackground 
@@ -1653,11 +1654,11 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * This sets whether the tile background will be painted. If this is true, 
      * then the {@link #getTileBackground() tile background color} will be used 
      * to fill the area behind the tiles. Otherwise, the tiles will have no 
-     * background other than the panel's {@link #getBackground() background} if 
-     * {@link #isOpaque() opaque}, and whatever is behind the panel if it's not.
-     * It is up to the {@link #getRenderer() play field renderer} to honor this 
-     * property, and some may choose to ignore it. The default value for this is 
-     * defined by the renderer.
+     * background other than the component's {@link #getBackground background} 
+     * if {@link #isOpaque opaque}, and whatever is behind the component if it's 
+     * not.It is up to the {@link #getRenderer() play field renderer} to honor 
+     * this property, and some may choose to ignore it. The default value for 
+     * this is defined by the renderer.
      * @param value Whether the tile background should be painted.
      * @see #isTileBackgroundPainted 
      * @see #setTileBackground 
@@ -2059,7 +2060,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
                 ",secondarySnakeColor="+Objects.toString(getSecondarySnakeColor(),"");
     }
     /**
-     * This adds the given {@code PlayFieldListener} to this panel.
+     * This adds the given {@code PlayFieldListener} to this component.
      * @param l The listener to add.
      * @see #removePlayFieldListener 
      * @see #getPlayFieldListeners 
@@ -2069,7 +2070,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
             listenerList.add(PlayFieldListener.class, l);
     }
     /**
-     * This removes the given {@code PlayFieldListener} from this panel.
+     * This removes the given {@code PlayFieldListener} from this component.
      * @param l The listener to remove.
      * @see #addPlayFieldListener 
      * @see #getPlayFieldListeners 
@@ -2079,7 +2080,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns an array containing all the {@code PlayFieldListener}s that 
-     * have been added to this panel.
+     * have been added to this component.
      * @return An array containing the {@code PlayFieldListener}s that have been 
      * added, or an empty array if none have been added.
      * @see #addPlayFieldListener 
@@ -2122,11 +2123,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel of the 
-     * given {@code PlayFieldEvent} if the {@code PlayFieldEvent} is not null. 
-     * If the source of the given {@code PlayFieldEvent} is not this panel, then 
-     * the {@code PlayFieldEvent} will be redirected to have this panel as its 
-     * source. The renderer will be the last to be notified of the event.
+     * this component and the {@link #getRenderer renderer} for this component 
+     * of the given {@code PlayFieldEvent} if the {@code PlayFieldEvent} is not 
+     * null. If the source of the given {@code PlayFieldEvent} is not this 
+     * component, then the {@code PlayFieldEvent} will be redirected to have 
+     * this component as its source. The renderer will be the last to be 
+     * notified of the event.
      * @param evt The {@code PlayFieldEvent} to be fired.
      * @see #addPlayFieldListener 
      * @see #removePlayFieldListener 
@@ -2143,7 +2145,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     protected void firePlayFieldChange(PlayFieldEvent evt){
         if (evt == null)                // If the event is null
             return;
-            // If the source of the event is not this panel
+            // If the source of the event is not this component
         if (evt.getSource() != this)    
             evt = new PlayFieldEvent(this,evt.getFirstRow(),evt.getLastRow(),
                     evt.getFirstColumn(),evt.getLastColumn(),
@@ -2156,8 +2158,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * the tiles in the region between the rows {@code r0} and {@code r1}, 
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that the tiles in the region between the rows {@code r0} and {@code r1}, 
      * inclusive, and between the columns {@code c0} and {@code c1}, inclusive, 
      * have changed in some way. Note that {@code r0} does not necessarily need 
      * to be less than or equal to {@code r1}, and that {@code c0} does not 
@@ -2193,8 +2195,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * the tiles in the region between the rows {@code r0} and {@code r1}, 
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that the tiles in the region between the rows {@code r0} and {@code r1}, 
      * inclusive, and between the columns {@code c0} and {@code c1}, inclusive, 
      * have been changed or updated. Note that {@code r0} does not necessarily 
      * need to be less than or equal to {@code r1}, and that {@code c0} does not 
@@ -2227,9 +2229,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * the tile at the given {@code row} and {@code column} has been changed or 
-     * updated. The renderer will be the last to be notified of the event.
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that the tile at the given {@code row} and {@code column} has been 
+     * changed or updated. The renderer will be the last to be notified of the 
+     * event.
      * @param row The row of the tile that has been updated.
      * @param column The column of the tile that has been updated.
      * @see #addPlayFieldListener 
@@ -2255,8 +2258,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * tiles have been added to the region between the rows {@code r0} and 
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that tiles have been added to the region between the rows {@code r0} and 
      * {@code r1}, inclusive, and between the columns {@code c0} and {@code c1}, 
      * inclusive. Note that {@code r0} does not necessarily need to be less than 
      * or equal to {@code r1}, and that {@code c0} does not necessarily need to 
@@ -2292,8 +2295,8 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * tiles in the region between the rows {@code r0} and {@code r1}, 
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that tiles in the region between the rows {@code r0} and {@code r1}, 
      * inclusive, and between the columns {@code c0} and {@code c1}, inclusive, 
      * have been removed. Note that {@code r0} does not necessarily need to be 
      * less than or equal to {@code r1}, and that {@code c0} does not 
@@ -2329,9 +2332,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This notifies all the {@code PlayFieldListener}s that have been added to 
-     * this panel and the {@link #getRenderer() renderer} for this panel that 
-     * the structure of the play field has completely changed, either because 
-     * the current {@link #getModel() model} had its structure changed or 
+     * this component and the {@link #getRenderer renderer} for this component 
+     * that the structure of the play field has completely changed, either 
+     * because the current {@link #getModel model} had its structure changed or 
      * because the model itself was {@link #setModel changed}. The renderer will 
      * be the last to be notified of the event.
      * @see #addPlayFieldListener 

@@ -231,7 +231,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
     /**
      * This returns whether the play field should be rendered in high quality by 
      * default for the given JPlayField. If null is returned, then this property 
-     * will default to {@code true}.
+     * will default to {@code false}.
      * 
      * @implSpec The default implementation returns null.
      * 
