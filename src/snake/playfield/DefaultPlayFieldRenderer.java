@@ -852,22 +852,30 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
     protected Graphics2D configureGraphics(Graphics2D g, JPlayField c){
             // If the play field is to be rendered in high quality
         if (c.isHighQuality()){     
+                // Enable antialiasing
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                     RenderingHints.VALUE_ANTIALIAS_ON);
+                // Prioritize rendering quality over speed
             g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                     RenderingHints.VALUE_RENDER_QUALITY);
+                // Use bicubic interpolation
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
                     RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                // Prioritize quality over speed for alpha interpolation
             g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, 
                     RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+                // Enable dithering
             g.setRenderingHint(RenderingHints.KEY_DITHERING, 
                     RenderingHints.VALUE_DITHER_ENABLE);
+                // Prioritize color rendering quality over speed
             g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, 
                     RenderingHints.VALUE_COLOR_RENDER_QUALITY);
         }
         else{
+                // Disable antialiasing
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                     RenderingHints.VALUE_ANTIALIAS_OFF);
+                // Prioritize rendering speed over quality
             g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                     RenderingHints.VALUE_RENDER_SPEED);
         }

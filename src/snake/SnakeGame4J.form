@@ -6,7 +6,7 @@
       <Properties>
         <Property name="title" type="java.lang.String" value="Snake! Snake! SNAKE!!!"/>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[400, 300]"/>
+          <Dimension value="[550, 400]"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -19,6 +19,14 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="showDebugButtonToggle" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="saveLayerLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Component id="saveLayerCombo" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="saveLayerButton" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="printButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
@@ -28,76 +36,73 @@
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="inftyFailsButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="flipSnakeButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="reviveSnakeButton" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
                           <Component id="winTestButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="loseTestButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
+                      </Group>
+                      <Group type="102" alignment="0" attributes="0">
                           <Component id="nextTickButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Component id="fieldOpaqueToggle" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="saveLayerLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="saveLayerCombo" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="saveLayerButton" min="-2" max="-2" attributes="0"/>
+                          <Component id="addAppleButton" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="showLayerLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="showLayerCombo" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="addAppleButton" min="-2" max="-2" attributes="0"/>
+                          <Component id="timerToggle" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace pref="17" max="32767" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Component id="snakeDebugCtrlPanel" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="printButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="pauseToggle" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="inGameToggle" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="flipSnakeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="reviveSnakeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="inftyFailsButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="winTestButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="loseTestButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="nextTickButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="fieldOpaqueToggle" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
+              <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="showLayerLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="showLayerCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="printButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="pauseToggle" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="inGameToggle" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="inftyFailsButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="winTestButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="loseTestButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="nextTickButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="fieldOpaqueToggle" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="addAppleButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="showLayerLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="showLayerCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="timerToggle" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="saveLayerLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="saveLayerCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="saveLayerButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="showDebugButtonToggle" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="addAppleButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="snakeDebugCtrlPanel" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="saveLayerLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="saveLayerCombo" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="saveLayerButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace pref="134" max="32767" attributes="0"/>
+                  <EmptySpace pref="61" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -113,30 +118,6 @@
           </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is a button used in debugging to print debug data.&#xa; */"/>
-          </AuxValues>
-        </Component>
-        <Component class="javax.swing.JButton" name="flipSnakeButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Flip Snake"/>
-            <Property name="toolTipText" type="java.lang.String" value="Flips the snake."/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="flipSnakeButtonActionPerformed"/>
-          </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is a button to flip the snake.&#xa; */"/>
-          </AuxValues>
-        </Component>
-        <Component class="javax.swing.JButton" name="reviveSnakeButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Revive Snake"/>
-            <Property name="toolTipText" type="java.lang.String" value="Revives the snake."/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="reviveSnakeButtonActionPerformed"/>
-          </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This button revives the snake.&#xa; */"/>
           </AuxValues>
         </Component>
         <Component class="javax.swing.JToggleButton" name="pauseToggle">
@@ -314,6 +295,271 @@
             <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is a button to make it so the snake cannot crash. &#xa; * In other words, this grants infinite lives.&#xa; */"/>
           </AuxValues>
         </Component>
+        <Component class="javax.swing.JToggleButton" name="showDebugButtonToggle">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Show Debug Button"/>
+            <Property name="toolTipText" type="java.lang.String" value="This toggles whether the debug menu button is shown on the pause menu. (The debug menu can still be accessed by pressing CTRL+SHIFT+/)"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="showDebugButtonToggleActionPerformed"/>
+          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is used to toggle whether the main menu shows the debug button. &#xa; * This is mainly used to hide the debug button while making animations &#xa; * showing gameplay.&#xa; */"/>
+          </AuxValues>
+        </Component>
+        <Component class="javax.swing.JToggleButton" name="timerToggle">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Run Timer"/>
+            <Property name="toolTipText" type="java.lang.String" value="This toggles whether the game&apos;s timer is currently running."/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timerToggleActionPerformed"/>
+          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This toggles whether the gameplay timer is running.&#xa; */"/>
+          </AuxValues>
+        </Component>
+        <Container class="javax.swing.JPanel" name="snakeDebugCtrlPanel">
+          <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
+                <TitledBorder title="Snake Controls"/>
+              </Border>
+            </Property>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the panel on the debug menu containing the controls for the &#xa; * snake.&#xa; */"/>
+          </AuxValues>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="snakeDebugDirPanel" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="debugCtrlImmediateToggle" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="flipSnakeButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="debugAddOrMoveToggle" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="reviveSnakeButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="clearActionQueueButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="32767" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="snakeDebugDirPanel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="debugCtrlImmediateToggle" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+                      <Component id="debugAddOrMoveToggle" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="flipSnakeButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="reviveSnakeButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="clearActionQueueButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Container class="javax.swing.JPanel" name="snakeDebugDirPanel">
+              <Properties>
+                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                  <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
+                    <TitledBorder title="Movement"/>
+                  </Border>
+                </Property>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * The panel on the debug menu that contains the buttons used to move &#xa; * the first player snake when debugging the game.&#xa; */"/>
+              </AuxValues>
+
+              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
+                <Property name="columns" type="int" value="3"/>
+                <Property name="horizontalGap" type="int" value="6"/>
+                <Property name="rows" type="int" value="3"/>
+                <Property name="verticalGap" type="int" value="6"/>
+              </Layout>
+              <SubComponents>
+                <Component class="javax.swing.Box$Filler" name="ulDebugDirFiller">
+                  <Properties>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[32767, 32767]"/>
+                    </Property>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="// A filler object to take up the top left spot on the debug movement &#xa;// control panel"/>
+                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                    <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.Glue"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JButton" name="uDebugDirButton">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="Move the snake up"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Up"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button used to move the snake upwards when &#xa; * debugging.&#xa; */"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.Box$Filler" name="urDebugDirFiller">
+                  <Properties>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[32767, 32767]"/>
+                    </Property>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="// A filler object to take up the top right spot on the debug movement &#xa;// control panel"/>
+                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                    <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.Glue"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JButton" name="lDebugDirButton">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="Move the snake to the left"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Left"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button used to move the snake left when &#xa; * debugging.&#xa; */"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JButton" name="fDebugDirButton">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="Move the snake forwards"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Forward"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button used to move the snake forwards when &#xa; * debugging.&#xa; */"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JButton" name="rDebugDirButton">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="Move the snake to the right"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Right"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button used to move the snake right when &#xa; * debugging.&#xa; */"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.Box$Filler" name="dlDebugDirFiller">
+                  <Properties>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[32767, 32767]"/>
+                    </Property>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="// A filler object to take up the bottom left spot on the debug movement &#xa;// control panel"/>
+                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                    <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.Glue"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JButton" name="dDebugDirButton">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="Move the snake down"/>
+                    <Property name="actionCommand" type="java.lang.String" value="Down"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button used to move the snake downwards when &#xa; * debugging.&#xa; */"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.Box$Filler" name="drDebugDirFiller">
+                  <Properties>
+                    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[32767, 32767]"/>
+                    </Property>
+                  </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="// A filler object to take up the bottom right spot on the debug movement &#xa;// control panel"/>
+                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                    <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.Glue"/>
+                  </AuxValues>
+                </Component>
+              </SubComponents>
+            </Container>
+            <Component class="javax.swing.JCheckBox" name="debugCtrlImmediateToggle">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Do Immediately"/>
+                <Property name="toolTipText" type="java.lang.String" value="Whether the snake will immediately perform these actions instead of adding them to its action queue"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This toggles whether the debug snake controls will cause the snake &#xa; * to perform their respective action immediately or add the action &#xa; * to the snake&apos;s action queue.&#xa; */"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="debugAddOrMoveToggle">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Add instead of Move"/>
+                <Property name="toolTipText" type="java.lang.String" value="The move buttons will cause the snake to add tiles instead of move"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This toggles whether the debug movement buttons will result in tiles &#xa; * being added to the snake instead of moving the snake.&#xa; */"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JButton" name="flipSnakeButton">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Flip Snake"/>
+                <Property name="toolTipText" type="java.lang.String" value="Flips the snake."/>
+                <Property name="actionCommand" type="java.lang.String" value="Flip"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is a button to flip the snake.&#xa; */"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JButton" name="reviveSnakeButton">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Revive Snake"/>
+                <Property name="toolTipText" type="java.lang.String" value="Revives the snake."/>
+                <Property name="actionCommand" type="java.lang.String" value="Revive"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugSnakeControlActionPerformed"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This button revives the snake.&#xa; */"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JButton" name="clearActionQueueButton">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Clear Action Queue"/>
+                <Property name="toolTipText" type="java.lang.String" value="Clears the snake&apos;s action queue"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearActionQueueButtonActionPerformed"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * This is the button to remove all items in the snake&apos;s action queue.&#xa; */"/>
+              </AuxValues>
+            </Component>
+          </SubComponents>
+        </Container>
       </SubComponents>
     </Container>
     <Component class="javax.swing.JFileChooser" name="fc">
@@ -585,12 +831,8 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection component="pauseMenuPanel" name="getFont" type="method"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Debug Menu"/>
                     <Property name="opaque" type="boolean" value="false"/>
                   </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="debugMenuButtonActionPerformed"/>
-                  </Events>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="/**&#xa; * The button for accessing the debug menus. This button is only visible &#xa; * in debug mode.&#xa; */"/>
                   </AuxValues>

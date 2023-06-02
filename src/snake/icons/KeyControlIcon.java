@@ -5,13 +5,13 @@
 package snake.icons;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.Objects;
 import javax.swing.Icon;
-import snake.SnakeUtilities;
+import snake.painters.KeyPainter;
 
 /**
- * This is an icon that can be used to represent a key on the keyboard. The 
- * {@link #paintKeySymbol paintKeySymbol} method is used by the {@link 
- * #paintIcon paintIcon} method to paint the symbol for the key.
+ * This is an icon that can be used to represent a key on the keyboard. 
  * @author Milo Steier
  */
 public abstract class KeyControlIcon implements Icon{
@@ -24,13 +24,10 @@ public abstract class KeyControlIcon implements Icon{
      */
     private final int height;
     /**
-     * This stores the bevel for the key.
+     * This is the painter used to render the key.
+     * @since 1.1.0
      */
-    private final int bevel;
-    /**
-     * This stores the color to use for the background of the key.
-     */
-    private final Color color;
+    protected KeyPainter keyPainter;
     /**
      * This constructs a KeyControlIcon with the given color, width, height, and 
      * bevel for the key.
@@ -49,14 +46,21 @@ public abstract class KeyControlIcon implements Icon{
             // If either the width or height are less than or equal to zero
         if (width <= 0 || height <= 0)
             throw new IllegalArgumentException(
-                    "Width and/ or height are invalid (width: "+width+
+                    "Width and/or height are invalid (width: "+width+
                             ", height: "+height+")");
         else if (color == null)     // If the color is null
             throw new NullPointerException();
+            // Create the key painter to paint the key using the paintKeySymbol
+            // method
+        keyPainter = new KeyPainter<>() {
+            @Override
+            public void paintSymbol(Graphics2D g,Component c, Object object,int x,int y,
+                    int w,int h) {
+                paintKeySymbol(c,g,x,y,w,h);
+            }
+        }.setKeyBevel(bevel).setBackground(color);
         this.width = width;
         this.height = height;
-        this.bevel = bevel;
-        this.color = color;
     }
     /**
      * This constructs a KeyControlIcon with the given color, width, height, and 
@@ -134,33 +138,36 @@ public abstract class KeyControlIcon implements Icon{
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         g = g.create();
-            // If the graphics context is a Graphic2D object
+        int w = getIconWidth();         // Get the width for the key
+        int h = getIconHeight();        // Get the height for the key
+            // An image to render to if the given graphics context is not a 
+        BufferedImage img = null;       // Graphics2D object
+        Graphics2D g2D; // This will get the Graphics2D object to render to.
+            // If the graphics context is a Graphics2D object
         if (g instanceof Graphics2D){
-            Graphics2D g2D = (Graphics2D) g;    // Get it as a Graphic2D object
-            g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-            g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                    RenderingHints.VALUE_RENDER_QUALITY);
+            g2D = (Graphics2D) g;
+            g2D.translate(x, y);
         }
-        else if (g == null) // If the graphics context is somehow null
+        else if (g != null){            // If the graphics context is not null
+            img = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
+            g2D = img.createGraphics();
+            g2D.setFont(g.getFont());
+            g2D.setColor(g.getColor());
+        }
+        else                            //If the graphics conext is somehow null
             return;
-        int w = getIconWidth()-1;   // Get the width for the key
-        int h = getIconHeight()-1;  // Get the height for the key
-        int b = getKeyBevel();      // Get the bevel for the key
-            // Fill the background of the key
-        g.setColor(getColor());
-        SnakeUtilities.fill3DRectangle(g, x, y, w, h, b);
-            // Draw the outline of the key
-        g.setColor(new Color(0x303030));
-        SnakeUtilities.draw3DRectangle(g, x, y, w, h, b);
-            // Draw the symbol for the key
-        g.setColor(Color.BLACK);
-        b = Math.abs(b);
-        if (getKeyBevel() < 0){     // If the set key bevel is negative
-            x += b;     // Offset the location by the key bevel to align it
-            y += b;
+            // Enable antialiasing
+        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
+            // Use the key painter to render the key
+        keyPainter.paint(g2D, c, w, h);
+        if (img != null){               // If this rendered to an image
+            g2D.dispose();
+            g.drawImage(img, x, y, w, h, c);
         }
-        paintKeySymbol(c,g,x+1,y+1,w-b-2,h-b-2);
         g.dispose();
     }
     /**
@@ -205,13 +212,44 @@ public abstract class KeyControlIcon implements Icon{
      * @return The amount by which the key is raised.
      */
     public int getKeyBevel(){
-        return bevel;
+        return keyPainter.getKeyBevel();
     }
     /**
      * This returns the color used as the background color for the key.
      * @return The color for the background of the key.
      */
     public Color getColor(){
-        return color;
+        return keyPainter.getBackground();
+    }
+    /**
+     * This sets the color to use as the background color for the key.
+     * @param color The color to use for the background of the key (cannot be 
+     * null).
+     * @throws NullPointerException If the color is null.
+     * @since 1.1.0
+     */
+    public void setColor(Color color){
+        keyPainter.setBackground(Objects.requireNonNull(color));
+    }
+    /**
+     * This returns a String representation of this icon. This method is 
+     * primarily intended to be used only for debugging purposes, and the 
+     * content and format of the returned String may vary between 
+     * implementations.
+     * @return A String representation of this icon.
+     * @since 1.1.0
+     */
+    protected String paramString(){
+        return getIconWidth()+"x"+getIconHeight()+
+                ",keyBevel="+getKeyBevel()+
+                ",color="+getColor();
+    }
+    /**
+     * This returns a String representation of this icon.
+     * @return A String representation of this icon.
+     */
+    @Override
+    public String toString(){
+        return this.getClass().getName() + "[" + paramString() + "]";
     }
 }

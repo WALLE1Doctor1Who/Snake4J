@@ -225,4 +225,12 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
     public int getArrowHeight(){
         return arrowH;
     }
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    protected String paramString(){
+        return super.paramString()+
+                ",arrowSize="+getArrowWidth()+"x"+getArrowHeight();
+    }
 }

@@ -444,6 +444,10 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      */
     private ActionQueue actionQueue = null;
     /**
+     * This stores the most recently performed action from the action queue. 
+     */
+    private Consumer<Snake> prevAction = null;
+    /**
      * This constructs a Snake that will be displayed on the given model. The 
      * snake will be able to wrap around and eat apples and will grow when it 
      * does. The snake will also represent the first player (i.e. this will be a 
@@ -5830,6 +5834,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          */
         private ArrayDeque<Consumer<Snake>> queue;
         /**
+         * This stores the {@code Consumer} that was most recently returned by 
+         * {@code pollNext}.
+         */
+        private Consumer<Snake> prevAction = null;
+        /**
          * This constructs an empty ActionQueue.
          */
         public ActionQueue(){
@@ -5942,6 +5951,27 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             getSnake().setSkipsRepeatedActions(value);
         }
         /**
+         * This returns the action most recently removed and returned by the 
+         * {@link #pollNext pollNext} method. This is used by the {@link 
+         * #willSkipAction(Consumer, Consumer, boolean) willSkipAction} methods 
+         * to determine if the given action is a repeat of the previously 
+         * returned action.
+         * @return The action that was most recently returned by next removal 
+         * methods.
+         * @since 1.1.0
+         * @see #willSkipAction(Consumer, Consumer, boolean) 
+         * @see #willSkipAction(Consumer, boolean) 
+         * @see #willSkipAction(Consumer, Consumer) 
+         * @see #willSkipAction(Consumer) 
+         * @see #willSkipNextAction 
+         * @see #pollNext 
+         * @see #removeNext 
+         * @see #popNext 
+         */
+        protected Consumer<Snake> getPreviousAction(){
+            return prevAction;
+        }
+        /**
          * This returns whether this will skip (discard) the given {@code 
          * Consumer}. This is called by {@link #peekNext peekNext} and {@link 
          * #pollNext pollNext} to determine if an action should be skipped. This 
@@ -5952,21 +5982,24 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * 
          * This will always return {@code true} if the given action is null. If 
          * the action is not null, then if {@code skipsRepeats} is {@code true}, 
-         * then this will return {@code true} if the given action matches the 
-         * given next action in the queue. That is to say, this will return 
-         * {@code true} if {@code skipRepeats} is {@code true} and {@code 
-         * Objects.equals(action, next)} returns {@code true}. Otherwise, this 
-         * will check to see if the {@link #getSnake parent snake} is in a state 
-         * where it can perform the given action using the snake's {@link 
-         * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
-         * snake will be unable to perform the given action at the current 
-         * moment, then this will return {@code true}. Otherwise, this will 
-         * return {@code false}. <p>
+         * then this will return {@code true} if the given action matches either 
+         * the given next action in the queue or the action previously returned  
+         * by the {@code pollNext} method. That is to say, this will return 
+         * {@code true} if {@code skipRepeats} is {@code true} and either {@code
+         * Objects.equals(action, next)} or {@code Objects.equals(action,} 
+         * {@link #getPreviousAction getPreviousAction()}{@code )} return {@code 
+         * true}. Otherwise, this will check to see if the {@link #getSnake 
+         * parent snake} is in a state where it can perform the given action 
+         * using the snake's {@link Snake#canPerformAction(Consumer) 
+         * canPerformAction} method. If the snake will be unable to perform the 
+         * given action at the current moment, then this will return {@code 
+         * true}. Otherwise, this will return {@code false}. <p>
          * 
          * In other words, if {@code action} is null, then this will return 
-         * {@code true}. Otherwise, if {@code action} matches {@code next} and 
-         * {@code skipsRepeats} is {@code true}, then this will return {@code 
-         * true}. Otherwise, this will return {@code !}{@link #getSnake 
+         * {@code true}. Otherwise, if {@code action} matches either {@code 
+         * next} or the {@code Consumer} returned by {@code getPreviousAction} 
+         * and {@code skipsRepeats} is {@code true}, then this will return 
+         * {@code true}. Otherwise, this will return {@code !}{@link #getSnake 
          * getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
          * canPerformAction}{@code (action)}. 
          * 
@@ -5983,6 +6016,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #willSkipNextAction 
          * @see #getSkipsRepeatedActions 
          * @see #setSkipsRepeatedActions 
+         * @see #getPreviousAction 
          * @see #peekNext 
          * @see #getNext 
          * @see #pollNext 
@@ -6009,8 +6043,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             if (action == null)     // If the given action is null
                 return true;
             else if (skipRepeats){  // If this is to skip repeats
-                    // If the next action is the same as the given action
-                if (action.equals(next))    
+                    // If the either the next action or the previously returned 
+                    // action are the same as the given action
+                if (action.equals(next) || action.equals(getPreviousAction()))    
                     return true;
             }   // Check with the snake to see if it can perform the action
             return !getSnake().canPerformAction(action); 
@@ -6026,22 +6061,26 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * 
          * This will always return {@code true} if the given action is null. If 
          * the action is not null, then if {@code skipsRepeats} is {@code true}, 
-         * then this will return {@code true} if the given action matches the 
-         * next action in the queue. That is to say, this will return {@code 
-         * true} if {@code skipRepeats} is {@code true} and {@code 
-         * Objects.equals(action, } {@link #peek peek()}{@code )} returns {@code 
-         * true}. Otherwise, this will check to see if the {@link #getSnake 
-         * parent snake} is in a state where it can perform the given action 
-         * using the snake's {@link Snake#canPerformAction(Consumer) 
-         * canPerformAction} method. If the snake will be unable to perform the 
-         * given action at the current moment, then this will return {@code 
-         * true}. Otherwise, this will return {@code false}. <p>
+         * then this will return {@code true} if the given action matches either 
+         * the next action in the queue or the action previously returned by the 
+         * {@code pollNext} method. That is to say, this will return {@code 
+         * true} if {@code skipRepeats} is {@code true} and either {@code 
+         * Objects.equals(action, } {@link #peek peek()}{@code )} or {@code 
+         * Objects.equals(action,} {@link #getPreviousAction 
+         * getPreviousAction()}{@code )} return {@code true}. Otherwise, this 
+         * will check to see if the {@link #getSnake parent snake} is in a state 
+         * where it can perform the given action using the snake's {@link 
+         * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
+         * snake will be unable to perform the given action at the current 
+         * moment, then this will return {@code true}. Otherwise, this will 
+         * return {@code false}. <p>
          * 
          * In other words, if {@code action} is null, then this will return 
          * {@code true}. Otherwise, if {@code skipsRepeats} is {@code true} and 
-         * {@code action} matches the {@code Consumer} returned by {@code 
-         * peek()}, then this will return {@code true}. Otherwise, this will 
-         * return {@code !}{@link #getSnake getSnake()}{@code .}{@link 
+         * {@code action} matches either the {@code Consumer} returned by {@code 
+         * peek()} or the {@code Consumer} returned by {@code 
+         * getPreviousAction}, then this will return {@code true}. Otherwise, 
+         * this will return {@code !}{@link #getSnake getSnake()}{@code .}{@link 
          * Snake#canPerformAction(Consumer) canPerformAction}{@code (action)}. 
          * <p>
          * This is equivalent to calling {@link #willSkipAction(Consumer, 
@@ -6060,6 +6099,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #willSkipNextAction 
          * @see #getSkipsRepeatedActions 
          * @see #setSkipsRepeatedActions 
+         * @see #getPreviousAction 
          * @see #peekNext 
          * @see #getNext 
          * @see #pollNext 
@@ -6097,10 +6137,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * This will always return {@code true} if the given action is null. If 
          * the action is not null, then if this action queue {@link 
          * #getSkipsRepeatedActions skips repeated actions}, then this will 
-         * return {@code true} if the given action matches the given next action 
-         * in the queue. That is to say, this will return {@code true} if both 
-         * {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and {@code 
-         * Objects.equals(action, next)} return {@code true}. Otherwise, this 
+         * return {@code true} if the given action matches either the given next 
+         * action in the queue or the action previously returned  by the {@code 
+         * pollNext} method. That is to say, this will return {@code true} if 
+         * both {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and 
+         * either {@code Objects.equals(action, next)} or {@code 
+         * Objects.equals(action,} {@link #getPreviousAction 
+         * getPreviousAction()}{@code )} return {@code true}. Otherwise, this 
          * will check to see if the {@link #getSnake parent snake} is in a state 
          * where it can perform the given action using the snake's {@link 
          * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
@@ -6109,8 +6152,9 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * return {@code false}. <p>
          * 
          * In other words, if {@code action} is null, then this will return 
-         * {@code true}. Otherwise, if {@code action} matches {@code next} and 
-         * {@code getSkipsRepeatedActions()} returns {@code true}, then this 
+         * {@code true}. Otherwise, if {@code action} matches either {@code 
+         * next} or the {@code Consumer} returned by {@code getPreviousAction} 
+         * and {@code getSkipsRepeatedActions()} returns {@code true}, then this 
          * will return {@code true}. Otherwise, this will return {@code !}{@link 
          * #getSnake getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
          * canPerformAction}{@code (action)}. <p>
@@ -6130,6 +6174,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #willSkipNextAction 
          * @see #getSkipsRepeatedActions 
          * @see #setSkipsRepeatedActions 
+         * @see #getPreviousAction 
          * @see #peekNext 
          * @see #getNext 
          * @see #pollNext 
@@ -6167,21 +6212,25 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * This will always return {@code true} if the given action is null. If 
          * the action is not null, then if this action queue {@link 
          * #getSkipsRepeatedActions skips repeated actions}, then this will 
-         * return {@code true} if the given action matches the next action in 
-         * the queue. That is to say, this will return {@code true} if both 
-         * {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and {@code 
-         * Objects.equals(action, } {@link #peek peek()}{@code )} return {@code 
-         * true}. Otherwise, this will check to see if the {@link #getSnake 
-         * parent snake} is in a state where it can perform the given action 
-         * using the snake's {@link Snake#canPerformAction(Consumer) 
-         * canPerformAction} method. If the snake will be unable to perform the 
-         * given action at the current moment, then this will return {@code 
-         * true}. Otherwise, this will return {@code false}. <p>
+         * return {@code true} if the given action matches either the next 
+         * action in the queue or the action previously returned  by the {@code 
+         * pollNext} method. That is to say, this will return {@code true} if 
+         * both {@link #getSkipsRepeatedActions getSkipsRepeatedActions()} and 
+         * either {@code Objects.equals(action, }{@link #peek peek()}{@code )} 
+         * or {@code Objects.equals(action,} {@link #getPreviousAction 
+         * getPreviousAction()}{@code )} return {@code true}. Otherwise, this 
+         * will check to see if the {@link #getSnake parent snake} is in a state 
+         * where it can perform the given action using the snake's {@link 
+         * Snake#canPerformAction(Consumer) canPerformAction} method. If the 
+         * snake will be unable to perform the given action at the current 
+         * moment, then this will return {@code true}. Otherwise, this will 
+         * return {@code false}. <p>
          * 
          * In other words, if {@code action} is null, then this will return 
          * {@code true}. Otherwise, if {@code getSkipsRepeatedActions()} returns 
-         * {@code true} and {@code action} matches the {@code Consumer} returned 
-         * by {@code peek()}, then this will return {@code true}. Otherwise, 
+         * {@code true} and {@code action} matches either the {@code Consumer} 
+         * returned by {@code peek()} or the {@code Consumer} returned by {@code 
+         * getPreviousAction}, then this will return {@code true}. Otherwise, 
          * this will return {@code !}{@link #getSnake getSnake()}{@code .}{@link 
          * Snake#canPerformAction(Consumer) canPerformAction}{@code (action)}. 
          * <p>
@@ -6199,6 +6248,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #willSkipNextAction 
          * @see #getSkipsRepeatedActions 
          * @see #setSkipsRepeatedActions 
+         * @see #getPreviousAction 
          * @see #peekNext 
          * @see #getNext 
          * @see #pollNext 
@@ -6247,10 +6297,14 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * returns {@code true} and {@code Objects.equals} returns {@code true} 
          * when given the {@code Consumer} returned by {@code peek()} and the 
          * {@code Consumer} that would be returned by {@code peek()} after 
-         * calling {@code poll()}. Otherwise, this will return whether the 
-         * parent snake will be unable to perform the current head of this 
-         * action queue. In other words, this will return {@code !}{@link 
-         * #getSnake getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
+         * calling {@code poll()}. This will also return {@code true} when 
+         * skipping repeated actions if the current head of this action queue 
+         * matches the {@code Consumer} that was most recently returned by 
+         * either the {@code pollNext}, {@code removeNext}, or {@code popNext} 
+         * methods. Otherwise, this will return whether the parent snake will be 
+         * unable to perform the current head of this action queue. In other 
+         * words, this will return {@code !}{@link #getSnake 
+         * getSnake()}{@code .}{@link Snake#canPerformAction(Consumer) 
          * canPerformAction}{@code (}{@link #peek peek()}{@code )}.
          * 
          * @return Whether the current head of this action queue will be skipped 
@@ -7073,19 +7127,22 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see Snake#canPerformAction(Consumer) 
          */
         public Consumer<Snake> pollNext(){
-            if (isEmpty())          // If the action queue is empty
+            if (isEmpty()){         // If the action queue is empty
+                prevAction = null;  // Clear the previously returned action
                 return null;
+            }
                 // This will get the next action for the snake to perform
             Consumer<Snake> action;
             do{ // A do while loop to get the next action to perform
                 action = poll();    // Poll the next action in the queue
             }   // While the queue is not empty and the action should be skipped
             while (!isEmpty() && willSkipAction(action));
-                // If the retrieved action should be skipped, return null. 
-                // Otherwise, return the action to perform (this accounts for 
+                // If the retrieved action should be skipped (this accounts for 
                 // whether the action was the last action in the queue, yet 
-                // should still be skipped)
-            return (willSkipAction(action)) ? null : action;
+            if (willSkipAction(action))     // should still be skipped)
+                action = null;
+            prevAction = action;     // Store the action that will be returned
+            return action;
         }
         /**
          * This retrieves and removes the first element of this action queue. 

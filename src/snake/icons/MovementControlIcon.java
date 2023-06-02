@@ -5,7 +5,7 @@
 package snake.icons;
 
 import java.awt.*;
-import javax.swing.Icon;
+import java.awt.image.BufferedImage;
 import snake.*;
 
 /**
@@ -13,23 +13,18 @@ import snake.*;
  * used to control movement. 
  * @author Milo Steier
  */
-public abstract class MovementControlIcon implements Icon, SnakeConstants{
+public abstract class MovementControlIcon extends KeyControlIcon implements 
+        SnakeConstants{
     /**
-     * This stores the width for the keys.
+     * An array containing the directions in the order that the keys are 
+     * rendered in.
      */
-    private final int width;
-    /**
-     * This stores the height for the keys.
-     */
-    private final int height;
-    /**
-     * This stores the bevel for the keys.
-     */
-    private final int bevel;
-    /**
-     * This stores the color to use for the background for the keys.
-     */
-    private final Color color;
+    private static final int[] RENDERED_DIRECTIONS = {
+        UP_DIRECTION,
+        LEFT_DIRECTION,
+        DOWN_DIRECTION,
+        RIGHT_DIRECTION
+    };
     /**
      * This constructs a MovementControlIcon with the given color, key width, 
      * key height, and bevel for the keys.
@@ -45,16 +40,7 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      * negative or equal to zero.
      */
     public MovementControlIcon(Color color, int width, int height, int bevel){
-            // If either the width or height are less than or equal to zero
-        if (width <= 0 || height <= 0)
-            throw new IllegalArgumentException("Key width/height are invalid (width: "+
-                    width+", height: "+height+")");
-        else if (color == null)     // If the color is null
-            throw new NullPointerException();
-        this.width = width;
-        this.height = height;
-        this.bevel = bevel;
-        this.color = color;
+        super(color,width,height,bevel);
     }
     /**
      * This constructs a MovementControlIcon with the given color, key width, 
@@ -88,63 +74,62 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      * #LEFT_DIRECTION left}, {@link #DOWN_DIRECTION down}, and {@link 
      * #RIGHT_DIRECTION right}. Each key will be {@link #getKeyWidth 
      * getKeyWidth()} pixels wide by {@link #getKeyHeight getKeyHeight()} pixels 
-     * tall. The symbol for each key is drawn using the {@link #paintKeySymbol 
+     * tall. The symbol for each key is drawn using the directional {@link 
+     * #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
      * paintKeySymbol} method.
      * @param c A {@code Component} to get useful properties for painting the 
      * icon. 
      * @param g The graphics context to render to.
      * @param x The x-coordinate of the icon's top-left corner.
      * @param y The x-coordinate of the icon's top-left corner.
-     * @see #paintKeySymbol 
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
      */
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         g = g.create();
-        g.translate(x, y);
-            // If the graphics context is a Graphic2D object
+        int w = getKeyWidth();          // Get the width for the keys
+        int h = getKeyHeight();         // Get the height for the keys
+            // An image to render to if the given graphics context is not a 
+        BufferedImage img = null;       // Graphics2D object
+        Graphics2D g2D; // This will get the Graphics2D object to render to.
+            // If the graphics context is a Graphics2D object
         if (g instanceof Graphics2D){
-            Graphics2D g2D = (Graphics2D) g;    // Get it as a Graphic2D object
-            g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-            g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                    RenderingHints.VALUE_RENDER_QUALITY);
+            g2D = (Graphics2D) g;
+            g2D.translate(x, y);
         }
-        int w = getKeyWidth()-1;    // Get the width for the key
-        int h = getKeyHeight()-1;   // Get the height for the key
-        int b = getKeyBevel();      // Get the bevel for the key
-            // An array containing the directions in the order that the keys are 
-            // rendered in
-        int[] directions = {UP_DIRECTION,LEFT_DIRECTION,DOWN_DIRECTION,RIGHT_DIRECTION};
-            // This is an array to store the x coords for the keys
-        int[] xPoints = new int[directions.length];
-            // The first (up) key is offset by the value from the up key offset
-        xPoints[0] = w-getUpKeyOffset();
-            // A for loop to generate the remaining x coordinates
-        for (int i = 1; i < xPoints.length; i++)
-            xPoints[i] = (w)*(i-1);
-            // Fill the background of the keys
-        g.setColor(getColor());
-            // A for loop to fill the key backgrounds
-        for (int i = 0; i < directions.length; i++)
-                // First key is at the top row, the others are on the bottom row
-            SnakeUtilities.fill3DRectangle(g,xPoints[i],(i==0)?0:h,w,h,b);
-            // Draw the outline of the keys
-        g.setColor(new Color(0x303030));
-            // A for loop to draw the key outlines
-        for (int i = 0; i < directions.length; i++)
-                // First key is at the top row, the others are on the bottom row
-            SnakeUtilities.draw3DRectangle(g,xPoints[i],(i==0)?0:h,w,h,b);
-            // Draw the symbols for the keys
-        g.setColor(Color.BLACK);
-        b = Math.abs(b);
-            // Get the offsets for the x and y coordinates for the symbols. If 
-            // the bevel is negative, then the symbols are offset by the bevel.
-        int off = (getKeyBevel()<0)?b:0;
-            // A for loop to draw the symbols for the keys
-        for (int i = 0; i < directions.length; i++)
-                // First key is at the top row, the others are on the bottom row
-            paintKeySymbol(c,g,xPoints[i]+1+off,((i==0)?0:h)+off+1,w-b-2,h-b-2,
-                    directions[i]);
+        else if (g != null){            // If the graphics context is not null
+            img = new BufferedImage(getIconWidth(),getIconHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+            g2D = img.createGraphics();
+            g2D.setFont(g.getFont());
+            g2D.setColor(g.getColor());
+        }
+        else                            //If the graphics conext is somehow null
+            return;
+            // Enable antialiasing
+        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
+            // A for loop to render the movement keys
+        for (int i = 0; i < RENDERED_DIRECTIONS.length; i++){
+                // Create a scratch graphics context to render the key
+            Graphics2D keyG = (Graphics2D) g2D.create();
+            if (i == 0) // If this is the up key, render it on the first row, 
+                // second column, offset by the up key offset
+                keyG.translate(w-1-getUpKeyOffset(), 0);
+            else    // Render the key on the second row, and the corresponding 
+                keyG.translate((w-1)*(i-1), h-1);   // column
+                // Use the key renderer to render the current key
+            keyPainter.setSymbolArgument(RENDERED_DIRECTIONS[i]).paint(keyG,c,w,h);
+            keyG.dispose();
+        }
+        if (img != null){               // If this rendered to an image
+            g2D.dispose();
+            g.drawImage(img, x, y, w, h, c);
+        }
         g.dispose();
     }
     /**
@@ -157,16 +142,55 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
         return 0;
     }
     /**
-     * This is used to render the symbols for the keys. This is called by {@link 
-     * #paintIcon paintIcon} to paint each key's symbol over the raised portion 
-     * of the respective rendered key. The given coordinates and size are the 
-     * location and size of the raised section of the key being rendered. The 
-     * given direction is the direction that this key is used to move in. The 
-     * direction should be one of the following direction flags: {@link 
-     * #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, or 
-     * {@link #RIGHT_DIRECTION}. If the direction is not one of the previously 
-     * mentioned values, then this may exhibit unpredictable and undefined 
-     * behavior.
+     * This returns the direction for the next key symbol that will be rendered 
+     * by the directionless {@link #paintKeySymbol(Component, Graphics, int, 
+     * int, int, int) paintKeySymbol} method.
+     * @return The direction of the symbol for the key currently being rendered.
+     * @since 1.1.0
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
+     * @see #paintIcon 
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     */
+    protected synchronized int getPaintedKeyDirection(){
+            // If the keyPainter has an integer set for it's symbol argument
+        if (keyPainter.getSymbolArgument() instanceof Integer)
+            return (Integer) keyPainter.getSymbolArgument();
+        return UP_DIRECTION;
+    }
+    /**
+     * {@inheritDoc } <p>
+     * 
+     * This implementation forwards the call to the directional {@link 
+     * #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
+     * paintKeySymbol} method with the given {@code Component}, graphics 
+     * context, x, y, width, and height, along with the {@link 
+     * #getPaintedKeyDirection direction of the key being rendered}.
+     * 
+     * @since 1.1.0
+     * @see #paintIcon 
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
+     * @see #getPaintedKeyDirection 
+     */
+    @Override
+    protected void paintKeySymbol(Component c,Graphics g,int x,int y,int w,int h){
+        paintKeySymbol(c,g,x,y,w,h,getPaintedKeyDirection());
+    }
+    /**
+     * This is used to render the symbols for the keys. This is called by the 
+     * other {@link #paintKeySymbol(Component, Graphics, int, int, int, int) 
+     * paintKeySymbol} method with the direction being rendered to paint each 
+     * key's symbol over the raised portion of the respective rendered key. The 
+     * given coordinates and size are the location and size of the raised 
+     * section of the key being rendered. The given direction is the direction 
+     * that this key is used to move in. The direction should be one of the 
+     * following direction flags: {@link #UP_DIRECTION}, {@link 
+     * #DOWN_DIRECTION}, {@link #LEFT_DIRECTION}, or {@link #RIGHT_DIRECTION}. 
+     * If the direction is not one of the previously mentioned values, then this 
+     * may exhibit unpredictable and undefined behavior.
      * @param c A {@code Component} to get useful properties for painting the 
      * symbol.
      * @param g The graphics context to render to.
@@ -183,6 +207,8 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      *      {@link #LEFT_DIRECTION}, or 
      *      {@link #RIGHT_DIRECTION}.
      * @see #paintIcon 
+     * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
+     * @see #getPaintedKeyDirection 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -195,14 +221,14 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      * @return The width for the keys.
      */
     public int getKeyWidth(){
-        return width;
+        return super.getIconWidth();
     }
     /**
      * This returns the height to use for each of the keys.
      * @return The height for the keys.
      */
     public int getKeyHeight(){
-        return height;
+        return super.getIconHeight();
     }
     /**
      * This returns the icon's width. This will be equal to {@code (}{@link 
@@ -212,7 +238,7 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      */
     @Override
     public int getIconWidth() {
-        return (width*3)-2;
+        return (getKeyWidth()*3)-2;
     }
     /**
      * This returns the icon's height. This will be equal to {@code (}{@link 
@@ -222,21 +248,47 @@ public abstract class MovementControlIcon implements Icon, SnakeConstants{
      */
     @Override
     public int getIconHeight() {
-        return (height*2)-1;
+        return (getKeyHeight()*2)-1;
     }
     /**
      * This returns the value to use for the bevel for the keys. This is the 
      * amount by which the keys are raised.
      * @return The amount by which the keys are raised.
      */
+    @Override
     public int getKeyBevel(){
-        return bevel;
+        return super.getKeyBevel();
     }
     /**
      * This returns the color used as the background color for the keys.
      * @return The color for the background of the keys.
      */
+    @Override
     public Color getColor(){
-        return color;
+        return super.getColor();
+    }
+    /**
+     * This sets the color to use as the background color for the keys.
+     * @param color The color to use for the background of the keys (cannot be 
+     * null).
+     * @throws NullPointerException If the color is null.
+     * @since 1.1.0
+     */
+    @Override
+    public void setColor(Color color){
+        super.setColor(color);
+    }
+    /**
+     * This returns a String representation of this icon. This method is 
+     * primarily intended to be used only for debugging purposes, and the 
+     * content and format of the returned String may vary between 
+     * implementations.
+     * @return A String representation of this icon.
+     * @since 1.1.0
+     */
+    @Override
+    protected String paramString(){
+        return super.paramString()+
+                ",keySize="+getKeyWidth()+"x"+getKeyHeight();
     }
 }
