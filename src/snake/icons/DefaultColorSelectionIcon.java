@@ -12,7 +12,7 @@ import java.awt.Color;
  * box.
  * @author Milo Steier
  * @since 1.1.0
- * @see ColorSelectionPainter
+ * @see snake.painters.ColorSelectionPainter
  * @see ColorSelectionIcon
  */
 public class DefaultColorSelectionIcon extends ColorSelectionIcon{

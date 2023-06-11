@@ -183,9 +183,9 @@ public class ColorSelectionPainter implements Painter<Color>, SnakeConstants{
     }
     /**
      * This returns the gradient used to represent the saturation when combined 
-     * with the {@link #getHueGradient(int) hue gradient}. The gradient goes 
-     * from top to bottom across the given area and starts off transparent and 
-     * ends being gray.
+     * with the {@link #getHueGradient hue gradient}. The gradient goes from top 
+     * to bottom across the given area and starts off transparent and ends being 
+     * gray.
      * @param rect The rectangle containing the area to fill with the gradient.
      * @return The saturation gradient.
      * @see #getHueGradient
