@@ -172,7 +172,25 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                 // Set the button's margin to account for the icon and the 
                 // button's border
             debugDirButtons[i].setMargin(new Insets(2,-6,2,-6));
-        }
+        }   //Set the icon for the button used to set the player one snake color
+        p1ColorButton.setIcon(new ColorSelectionIcon(20){
+            @Override
+            public Color getColor() {
+                return playField.getPrimarySnakeColor();
+            }
+        }); // Set the icon for the button used to set the apple color
+        appleColorButton.setIcon(new ColorSelectionIcon(20){
+            @Override
+            public Color getColor() {
+                return playField.getAppleColor();
+            }
+        }); // Set the icon for the button used to set the background color
+        bgColorButton.setIcon(new ColorSelectionIcon(20){
+            @Override
+            public Color getColor() {
+                return playField.getTileBackground();
+            }
+        });
     }
     /**
      * This creates a new SnakeGame4J that is not in debug mode.
@@ -429,7 +447,18 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         flipSnakeButton = new javax.swing.JButton();
         reviveSnakeButton = new javax.swing.JButton();
         clearActionQueueButton = new javax.swing.JButton();
+        // This is a label for the debug color selection combo box
+        javax.swing.JLabel debugColorLabel = new javax.swing.JLabel();
+        debugColorCombo = new javax.swing.JComboBox<>();
+        debugColorButton = new javax.swing.JButton();
+        debugBorderToggle = new javax.swing.JCheckBox();
         fc = new javax.swing.JFileChooser();
+        colorSelectDialog = new javax.swing.JDialog(this);
+        colorChooser = new javax.swing.JColorChooser();
+        colorSelPanel = new javax.swing.JPanel();
+        resetColorButton = new javax.swing.JButton();
+        selectColorButton = new javax.swing.JButton();
+        cancelColorButton = new javax.swing.JButton();
         layeredPane = new javax.swing.JLayeredPane();
         playField = new snake.JPlayField();
         pauseMenuPanel = new javax.swing.JPanel();
@@ -499,6 +528,12 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         javax.swing.Box.Filler settingsRightFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         settingCompPanel = new javax.swing.JPanel();
         hqToggle = new javax.swing.JToggleButton();
+        p1ColorLabel = new javax.swing.JLabel();
+        p1ColorButton = new javax.swing.JButton();
+        appleColorLabel = new javax.swing.JLabel();
+        appleColorButton = new javax.swing.JButton();
+        bgColorLabel = new javax.swing.JLabel();
+        bgColorButton = new javax.swing.JButton();
         // A filler object to separate the settings objects from the buttons
         javax.swing.Box.Filler settingsButtonFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         settingsDoneButton = new javax.swing.JButton();
@@ -759,6 +794,27 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        debugColorLabel.setLabelFor(debugColorCombo);
+        debugColorLabel.setText("Color:");
+
+        debugColorCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Primary Snake", "Secondary Snake", "Apple", "Tile Background", "Tile Border", "Background", "Foreground" }));
+
+        debugColorButton.setText("Set Color");
+        debugColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                debugColorButtonActionPerformed(evt);
+            }
+        });
+
+        debugBorderToggle.setSelected(playField.isTileBorderPainted());
+        debugBorderToggle.setText("Tile Border Painted");
+        debugBorderToggle.setToolTipText("This is used to set whether the tile border is shown.");
+        debugBorderToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                debugBorderToggleActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout debugFrameLayout = new javax.swing.GroupLayout(debugFrame.getContentPane());
         debugFrame.getContentPane().setLayout(debugFrameLayout);
         debugFrameLayout.setHorizontalGroup(
@@ -766,7 +822,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             .addGroup(debugFrameLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(debugFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(showDebugButtonToggle)
+                    .addGroup(debugFrameLayout.createSequentialGroup()
+                        .addComponent(showDebugButtonToggle)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(debugBorderToggle))
                     .addGroup(debugFrameLayout.createSequentialGroup()
                         .addComponent(saveLayerLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -796,7 +855,13 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(showLayerCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(timerToggle)))
+                        .addComponent(timerToggle))
+                    .addGroup(debugFrameLayout.createSequentialGroup()
+                        .addComponent(debugColorLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(debugColorCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(debugColorButton)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(snakeDebugCtrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -832,12 +897,71 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                             .addComponent(saveLayerCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(saveLayerButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(showDebugButtonToggle))
+                        .addGroup(debugFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(showDebugButtonToggle)
+                            .addComponent(debugBorderToggle))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(debugFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(debugColorCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(debugColorLabel)
+                            .addComponent(debugColorButton)))
                     .addComponent(snakeDebugCtrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(61, Short.MAX_VALUE))
         );
 
         fc.setDialogType(javax.swing.JFileChooser.SAVE_DIALOG);
+
+        colorSelectDialog.setMinimumSize(new java.awt.Dimension(680, 460));
+        colorSelectDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+
+        colorSelPanel.setLayout(new java.awt.GridLayout(1, 0, 6, 0));
+
+        resetColorButton.setText("Reset");
+        resetColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                resetColorButtonActionPerformed(evt);
+            }
+        });
+        colorSelPanel.add(resetColorButton);
+
+        selectColorButton.setText("Select");
+        selectColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectColorButtonActionPerformed(evt);
+            }
+        });
+        colorSelPanel.add(selectColorButton);
+
+        cancelColorButton.setText("Cancel");
+        cancelColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelColorButtonActionPerformed(evt);
+            }
+        });
+        colorSelPanel.add(cancelColorButton);
+
+        javax.swing.GroupLayout colorSelectDialogLayout = new javax.swing.GroupLayout(colorSelectDialog.getContentPane());
+        colorSelectDialog.getContentPane().setLayout(colorSelectDialogLayout);
+        colorSelectDialogLayout.setHorizontalGroup(
+            colorSelectDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, colorSelectDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(colorSelectDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(colorChooser, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
+                    .addGroup(colorSelectDialogLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(colorSelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        colorSelectDialogLayout.setVerticalGroup(
+            colorSelectDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(colorSelectDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(colorChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(colorSelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Snake4J");
@@ -1029,6 +1153,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
 
         p1CtrlTextLabel.setFont(pauseMenuPanel.getFont());
         p1CtrlTextLabel.setForeground(new java.awt.Color(255, 255, 255));
+        p1CtrlTextLabel.setLabelFor(p1CtrlIconLabel);
         p1CtrlTextLabel.setText("- Move the snake");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1048,6 +1173,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
 
         pauseCtrlTextLabel.setFont(pauseMenuPanel.getFont());
         pauseCtrlTextLabel.setForeground(new java.awt.Color(255, 255, 255));
+        pauseCtrlTextLabel.setLabelFor(pauseCtrlIconLabel);
         pauseCtrlTextLabel.setText("- Pause Game");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1334,7 +1460,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         settingsPanel.add(settingsRightFiller, gridBagConstraints);
 
         settingCompPanel.setOpaque(false);
-        settingCompPanel.setLayout(new javax.swing.BoxLayout(settingCompPanel, javax.swing.BoxLayout.LINE_AXIS));
+        settingCompPanel.setLayout(new java.awt.GridBagLayout());
 
         hqToggle.setFont(settingsPanel.getFont());
         hqToggle.setSelected(playField.isHighQuality());
@@ -1345,7 +1471,91 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                 hqToggleActionPerformed(evt);
             }
         });
-        settingCompPanel.add(hqToggle);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        settingCompPanel.add(hqToggle, gridBagConstraints);
+
+        p1ColorLabel.setFont(settingsPanel.getFont());
+        p1ColorLabel.setForeground(new java.awt.Color(255, 255, 255));
+        p1ColorLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        p1ColorLabel.setLabelFor(p1ColorButton);
+        p1ColorLabel.setText("Snake Color:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        settingCompPanel.add(p1ColorLabel, gridBagConstraints);
+
+        p1ColorButton.setFont(settingsPanel.getFont());
+        p1ColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                p1ColorButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 7, 0);
+        settingCompPanel.add(p1ColorButton, gridBagConstraints);
+
+        appleColorLabel.setFont(settingsPanel.getFont());
+        appleColorLabel.setForeground(new java.awt.Color(255, 255, 255));
+        appleColorLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        appleColorLabel.setLabelFor(appleColorButton);
+        appleColorLabel.setText("Apple Color:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        settingCompPanel.add(appleColorLabel, gridBagConstraints);
+
+        appleColorButton.setFont(settingsPanel.getFont());
+        appleColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                appleColorButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 7, 0);
+        settingCompPanel.add(appleColorButton, gridBagConstraints);
+
+        bgColorLabel.setFont(settingsPanel.getFont());
+        bgColorLabel.setForeground(new java.awt.Color(255, 255, 255));
+        bgColorLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        bgColorLabel.setLabelFor(bgColorButton);
+        bgColorLabel.setText("Background Color:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.weightx = 0.5;
+        settingCompPanel.add(bgColorLabel, gridBagConstraints);
+
+        bgColorButton.setFont(settingsPanel.getFont());
+        bgColorButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bgColorButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        settingCompPanel.add(bgColorButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1607,6 +1817,13 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         System.out.println("Empty Tiles: " + playField.getEmptyTiles());
         System.out.println("Empty Tile Count: " + playField.getEmptyTileCount());
         System.out.println("Timer Delay: " + timer.getDelay() + "ms");
+        System.out.println("Primary Snake Color: " + playField.getPrimarySnakeColor());
+        System.out.println("Secondary Snake Color: " + playField.getSecondarySnakeColor());
+        System.out.println("Apple Color: " + playField.getAppleColor());
+        System.out.println("Tile Background Color: " + playField.getTileBackground());
+        System.out.println("Tile Border Color: " + playField.getTileBorder());
+        System.out.println("Background: " + playField.getBackground());
+        System.out.println("Foreground: " + playField.getForeground());
     }//GEN-LAST:event_printButtonActionPerformed
     /**
      * This returns to the pause menu from whatever layer is currently being 
@@ -1637,6 +1854,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             // Set if the toggle is selected if the high quality value is 
         hqToggle.setSelected(hq != null && hq); // non-null and true.
         playField.setHighQuality(hqToggle.isSelected());
+            // A for loop to reset the colors that can be set
+        for (int i = 0; i < 4; i++){
+            setColor(i,null);
+        }
     }//GEN-LAST:event_settingsResetButtonActionPerformed
     /**
      * This sets whether the game renders in high quality.
@@ -1827,6 +2048,162 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         debugMenuButton.setVisible(showDebugButtonToggle.isSelected());
     }//GEN-LAST:event_showDebugButtonToggleActionPerformed
     /**
+     * This sets the primary (player one) snake color.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void p1ColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_p1ColorButtonActionPerformed
+        showColorDialog(0);
+    }//GEN-LAST:event_p1ColorButtonActionPerformed
+    /**
+     * This sets the apple color.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void appleColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appleColorButtonActionPerformed
+        showColorDialog(2);
+    }//GEN-LAST:event_appleColorButtonActionPerformed
+    /**
+     * This sets the tile background color.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void bgColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bgColorButtonActionPerformed
+        showColorDialog(3);
+    }//GEN-LAST:event_bgColorButtonActionPerformed
+    /**
+     * This toggles whether the tile border is painted.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void debugBorderToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugBorderToggleActionPerformed
+        playField.setTileBorderPainted(debugBorderToggle.isSelected());
+    }//GEN-LAST:event_debugBorderToggleActionPerformed
+    /**
+     * This is used to set a color via the debug menu.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void debugColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugColorButtonActionPerformed
+        showColorDialog(debugColorCombo.getSelectedIndex());
+    }//GEN-LAST:event_debugColorButtonActionPerformed
+    /**
+     * This closes the color selection dialog with no changes made.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void cancelColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelColorButtonActionPerformed
+        setColor(-1, null);
+    }//GEN-LAST:event_cancelColorButtonActionPerformed
+    /**
+     * This closes the color selection dialog while resetting the color being 
+     * set.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void resetColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetColorButtonActionPerformed
+        setColor(colorSelIndex, null);
+    }//GEN-LAST:event_resetColorButtonActionPerformed
+    /**
+     * This closes the color selection dialog while setting the color being set 
+     * to the selected color.
+     * @param evt The ActionEvent to be processed.
+     */
+    private void selectColorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectColorButtonActionPerformed
+        setColor(colorSelIndex, colorChooser.getColor());
+    }//GEN-LAST:event_selectColorButtonActionPerformed
+    /**
+     * This shows the color selection dialog for the color, with the color being 
+     * set being determined by the given index. The color that is set for a 
+     * given index are as follows: <br><br>
+     * <ul>
+     * <li>0: Primary (player one) snake color</li>
+     * <li>1: Secondary (player two) snake color</li>
+     * <li>2: Apple color</li>
+     * <li>3: Tile background color</li>
+     * <li>4: Tile border color</li>
+     * <li>5: Play field background color</li>
+     * <li>6: Play field foreground color</li>
+     * </ul> <br>
+     * 
+     * Any index not listed above will result in no changes being made and the 
+     * color selection dialog will not be shown.
+     * @param index The index of the color to be set.
+     */
+    private void showColorDialog(int index){
+        colorSelIndex = index;
+        Color color;    // This will store the initial color
+        switch(index){
+            case(0):    // Player one snake color
+                color = playField.getPrimarySnakeColor();
+                break;
+            case(1):    // Player two snake color
+                color = playField.getSecondarySnakeColor();
+                break;
+            case(2):    // Apple color
+                color = playField.getAppleColor();
+                break;
+            case(3):    // Tile background color
+                color = playField.getTileBackground();
+                break;
+            case(4):    // Tile border color
+                color = playField.getTileBorder();
+                break;
+            case(5):    // Background color
+                color = playField.getBackground();
+                break;
+            case(6):    // Foreground color
+                color = playField.getForeground();
+                break;
+            default:    // Default does nothing
+                return;
+        }
+        colorChooser.setColor(color);
+        colorSelectDialog.setVisible(true);
+    }
+    /**
+     * This is used to actually set a color, with the color being set being 
+     * determined by the given index. The color that is set for a given index 
+     * are as follows: <br><br>
+     * <ul>
+     * <li>0: Primary (player one) snake color</li>
+     * <li>1: Secondary (player two) snake color</li>
+     * <li>2: Apple color</li>
+     * <li>3: Tile background color</li>
+     * <li>4: Tile border color</li>
+     * <li>5: Play field background color</li>
+     * <li>6: Play field foreground color</li>
+     * </ul> <br>
+     * 
+     * Any index not listed above will result in no changes being made.
+     * 
+     * @param index The index of the color to be set.
+     * @param color The new color to use.
+     */
+    private void setColor(int index, Color color){
+        colorSelIndex = -1; // Reset this to -1
+            // Hide the color selection dialog
+        colorSelectDialog.setVisible(false);
+        switch(index){  // Determine which color to be set
+            case(0):    // Player one snake color
+                playField.setPrimarySnakeColor(color);
+                p1ColorButton.repaint();
+                return;
+            case(1):    // Player two snake color
+                playField.setSecondarySnakeColor(color);
+                return;
+            case(2):    // Apple color
+                playField.setAppleColor(color);
+                appleColorButton.repaint();
+                return;
+            case(3):    // Tile background color
+                playField.setTileBackground(color);
+                bgColorButton.repaint();
+                return;
+            case(4):    // Tile border color
+                playField.setTileBorder(color);
+                return;
+            case(5):    // Background color
+                playField.setBackground(color);
+                return;
+            case(6):    // Foreground color
+                playField.setForeground(color);
+        }
+    }
+    /**
      * This returns the movement snake command associated with the given 
      * direction, or the add snake command if {@code addCmd} is {@code true}.
      * @param dir The direction for the command to retrieve.
@@ -1899,6 +2276,21 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         });
     }
     /**
+     * This stores the index for the color currently being set. The color that 
+     * is being set for a given index are as follows: <br><br>
+     * <ul>
+     * <li>-1: Default, no color is being set</li>
+     * <li>0: Primary (player one) snake color</li>
+     * <li>1: Secondary (player two) snake color</li>
+     * <li>2: Apple color</li>
+     * <li>3: Tile background color</li>
+     * <li>4: Tile border color</li>
+     * <li>5: Play field background color</li>
+     * <li>6: Play field foreground color</li>
+     * </ul>
+     */
+    private int colorSelIndex = -1;
+    /**
      * This is an action that opens the debug menu when the game is in debug 
      * mode.
      */
@@ -1947,6 +2339,22 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     */
     private javax.swing.JSpinner allowedFailsSpinner;
     /**
+    * This is the button used to set the color for apples.
+    */
+    private javax.swing.JButton appleColorButton;
+    /**
+    * This is the label for the button to set the color for apples.
+    */
+    private javax.swing.JLabel appleColorLabel;
+    /**
+    * This is the button used to set the color for the background.
+    */
+    private javax.swing.JButton bgColorButton;
+    /**
+    * This is the label for the button to set the color for the background.
+    */
+    private javax.swing.JLabel bgColorLabel;
+    /**
     * This is the label for the spinner to set the number of columns.
     */
     private javax.swing.JLabel cLabel;
@@ -1955,9 +2363,23 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     */
     private javax.swing.JSpinner cSpinner;
     /**
+    * This closes the color selection dialog with no changes to the color being
+    * set.
+    */
+    private javax.swing.JButton cancelColorButton;
+    /**
     * This is the button to remove all items in the snake's action queue.
     */
     private javax.swing.JButton clearActionQueueButton;
+    /**
+    * This is the color chooser used to select colors.
+    */
+    private javax.swing.JColorChooser colorChooser;
+    private javax.swing.JPanel colorSelPanel;
+    /**
+    * This is the dialog used to show the color selection dialog.
+    */
+    private javax.swing.JDialog colorSelectDialog;
     /**
     * The panel containing the labels that show the controls.
     */
@@ -1976,6 +2398,18 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     * being added to the snake instead of moving the snake.
     */
     private javax.swing.JCheckBox debugAddOrMoveToggle;
+    /**
+    * This is used to toggle whether the tile border is shown via the debug menu.
+    */
+    private javax.swing.JCheckBox debugBorderToggle;
+    /**
+    * This is the button on the debug menu to set the currently selected color.
+    */
+    private javax.swing.JButton debugColorButton;
+    /**
+    * This is the combo box used to select which color to set via the debug menu.
+    */
+    private javax.swing.JComboBox<String> debugColorCombo;
     /**
     * This toggles whether the debug snake controls will cause the snake
     * to perform their respective action immediately or add the action
@@ -2075,6 +2509,14 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     */
     private javax.swing.JButton nextTickButton;
     /**
+    * This is the button used to set the color for player one.
+    */
+    private javax.swing.JButton p1ColorButton;
+    /**
+    * This is the label for the button to set the color for player one.
+    */
+    private javax.swing.JLabel p1ColorLabel;
+    /**
     * The label displaying the icon showing the controls for player one.
     */
     private javax.swing.JLabel p1CtrlIconLabel;
@@ -2130,6 +2572,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     */
     private javax.swing.JSpinner rSpinner;
     /**
+    * This is the button used to reset the color being set to the default
+    * value for that color.
+    */
+    private javax.swing.JButton resetColorButton;
+    /**
     * This is the label stating what length the player managed to reach.
     */
     private javax.swing.JLabel resultLengthLabel;
@@ -2174,6 +2621,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     * The combo box for selecting the layer(s) to save to a file.
     */
     private javax.swing.JComboBox<String> saveLayerCombo;
+    /**
+    * This is the button used to reset the color being set to the currently
+    * selected color.
+    */
+    private javax.swing.JButton selectColorButton;
     /**
     * A panel to contain the components for setting the settings.
     */
