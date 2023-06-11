@@ -947,7 +947,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, colorSelectDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(colorSelectDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(colorChooser, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
+                    .addComponent(colorChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 625, Short.MAX_VALUE)
                     .addGroup(colorSelectDialogLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(colorSelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -978,11 +978,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         playField.setLayout(playFieldLayout);
         playFieldLayout.setHorizontalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
+            .addGap(0, 420, Short.MAX_VALUE)
         );
         playFieldLayout.setVerticalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
+            .addGap(0, 340, Short.MAX_VALUE)
         );
 
         layeredPane.add(playField);
@@ -1069,12 +1069,12 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 7, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         pauseButtonsPanel.add(resumeGameButton, gridBagConstraints);
 
         settingsButton.setFont(pauseMenuPanel.getFont());
@@ -1087,8 +1087,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
@@ -1098,8 +1097,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         debugMenuButton.setOpaque(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
