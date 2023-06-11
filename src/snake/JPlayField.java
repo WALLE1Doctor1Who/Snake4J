@@ -1445,9 +1445,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns a list of tiles in the model that are currently {@link 
-     * Tile#isEmpty() empty}. This delegates to the {@link 
-     * PlayFieldModel#getEmptyTiles() getEmptyTiles} method of the currently 
-     * set {@link #getModel() model}.
+     * Tile#isEmpty empty}. This delegates to the {@link 
+     * PlayFieldModel#getEmptyTiles getEmptyTiles} method of the currently set 
+     * {@link #getModel model}.
      * @return A list of tiles that are empty, or an empty list if no tiles are 
      * empty.
      * @see #getModel 
@@ -1471,9 +1471,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return getModel().getEmptyTiles();
     }
     /**
-     * This returns the number of tiles that are currently {@link Tile#isEmpty() 
-     * empty}. This delegates to the {@link PlayFieldModel#getEmptyTileCount() 
-     * getEmptyTileCount} method of the currently set {@link #getModel() model}.
+     * This returns the number of tiles that are currently {@link Tile#isEmpty 
+     * empty}. This delegates to the {@link PlayFieldModel#getEmptyTileCount 
+     * getEmptyTileCount} method of the currently set {@link #getModel model}.
      * @return The number of tiles that are empty.
      * @see #getModel 
      * @see #setModel 
@@ -1497,9 +1497,9 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     }
     /**
      * This returns a list of tiles in the model that are currently {@link 
-     * Tile#isApple() apple tiles}. This delegates to the {@link 
-     * PlayFieldModel#getAppleTiles() getAppleTiles} method of the currently 
-     * set {@link #getModel() model}.
+     * Tile#isApple apple tiles}. This delegates to the {@link 
+     * PlayFieldModel#getAppleTiles getAppleTiles} method of the currently 
+     * set {@link #getModel model}.
      * @return A list of the apple tiles in the model, or an empty list if no 
      * tiles are apple tiles.
      * @see #getModel 
@@ -1522,10 +1522,10 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         return getModel().getAppleTiles();
     }
     /**
-     * This returns the number of tiles that are currently {@link Tile#isApple()  
+     * This returns the number of tiles that are currently {@link Tile#isApple  
      * apple tiles}. This delegates to the {@link 
-     * PlayFieldModel#getAppleTileCount() getAppleTileCount} method of the 
-     * currently set {@link #getModel() model}.
+     * PlayFieldModel#getAppleTileCount getAppleTileCount} method of the 
+     * currently set {@link #getModel model}.
      * @return The number of tiles that are apple tiles.
      * @see #getModel 
      * @see #setModel 

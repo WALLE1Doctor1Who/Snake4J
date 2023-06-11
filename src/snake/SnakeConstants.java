@@ -184,5 +184,8 @@ public interface SnakeConstants {
      * tiles. This color is a translucent white.
      */
     public static final Color TILE_BORDER_COLOR = new Color(0x60FFFFFF,true);
-    
+    /**
+     * This is the default color used for the outlines of the graphics.
+     */
+    public static final Color GRAPHICS_OUTLINE_COLOR = new Color(0x303030);
 }

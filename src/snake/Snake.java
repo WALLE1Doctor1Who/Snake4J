@@ -253,7 +253,11 @@ import snake.playfield.*;
  * concurrent modifications. The fail-fast iterators throw {@code 
  * ConcurrentModificationExceptions} on a best-effort basis. As such the 
  * fail-fast behavior should not be depended on for its correctness and should 
- * only be used to detect bugs.
+ * only be used to detect bugs. <p>
+ * 
+ * Most, though not all, setter methods will return the calling snake so that 
+ * they can be chained together to change multiple properties with a single line 
+ * of code.
  * 
  * @author Milo Steier
  * @see Tile
@@ -1336,7 +1340,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             else
                 itr = c.iterator();     // Get an iterator from c
             while (itr.hasNext()){      // While the iterator has tiles
-                if (add(itr.next()))//If the next tile in the iterator was added
+                    // If the next tile in the iterator was added
+                if (add(itr.next().clear()))
                     modified = true;    // The snake has been modified
             }
         }

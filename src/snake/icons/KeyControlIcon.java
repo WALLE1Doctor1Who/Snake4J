@@ -5,16 +5,14 @@
 package snake.icons;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.Objects;
-import javax.swing.Icon;
 import snake.painters.KeyPainter;
 
 /**
  * This is an icon that can be used to represent a key on the keyboard. 
  * @author Milo Steier
  */
-public abstract class KeyControlIcon implements Icon{
+public abstract class KeyControlIcon implements Icon2D{
     /**
      * This stores the width of the key.
      */
@@ -134,47 +132,25 @@ public abstract class KeyControlIcon implements Icon{
      * @param x The x-coordinate of the icon's top-left corner.
      * @param y The x-coordinate of the icon's top-left corner.
      * @see #paintKeySymbol 
+     * @see #paintIcon 
      */
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        g = g.create();
-        int w = getIconWidth();         // Get the width for the key
-        int h = getIconHeight();        // Get the height for the key
-            // An image to render to if the given graphics context is not a 
-        BufferedImage img = null;       // Graphics2D object
-        Graphics2D g2D; // This will get the Graphics2D object to render to.
-            // If the graphics context is a Graphics2D object
-        if (g instanceof Graphics2D){
-            g2D = (Graphics2D) g;
-            g2D.translate(x, y);
-        }
-        else if (g != null){            // If the graphics context is not null
-            img = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
-            g2D = img.createGraphics();
-            g2D.setFont(g.getFont());
-            g2D.setColor(g.getColor());
-        }
-        else                            //If the graphics conext is somehow null
-            return;
+    public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
+        g.translate(x, y);      // Translate the location
             // Enable antialiasing
-        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
             // Prioritize rendering quality over speed
-        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                 RenderingHints.VALUE_RENDER_QUALITY);
             // Use the key painter to render the key
-        keyPainter.paint(g2D, c, w, h);
-        if (img != null){               // If this rendered to an image
-            g2D.dispose();
-            g.drawImage(img, x, y, w, h, c);
-        }
-        g.dispose();
+        keyPainter.paint(g, c, getIconWidth(), getIconHeight());
     }
     /**
      * This is used to render the symbol for the key. This is called by {@link 
-     * #paintIcon paintIcon} to paint the key's symbol over the raised portion 
-     * of the rendered key. The given coordinates and size are the location and 
-     * size of the raised section of the key.
+     * #paintIcon2D paintIcon2D} to paint the key's symbol over the raised 
+     * portion of the rendered key. The given coordinates and size are the 
+     * location and size of the raised section of the key.
      * @param c A {@code Component} to get useful properties for painting the 
      * symbol.
      * @param g The graphics context to render to.
@@ -184,7 +160,7 @@ public abstract class KeyControlIcon implements Icon{
      * the key.
      * @param w The width of the raised portion of the key.
      * @param h The height of the raised portion of the key.
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      */
     protected abstract void paintKeySymbol(Component c,Graphics g,int x,int y,
             int w, int h);

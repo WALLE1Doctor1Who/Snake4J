@@ -105,7 +105,7 @@ public class WASDControlIcon extends MovementControlIcon{
      * @param w {@inheritDoc }
      * @param h {@inheritDoc }
      * @param direction {@inheritDoc }
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see SnakeUtilities#drawCenteredString 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
@@ -139,7 +139,7 @@ public class WASDControlIcon extends MovementControlIcon{
      * width, so that the top "W" key will be rendered where it would be on a 
      * standard QWERTY keyboard.
      * @return {@inheritDoc }
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see #getKeyWidth 
      */
     @Override

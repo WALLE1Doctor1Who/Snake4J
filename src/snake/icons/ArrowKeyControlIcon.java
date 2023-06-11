@@ -196,7 +196,7 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
      * @param w {@inheritDoc }
      * @param h {@inheritDoc }
      * @param direction {@inheritDoc }
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see SnakeUtilities#getTriangle 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION

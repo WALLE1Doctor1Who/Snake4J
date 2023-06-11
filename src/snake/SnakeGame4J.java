@@ -1551,9 +1551,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             // Set the snake's allowed number of failures 
         snake.setAllowedFails((Integer)allowedFailsSpinner.getValue());
         playField.clearTiles();         // Clear the play field
-            // Initialize the snake to be roughly in the middle of the play field
+            // Initialize the snake to be roughly in the middle of the play 
+            // field and clear its action queue
         snake.initialize(Math.floorDiv(playField.getRowCount(), 2), 
-                Math.floorDiv(playField.getColumnCount(), 2));
+                Math.floorDiv(playField.getColumnCount(), 2)).getActionQueue().
+                clear();
             // Set a random empty tile to be an apple tile
         playField.getRandomEmptyTile(rand).setApple();
         setInGameplay(true);    // We are now in game play

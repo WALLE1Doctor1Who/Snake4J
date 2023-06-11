@@ -105,7 +105,7 @@ public class EscControlIcon extends KeyControlIcon {
      * @param y {@inheritDoc }
      * @param w {@inheritDoc }
      * @param h  {@inheritDoc }
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see SnakeUtilities#drawCenteredString 
      * @see #ESCAPE_KEY_TEXT
      */

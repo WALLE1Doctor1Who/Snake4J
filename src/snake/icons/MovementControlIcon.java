@@ -5,7 +5,6 @@
 package snake.icons;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import snake.*;
 
 /**
@@ -84,39 +83,23 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
      * @param y The x-coordinate of the icon's top-left corner.
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
+     * @see #paintIcon 
      */
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        g = g.create();
+    public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
         int w = getKeyWidth();          // Get the width for the keys
         int h = getKeyHeight();         // Get the height for the keys
-            // An image to render to if the given graphics context is not a 
-        BufferedImage img = null;       // Graphics2D object
-        Graphics2D g2D; // This will get the Graphics2D object to render to.
-            // If the graphics context is a Graphics2D object
-        if (g instanceof Graphics2D){
-            g2D = (Graphics2D) g;
-            g2D.translate(x, y);
-        }
-        else if (g != null){            // If the graphics context is not null
-            img = new BufferedImage(getIconWidth(),getIconHeight(),
-                    BufferedImage.TYPE_INT_ARGB);
-            g2D = img.createGraphics();
-            g2D.setFont(g.getFont());
-            g2D.setColor(g.getColor());
-        }
-        else                            //If the graphics conext is somehow null
-            return;
+        g.translate(x, y);              // Translate the location
             // Enable antialiasing
-        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
             // Prioritize rendering quality over speed
-        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                 RenderingHints.VALUE_RENDER_QUALITY);
             // A for loop to render the movement keys
         for (int i = 0; i < RENDERED_DIRECTIONS.length; i++){
                 // Create a scratch graphics context to render the key
-            Graphics2D keyG = (Graphics2D) g2D.create();
+            Graphics2D keyG = (Graphics2D) g.create();
             if (i == 0) // If this is the up key, render it on the first row, 
                 // second column, offset by the up key offset
                 keyG.translate(w-1-getUpKeyOffset(), 0);
@@ -126,11 +109,6 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
             keyPainter.setSymbolArgument(RENDERED_DIRECTIONS[i]).paint(keyG,c,w,h);
             keyG.dispose();
         }
-        if (img != null){               // If this rendered to an image
-            g2D.dispose();
-            g.drawImage(img, x, y, w, h, c);
-        }
-        g.dispose();
     }
     /**
      * This returns the value to subtract from the x-coordinate for the top key 
@@ -149,7 +127,7 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
      * @since 1.1.0
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -171,7 +149,7 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
      * #getPaintedKeyDirection direction of the key being rendered}.
      * 
      * @since 1.1.0
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
      * @see #getPaintedKeyDirection 
      */
@@ -206,7 +184,7 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
      *      {@link #DOWN_DIRECTION}, 
      *      {@link #LEFT_DIRECTION}, or 
      *      {@link #RIGHT_DIRECTION}.
-     * @see #paintIcon 
+     * @see #paintIcon2D 
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
      * @see #getPaintedKeyDirection 
      * @see #UP_DIRECTION

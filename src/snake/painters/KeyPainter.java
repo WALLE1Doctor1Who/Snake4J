@@ -7,20 +7,19 @@ package snake.painters;
 import java.awt.*;
 import java.util.Objects;
 import javax.swing.*;
+import snake.SnakeConstants;
 import snake.SnakeUtilities;
 
 /**
  * This is a painter used to render a representation of a key on the keyboard. 
+ * Each setter method will return the calling KeyPainter so that they can be 
+ * chained together to change multiple properties with a single line of code.
  * @author Milo Steier
  * @param <T> The datatype of the optional configuration argument for the 
  * symbol.
  * @since 1.1.0
  */
-public abstract class KeyPainter<T> implements Painter<Component> {
-    /**
-     * This is the color used for the outline of the keys rendered by default.
-     */
-    public static final Color DEFAULT_KEY_OUTLINE_COLOR = new Color(0x303030);
+public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants {
     /**
      * This stores the bevel for the keys rendered by this painter.
      */
@@ -39,8 +38,8 @@ public abstract class KeyPainter<T> implements Painter<Component> {
     private Color fg;
     /**
      * This stores the color to use for the outline of the keys rendered by this 
-     * painter. When this is null, then {@link #DEFAULT_KEY_OUTLINE_COLOR} will 
-     * be used instead.
+     * painter. When this is null, then {@link #GRAPHICS_OUTLINE_COLOR} will be 
+     * used instead.
      */
     private Color outline;
     /**
@@ -67,7 +66,34 @@ public abstract class KeyPainter<T> implements Painter<Component> {
      * are all set to null by default.
      */
     public KeyPainter(){
-        this(null);
+        this((T)null);
+    }
+    /**
+     * This constructs a KeyPainter that is a copy of the given KeyPainter and 
+     * with the given argument for the symbol.
+     * @param keyPainter The KeyPainter to get the settings from. This cannot be 
+     * null.
+     * @param symbolObject The optional configuration argument to use for the 
+     * symbol. This may be null.
+     * @throws NullPointerException If the KeyPainter being duplicated is null.
+     */
+    public KeyPainter(KeyPainter<?> keyPainter, T symbolObject){
+        this.object = symbolObject;
+        Objects.requireNonNull(keyPainter); // Check if the key painter is null
+        this.bevel = keyPainter.bevel;
+        this.bg = keyPainter.bg;
+        this.fg = keyPainter.fg;
+        this.outline = keyPainter.outline;
+    }
+    /**
+     * This constructs a KeyPainter that is a copy of the given KeyPainter and 
+     * with a null argument for the symbol.
+     * @param keyPainter The KeyPainter to get the settings from. This cannot be 
+     * null.
+     * @throws NullPointerException If the KeyPainter being duplicated is null.
+     */
+    public KeyPainter(KeyPainter<?> keyPainter){
+        this(keyPainter,null);
     }
     /**
      * This renders a key to the given graphics context. This method  may modify 
@@ -102,8 +128,10 @@ public abstract class KeyPainter<T> implements Painter<Component> {
      */
     @Override
     public void paint(Graphics2D g, Component c, int width, int height) {
-            // If the width or height is less than or equal to zero, or if the 
-        if (width <= 0 || height <= 0 || g == null) // graphics context is null
+        if (g == null)  // If the graphics context is null
+            throw new NullPointerException();
+            // If the width or height is less than or equal to zero
+        else if (width <= 0 || height <= 0) 
             return;
         width--;        // Shrink the width by 1 to fit within the given area
         height--;       // Shrink the height by 1 to fit within the given area
@@ -120,7 +148,7 @@ public abstract class KeyPainter<T> implements Painter<Component> {
         SnakeUtilities.fill3DRectangle(g, 0, 0, width, height, bevel);
             // If the outline color is set, use it. Otherwise, default to the 
             // default color
-        g.setColor((outline != null)?outline:DEFAULT_KEY_OUTLINE_COLOR);
+        g.setColor((outline != null)?outline:GRAPHICS_OUTLINE_COLOR);
             // Outline the body of the key
         SnakeUtilities.draw3DRectangle(g, 0, 0, width, height, bevel);
         int b = Math.abs(bevel);    // Get the absolute value of the bevel
@@ -273,24 +301,24 @@ public abstract class KeyPainter<T> implements Painter<Component> {
         return this;
     }
     /**
-     * This returns the color used to draw the outline for the rendered by this 
-     * {@code KeyPainter}. If this is null, then this will use {@link 
-     * #DEFAULT_KEY_OUTLINE_COLOR} to draw the outline of the keys.
+     * This returns the color used to draw the outline for the keys rendered by 
+     * this {@code KeyPainter}. If this is null, then this will use {@link 
+     * #GRAPHICS_OUTLINE_COLOR} to draw the outline of the keys.
      * @return The outline color for the keys, or null.
      * @see #setOutlineColor
      * @see #getForeground 
      * @see #setForeground
      * @see #getBackground 
      * @see #setBackground
-     * @see #DEFAULT_KEY_OUTLINE_COLOR
+     * @see #GRAPHICS_OUTLINE_COLOR
      */
     public Color getOutlineColor(){
         return outline;
     }
     /**
-     * This sets the color used to draw the outline for the rendered by this 
-     * {@code KeyPainter}. If this is set to null, then this will use {@link 
-     * #DEFAULT_KEY_OUTLINE_COLOR} to draw the outline of the keys.
+     * This sets the color used to draw the outline for the keys rendered by 
+     * this {@code KeyPainter}. If this is set to null, then this will use 
+     * {@link #GRAPHICS_OUTLINE_COLOR} to draw the outline of the keys.
      * @param color The outline color to use for the keys, or null.
      * @return This {@code KeyPainter}.
      * @see #getOutlineColor
@@ -298,7 +326,7 @@ public abstract class KeyPainter<T> implements Painter<Component> {
      * @see #setForeground
      * @see #getBackground 
      * @see #setBackground
-     * @see #DEFAULT_KEY_OUTLINE_COLOR
+     * @see #GRAPHICS_OUTLINE_COLOR
      */
     public KeyPainter setOutlineColor(Color color){
         this.outline = color;

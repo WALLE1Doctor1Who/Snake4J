@@ -32,4 +32,4 @@ Development_Stuff/
 **/desktop.ini
 /src/snake/NimbusBrowser.java
 /src/snake/action/SnakeInputAction.java
-/src/snake/icons/ColorButtonIcon.java
+test/snake/action/SnakeInputAction.java

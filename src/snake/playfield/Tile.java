@@ -44,7 +44,7 @@ import snake.*;
  * the model tile observer may cause issues such as the model loosing its 
  * ability to monitor the state of the tile and notify its {@code 
  * PlayFieldListener}s of changes. Most, though not all, setter methods will 
- * return the calling Tile so that they can be chained together to change 
+ * return the calling tile so that they can be chained together to change 
  * multiple properties with a single line of code.
  * 
  * @author Milo Steier
