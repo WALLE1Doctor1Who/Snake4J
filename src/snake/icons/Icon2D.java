@@ -21,10 +21,10 @@ public interface Icon2D extends Icon{
      * method, providing a scratch Graphics2D object to it. If the given 
      * graphics context is not a Graphics2D object, then this will draw to an 
      * image that will then be drawn to the given graphics context.
-     * @param c {@inheritDoc }
-     * @param g {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
+     * @param c A {@code Component} to get useful properties for painting.
+     * @param g The graphics context to render to.
+     * @param x The x-coordinate of the icon's top-left corner.
+     * @param y The y-coordinate of the icon's top-left corner.
      * @see #paintIcon2D
      */
     @Override

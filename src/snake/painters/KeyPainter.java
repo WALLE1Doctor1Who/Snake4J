@@ -147,7 +147,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
         }   // Fill a 3D rectangle to represent the body of the key
         SnakeUtilities.fill3DRectangle(g, 0, 0, width, height, bevel);
             // If the outline color is set, use it. Otherwise, default to the 
-            // default color
+            // default outline color
         g.setColor((outline != null)?outline:GRAPHICS_OUTLINE_COLOR);
             // Outline the body of the key
         SnakeUtilities.draw3DRectangle(g, 0, 0, width, height, bevel);

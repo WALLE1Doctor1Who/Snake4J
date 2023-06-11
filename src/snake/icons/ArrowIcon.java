@@ -61,6 +61,8 @@ public class ArrowIcon implements Icon, SnakeConstants{
      * non-zero integer).
      * @param height The height of the arrow and icon (must be a positive, 
      * non-zero integer).
+     * @throws IllegalArgumentException If either the width or height are 
+     * negative or equal to zero.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -108,6 +110,8 @@ public class ArrowIcon implements Icon, SnakeConstants{
      * @param color The color to render the arrow in, or null.
      * @param size The width and height of the arrow and icon (must be a 
      * positive, non-zero integer).
+     * @throws IllegalArgumentException If the size is negative or equal to 
+     * zero.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -175,6 +179,8 @@ public class ArrowIcon implements Icon, SnakeConstants{
      * non-zero integer).
      * @param height The height of the arrow and icon (must be a positive, 
      * non-zero integer).
+     * @throws IllegalArgumentException If either the width or height are 
+     * negative or equal to zero.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -208,6 +214,8 @@ public class ArrowIcon implements Icon, SnakeConstants{
      *      {@link #DOWN_RIGHT_DIRECTION}.
      * @param size The width and height of the arrow and icon (must be a 
      * positive, non-zero integer).
+     * @throws IllegalArgumentException If the size is negative or equal to 
+     * zero.
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
