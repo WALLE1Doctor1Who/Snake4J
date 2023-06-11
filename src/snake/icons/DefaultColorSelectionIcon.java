@@ -24,30 +24,63 @@ public class DefaultColorSelectionIcon extends ColorSelectionIcon{
      * This constructs a DefaultColorSelectionIcon with the given color, width, 
      * and height.
      * @param color The color to be displayed by this icon, or null.
-     * @param width
-     * @param height 
+     * @param width The width of the icon (must be a positive, non-zero 
+     * integer).
+     * @param height The height of the icon (must be a positive, non-zero 
+     * integer).
+     * @throws IllegalArgumentException If either the width or height are 
+     * negative or equal to zero.
      */
     public DefaultColorSelectionIcon(Color color, int width, int height){
         super(width, height);
         this.color = color;
     }
-    
+    /**
+     * This constructs a DefaultColorSelectionIcon with the given color and 
+     * size.
+     * @param color The color to be displayed by this icon, or null.
+     * @param size The width and height of the icon (must be a positive, 
+     * non-zero integer).
+     * @throws IllegalArgumentException If the size is negative or equal to 
+     * zero.
+     */
     public DefaultColorSelectionIcon(Color color, int size){
         this(color,size,size);
     }
-    
+    /**
+     * This constructs a 16x16 DefaultColorSelectionIcon with the given color.
+     * @param color The color to be displayed by this icon, or null.
+     */
     public DefaultColorSelectionIcon(Color color){
         this(color,16);
     }
-    
+    /**
+     * This constructs a DefaultColorSelectionIcon with a null color and the 
+     * given width and height.
+     * @param width The width of the icon (must be a positive, non-zero 
+     * integer).
+     * @param height The height of the icon (must be a positive, non-zero 
+     * integer).
+     * @throws IllegalArgumentException If either the width or height are 
+     * negative or equal to zero.
+     */
     public DefaultColorSelectionIcon(int width, int height){
         this(null,width,height);
     }
-    
+    /**
+     * This constructs a DefaultColorSelectionIcon with a null color and the 
+     * given size.
+     * @param size The width and height of the icon (must be a positive, 
+     * non-zero integer).
+     * @throws IllegalArgumentException If the size is negative or equal to 
+     * zero.
+     */
     public DefaultColorSelectionIcon(int size){
         this(null,size);
     }
-    
+    /**
+     * This constructs a 16x16 DefaultColorSelectionIcon with a null color.
+     */
     public DefaultColorSelectionIcon(){
         this(null);
     }
