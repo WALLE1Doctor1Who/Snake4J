@@ -28,8 +28,13 @@ build/
 dist/
 Development_Stuff/
 
-# Windows desktop.imi files
+# Windows desktop.ini files
 **/desktop.ini
+
+# The open files and bookmarks config file for the project
+nbproject\private\private.xml
+
+# Excluded source files (Usually these files are currently unused and/or not ready to be added)
 /src/snake/NimbusBrowser.java
 /src/snake/action/SnakeInputAction.java
 test/snake/action/SnakeInputAction.java
