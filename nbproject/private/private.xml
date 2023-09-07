@@ -2,53 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="306">
         <file>
-            <url>src/snake/SnakeUtilities.java</url>
-            <bookmark id="306">
-                <name/>
-                <line>676</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
-            <url>src/snake/Snake.java</url>
-            <bookmark id="214">
-                <name/>
-                <line>1318</line>
-                <key/>
-            </bookmark>
-            <bookmark id="215">
-                <name/>
-                <line>1857</line>
-                <key/>
-            </bookmark>
-            <bookmark id="209">
-                <name/>
-                <line>1981</line>
-                <key/>
-            </bookmark>
-            <bookmark id="211">
-                <name/>
-                <line>2092</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
-            <url>src/snake/action/SnakeActionQueue.java</url>
-            <bookmark id="161">
-                <name/>
-                <line>16</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
-            <url>src/snake/JPlayFieldTester.java</url>
-            <bookmark id="24">
-                <name/>
-                <line>2292</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
             <url>src/snake/SnakeGame4J.java</url>
             <bookmark id="218">
                 <name/>
@@ -94,6 +47,45 @@
             <bookmark id="52">
                 <name/>
                 <line>1391</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/Snake.java</url>
+            <bookmark id="214">
+                <name/>
+                <line>1318</line>
+                <key/>
+            </bookmark>
+            <bookmark id="215">
+                <name/>
+                <line>1857</line>
+                <key/>
+            </bookmark>
+            <bookmark id="209">
+                <name/>
+                <line>1981</line>
+                <key/>
+            </bookmark>
+            <bookmark id="211">
+                <name/>
+                <line>2092</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/action/SnakeActionQueue.java</url>
+            <bookmark id="161">
+                <name/>
+                <line>16</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/snake/JPlayFieldTester.java</url>
+            <bookmark id="24">
+                <name/>
+                <line>2292</line>
                 <key/>
             </bookmark>
         </file>
