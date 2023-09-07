@@ -74,7 +74,8 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         debugMenuButton.setAction(debugAction);
             // Don't show the pause title label right now, since we're not 
         pauseTitleLabel.setVisible(false);  // currently in game
-        setVisibleGameOverlay(0);   // Show only the pause menu and play field
+            // Show the pause menu overlay
+        setVisibleGameOverlay(pauseMenuPanel);   
             // Create a new snake on the play field model and set its allowed 
         snake = new Snake(playField.getModel()).setAllowedFails(1);// fails to 1
             // Add a snake listener for the player one snake
@@ -285,6 +286,8 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         if (name != null)   // If the name is not null
             ((CardLayout)gameOverlayPanel.getLayout())
                     .show(gameOverlayPanel, name);
+            // Set whether the overlay is visible depending on whether the name 
+            // is null
         gameOverlayPanel.setVisible(name != null);
     }
     /**
@@ -345,7 +348,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         resultLostLabel.setVisible(!isVictory);
             // State how long the snake managed to get
         resultLengthLabel.setText("Length: "+snake.size());
-        setVisibleGameOverlay(3);  // Show the results screen
+        setVisibleGameOverlay(resultsPanel);  // Show the results screen
     }
     /**
      * This sets whether a game is currently in progress. When this is set to 
@@ -405,8 +408,9 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @see #setInGameplay 
      */
     protected void setPaused(boolean paused){
-            // If the game is now paused, show the pause menu. Otherwise, only 
-        setVisibleGameOverlay((paused)?0:-1);  // show the play field
+            // If the game is now paused, show the pause menu. Otherwise, hide 
+            // the game overlays
+        setVisibleGameOverlay((paused)?pauseMenuPanel:null);  
         pauseToggle.setSelected(paused);    // Update the debug toggle for this
             // Enable the play field if the game is not paused
         playField.setEnabled(!paused);      
@@ -1805,7 +1809,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @param evt The ActionEvent to process.
      */
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
-        setVisibleGameOverlay(2);  // Show the pause menu
+        setVisibleGameOverlay(settingsPanel);  // Show the settings menu
     }//GEN-LAST:event_settingsButtonActionPerformed
     /**
      * This shows the menu for configuring the game before starting it.
@@ -1817,7 +1821,8 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         delaySpinner.setValue(timer.getDelay());
         wrapAroundToggle.setSelected(snake.isWrapAroundEnabled());
         allowedFailsSpinner.setValue(snake.getAllowedFails());
-        setVisibleGameOverlay(1);  // Show the start game menu
+            // Show the start game menu
+        setVisibleGameOverlay(gameConfigPanel);  
     }//GEN-LAST:event_startGameButtonActionPerformed
     /**
      * This unpauses and resumes any game that is currently in progress if the 
@@ -1865,7 +1870,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @param evt The ActionEvent to process.
      */
     private void returnToPauseMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_returnToPauseMenuActionPerformed
-        setVisibleGameOverlay(0);
+        setVisibleGameOverlay(pauseMenuPanel);  // Show the pause menu
     }//GEN-LAST:event_returnToPauseMenuActionPerformed
     /**
      * This resets the game configuration to the default configuration.
@@ -2299,7 +2304,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         }
         //</editor-fold>
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> {
+        EventQueue.invokeLater(() -> {
                 // Check to see  whether we should be in debug mode or not, 
                 // first by getting whether there are any command line arguments
             boolean debug = args != null && args.length > 0;
