@@ -5,17 +5,16 @@
 package snake.icons;
 
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.util.Objects;
-import javax.swing.Icon;
 import snake.*;
+import snake.painters.ArrowPainter;
 
 /**
  * This is an icon that displays an arrow pointing in a given direction.
  * @author Milo Steier
  * @since 1.1.0
  */
-public class ArrowIcon implements Icon, SnakeConstants{
+public class ArrowIcon implements Icon2D, SnakeConstants{
     /**
      * This stores the width for the icon.
      */
@@ -34,9 +33,9 @@ public class ArrowIcon implements Icon, SnakeConstants{
      */
     private final int direction;
     /**
-     * This stores the shape used to render the arrow.
+     * This is the painter used to render the arrow for the icon.
      */
-    private final Shape shape;
+    protected ArrowPainter arrowPainter = new ArrowPainter();
     /**
      * This constructs an ArrowIcon with the given direction, color, width, and 
      * height. The direction must be either zero, one of the four direction 
@@ -78,15 +77,13 @@ public class ArrowIcon implements Icon, SnakeConstants{
             throw new IllegalArgumentException(
                     "Width and/or height are invalid (width: "+width+
                             ", height: "+height+")");
+        if (direction != 0) // If the direction is not zero
+                // Check the direction for the triangle
+            SnakeUtilities.requireDirectionForTriangle(direction);
         this.direction = direction;
         this.width = width;
         this.height = height;
         this.color = color;
-        if (direction == 0) // If the direction is zero
-                // Get an ellipse to represent no direction
-            shape = new Ellipse2D.Double(0,0,width,height);
-        else    // Get the polygon to draw the triangle
-            shape = SnakeUtilities.getTriangle(0, 0, width, height, direction);
     }
     /**
      * This constructs an ArrowIcon with the given direction, color, and size. 
@@ -276,31 +273,20 @@ public class ArrowIcon implements Icon, SnakeConstants{
      * @see SnakeUtilities#getTriangle 
      */
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-        g = g.create();
+    public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
         g.translate(x, y);      // Translate the graphics context
         if (color == null)      // If no color is set, use the foreground color
             g.setColor(c.getForeground());
         else
             g.setColor(color);  // Use the color currently set
-            // If the graphics context is a Graphic2D object
-        if (g instanceof Graphics2D){
-            Graphics2D g2D = (Graphics2D) g;    // Get it as a Graphic2D object
-                // Enable antialiasing
-            g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-                // Prioritize rendering quality over speed
-            g2D.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                    RenderingHints.VALUE_RENDER_QUALITY);
-            g2D.fill(shape);    // Fill the shape
-        }   // If the graphics context is not a Graphics2D object, but the shape 
-        else if (shape instanceof Polygon){ // is a polygon
-                // The Graphics interface specifies a function to render Polygon
-            g.fillPolygon((Polygon)shape);  // objects
-        }
-        else
-            g.fillOval(0, 0, width, height);// Draw an oval
-        g.dispose();
+            // Enable antialiasing
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
+            // Use the painter to render the arrow
+        arrowPainter.paint(g, direction, width, height);
     }
     /**
      * This returns the icon's width. This is also used for the width of the 

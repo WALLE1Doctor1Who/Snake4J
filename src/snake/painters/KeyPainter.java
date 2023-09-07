@@ -96,9 +96,9 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
         this(keyPainter,null);
     }
     /**
-     * This renders a key to the given graphics context. This method  may modify 
+     * This renders a key to the given graphics context. This method may modify 
      * the state of the graphics object and is not required to restore that 
-     * state once they're finished. It's recommended that the caller should pass 
+     * state once it's finished. It is recommended that the caller should pass 
      * in a scratch graphics object. The graphics object must not be null. <p>
      * 
      * The width and height parameters specify the width and height that the key 
@@ -119,6 +119,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * key. This may be null.
      * @param width The width of the area to paint.
      * @param height The height of the area to paint.
+     * @throws NullPointerException If the graphics context is null.
      * @see #paintSymbol
      * @see #getKeyBevel 
      * @see #getBackground 
@@ -130,7 +131,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
     public void paint(Graphics2D g, Component c, int width, int height) {
         if (g == null)  // If the graphics context is null
             throw new NullPointerException();
-            // If the width or height is less than or equal to zero
+            // If the width or height are less than or equal to zero
         else if (width <= 0 || height <= 0) 
             return;
         width--;        // Shrink the width by 1 to fit within the given area
@@ -225,7 +226,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * @return This {@code KeyPainter}.
      * @see #getKeyBevel 
      */
-    public KeyPainter setKeyBevel(int bevel){
+    public KeyPainter<T> setKeyBevel(int bevel){
         this.bevel = bevel;
         return this;
     }
@@ -259,7 +260,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * @see #setOutlineColor
      * @see Component#getBackground 
      */
-    public KeyPainter setBackground(Color bg){
+    public KeyPainter<T> setBackground(Color bg){
         this.bg = bg;
         return this;
     }
@@ -296,7 +297,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * @see #paintSymbol
      * @see Component#getForeground 
      */
-    public KeyPainter setForeground(Color fg){
+    public KeyPainter<T> setForeground(Color fg){
         this.fg = fg;
         return this;
     }
@@ -328,7 +329,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * @see #setBackground
      * @see #GRAPHICS_OUTLINE_COLOR
      */
-    public KeyPainter setOutlineColor(Color color){
+    public KeyPainter<T> setOutlineColor(Color color){
         this.outline = color;
         return this;
     }
@@ -358,7 +359,7 @@ public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants
      * @see #paintSymbol 
      * @see #paint 
      */
-    public KeyPainter setSymbolArgument(T object){
+    public KeyPainter<T> setSymbolArgument(T object){
         this.object = object;
         return this;
     }

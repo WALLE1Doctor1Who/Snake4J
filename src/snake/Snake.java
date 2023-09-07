@@ -18,11 +18,11 @@ import snake.playfield.*;
  * game Snake. Snakes are displayed on and move around on a play field 
  * represented by a {@link PlayFieldModel PlayFieldModel}. Snakes implement the 
  * {@link Queue Queue} and {@link Set Set} interfaces, inheriting the element 
- * order from {@code Queue} and the stipulations on duplicate elements from 
- * {@code Set}. As such, snakes order tiles in a FIFO (first-in-first-out) 
- * manner like a queue, and snakes contain no duplicate tiles like a set. Null 
- * tiles and tiles not contained within the snake's {@code PlayFieldModel} are 
- * prohibited. <p>
+ * order from {@code Queue} and the stipulations on duplicate elements (or lack 
+ * thereof) from {@code Set}. As such, snakes order tiles in a FIFO 
+ * (first-in-first-out) manner like a queue, and snakes contain no duplicate 
+ * tiles like a set. Null tiles and tiles not contained within the snake's 
+ * {@code PlayFieldModel} are prohibited. <p>
  * 
  * Tiles are inserted at the front of the snake (the <em>tail</em> of the 
  * queue), and the last tile in the snake is the <em>head</em> of the queue (the 

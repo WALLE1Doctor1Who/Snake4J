@@ -507,8 +507,8 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
     /**
      * This renders the given play field to the given graphics context. 
      * Implementations of this method may modify the state of the graphics 
-     * object and are not required to restore that state once they're finished. 
-     * It's recommended that the caller should pass in a scratch graphics 
+     * object and are not required to restore that state once it's finished. 
+     * It is recommended that the caller should pass in a scratch graphics 
      * object. The graphics object must not be null. <p>
      * 
      * The given JPlayField is used to get the play field to render. 
@@ -518,7 +518,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * be null, however this may result in undefined and unpredictable behavior. 
      * Most often this will just result in nothing being rendered. In accordance 
      * to the Painter interface, implementations must not throw a 
-     * NullPointerException if the given JPlayField is null.
+     * NullPointerException if the given JPlayField is null. <p>
      * 
      * The width and height parameters specify the width and height that the 
      * renderer should paint into. More specifically, the given width and height 
@@ -534,6 +534,7 @@ public interface PlayFieldRenderer extends Painter<JPlayField>, SnakeConstants,
      * result in undefined and unpredictable behavior.
      * @param width The width of the area to paint the play field in.
      * @param height The height of the area to paint the play field in.
+     * @throws NullPointerException If the {@code Graphics2D} object is null.
      * @see JPlayField#paintComponent 
      * @see JPlayField#getWidth 
      * @see JPlayField#getHeight 

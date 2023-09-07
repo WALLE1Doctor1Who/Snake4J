@@ -33,3 +33,6 @@ Development_Stuff/
 /src/snake/NimbusBrowser.java
 /src/snake/action/SnakeInputAction.java
 test/snake/action/SnakeInputAction.java
+/test/snake/game/JArrowButton.java
+/test/snake/game/JDirectionPane.java
+/src/snake/game/package-info.java

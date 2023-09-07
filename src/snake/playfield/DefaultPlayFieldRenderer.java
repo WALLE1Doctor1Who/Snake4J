@@ -796,6 +796,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * @param c {@inheritDoc }
      * @param width {@inheritDoc }
      * @param height {@inheritDoc }
+     * @throws NullPointerException {@inheritDoc }
      * @see #configureGraphics 
      * @see #paintTileBackground 
      * @see #paintTiles 

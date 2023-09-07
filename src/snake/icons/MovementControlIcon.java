@@ -171,7 +171,9 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
      * may exhibit unpredictable and undefined behavior.
      * @param c A {@code Component} to get useful properties for painting the 
      * symbol.
-     * @param g The graphics context to render to.
+     * @param g The graphics context to render to. This will usually be a {@code 
+     * Graphics2D} object, but allows a {@code Graphics} objects for backwards 
+     * compatibility.
      * @param x The x-coordinate of the top-left corner of the raised portion of 
      * the key.
      * @param y The y-coordinate of the top-left corner of the raised portion of 

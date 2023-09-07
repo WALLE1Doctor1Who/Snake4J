@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -154,11 +155,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             bindKeyToAction(c,debugKeyStroke,debugAction);
         }   // An array containing the buttons used to move the snake via the 
         JButton[] debugDirButtons = {   // debug menu
-            fDebugDirButton,    // Move the snake forward
-            uDebugDirButton,    // Move the snake upwards
-            dDebugDirButton,    // Move the snake downwards
-            lDebugDirButton,    // Move the snake left
-            rDebugDirButton     // Move the snake right
+            fDebugDirButton,    // Moves the snake forward
+            uDebugDirButton,    // Moves the snake upwards
+            dDebugDirButton,    // Moves the snake downwards
+            lDebugDirButton,    // Moves the snake left
+            rDebugDirButton     // Moves the snake right
         };  // A for loop to go through the debug move buttons
         for (int i = 0; i < debugDirButtons.length; i++){
                 // Get the direction for the current button (if this is the 
@@ -442,10 +443,22 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         // A filler object to take up the bottom right spot on the debug movement
         // control panel
         javax.swing.Box.Filler drDebugDirFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        // A filler object to separate the debug movement panel and the perform controls
+        // immediately toggle
+        javax.swing.Box.Filler debugDirCtrlFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 3), new java.awt.Dimension(0, 3), new java.awt.Dimension(32767, 3));
         debugCtrlImmediateToggle = new javax.swing.JCheckBox();
+        // A filler object to separate the controls process immediately toggle and the
+        // add or move toggle
+        javax.swing.Box.Filler debugCtrlAddFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 7), new java.awt.Dimension(0, 7), new java.awt.Dimension(32767, 7));
         debugAddOrMoveToggle = new javax.swing.JCheckBox();
+        // A filler object to separate the add or move toggle and the flip snake button
+        javax.swing.Box.Filler debugAddFlipFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 7), new java.awt.Dimension(0, 7), new java.awt.Dimension(32767, 7));
         flipSnakeButton = new javax.swing.JButton();
+        // A filler object to separate the flip and revive snake buttons
+        javax.swing.Box.Filler debugFlipReviveFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 7), new java.awt.Dimension(0, 7), new java.awt.Dimension(32767, 7));
         reviveSnakeButton = new javax.swing.JButton();
+        // A filler object to separate the revive and clear action queue buttons
+        javax.swing.Box.Filler debugReviveClearActionsFiller = new javax.swing.Box.Filler(new java.awt.Dimension(0, 7), new java.awt.Dimension(0, 7), new java.awt.Dimension(32767, 7));
         clearActionQueueButton = new javax.swing.JButton();
         // This is a label for the debug color selection combo box
         javax.swing.JLabel debugColorLabel = new javax.swing.JLabel();
@@ -676,6 +689,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         });
 
         snakeDebugCtrlPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Snake Controls"));
+        snakeDebugCtrlPanel.setLayout(new javax.swing.BoxLayout(snakeDebugCtrlPanel, javax.swing.BoxLayout.Y_AXIS));
 
         snakeDebugDirPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Movement"));
         snakeDebugDirPanel.setLayout(new java.awt.GridLayout(3, 3, 6, 6));
@@ -729,70 +743,55 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         snakeDebugDirPanel.add(dDebugDirButton);
         snakeDebugDirPanel.add(drDebugDirFiller);
 
+        snakeDebugCtrlPanel.add(snakeDebugDirPanel);
+        snakeDebugCtrlPanel.add(debugDirCtrlFiller);
+
         debugCtrlImmediateToggle.setSelected(true);
         debugCtrlImmediateToggle.setText("Do Immediately");
         debugCtrlImmediateToggle.setToolTipText("Whether the snake will immediately perform these actions instead of adding them to its action queue");
+        debugCtrlImmediateToggle.setAlignmentX(0.5F);
+        snakeDebugCtrlPanel.add(debugCtrlImmediateToggle);
+        snakeDebugCtrlPanel.add(debugCtrlAddFiller);
 
         debugAddOrMoveToggle.setText("Add instead of Move");
         debugAddOrMoveToggle.setToolTipText("The move buttons will cause the snake to add tiles instead of move");
+        debugAddOrMoveToggle.setAlignmentX(0.5F);
+        snakeDebugCtrlPanel.add(debugAddOrMoveToggle);
+        snakeDebugCtrlPanel.add(debugAddFlipFiller);
 
         flipSnakeButton.setText("Flip Snake");
         flipSnakeButton.setToolTipText("Flips the snake.");
         flipSnakeButton.setActionCommand("Flip");
+        flipSnakeButton.setAlignmentX(0.5F);
         flipSnakeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 debugSnakeControlActionPerformed(evt);
             }
         });
+        snakeDebugCtrlPanel.add(flipSnakeButton);
+        snakeDebugCtrlPanel.add(debugFlipReviveFiller);
 
         reviveSnakeButton.setText("Revive Snake");
         reviveSnakeButton.setToolTipText("Revives the snake.");
         reviveSnakeButton.setActionCommand("Revive");
+        reviveSnakeButton.setAlignmentX(0.5F);
         reviveSnakeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 debugSnakeControlActionPerformed(evt);
             }
         });
+        snakeDebugCtrlPanel.add(reviveSnakeButton);
+        snakeDebugCtrlPanel.add(debugReviveClearActionsFiller);
 
         clearActionQueueButton.setText("Clear Action Queue");
         clearActionQueueButton.setToolTipText("Clears the snake's action queue");
+        clearActionQueueButton.setAlignmentX(0.5F);
         clearActionQueueButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 clearActionQueueButtonActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout snakeDebugCtrlPanelLayout = new javax.swing.GroupLayout(snakeDebugCtrlPanel);
-        snakeDebugCtrlPanel.setLayout(snakeDebugCtrlPanelLayout);
-        snakeDebugCtrlPanelLayout.setHorizontalGroup(
-            snakeDebugCtrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(snakeDebugCtrlPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(snakeDebugCtrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(snakeDebugDirPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(debugCtrlImmediateToggle)
-                    .addComponent(flipSnakeButton)
-                    .addComponent(debugAddOrMoveToggle)
-                    .addComponent(reviveSnakeButton)
-                    .addComponent(clearActionQueueButton))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        snakeDebugCtrlPanelLayout.setVerticalGroup(
-            snakeDebugCtrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(snakeDebugCtrlPanelLayout.createSequentialGroup()
-                .addComponent(snakeDebugDirPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(debugCtrlImmediateToggle)
-                .addGap(6, 6, 6)
-                .addComponent(debugAddOrMoveToggle)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(flipSnakeButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(reviveSnakeButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(clearActionQueueButton)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        snakeDebugCtrlPanel.add(clearActionQueueButton);
 
         debugColorLabel.setLabelFor(debugColorCombo);
         debugColorLabel.setText("Color:");
@@ -906,7 +905,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
                             .addComponent(debugColorLabel)
                             .addComponent(debugColorButton)))
                     .addComponent(snakeDebugCtrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(61, Short.MAX_VALUE))
+                .addContainerGap(75, Short.MAX_VALUE))
         );
 
         fc.setDialogType(javax.swing.JFileChooser.SAVE_DIALOG);
@@ -947,7 +946,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, colorSelectDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(colorSelectDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(colorChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 625, Short.MAX_VALUE)
+                    .addComponent(colorChooser, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
                     .addGroup(colorSelectDialogLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(colorSelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -978,11 +977,11 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         playField.setLayout(playFieldLayout);
         playFieldLayout.setHorizontalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 420, Short.MAX_VALUE)
+            .addGap(0, 16, Short.MAX_VALUE)
         );
         playFieldLayout.setVerticalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGap(0, 16, Short.MAX_VALUE)
         );
 
         layeredPane.add(playField);
@@ -1736,7 +1735,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(layeredPane, javax.swing.GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE)
+            .addComponent(layeredPane, javax.swing.GroupLayout.PREFERRED_SIZE, 340, Short.MAX_VALUE)
         );
 
         pack();
@@ -2252,7 +2251,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                     // If the Nimbus LnF has been found
                 if ("Nimbus".equals(info.getName())) {  
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
@@ -2297,7 +2296,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * This is a map used by the debug directional buttons to map their action 
      * commands to their respective direction flags.
      */
-    private HashMap<String,Integer> debugCmdToDirMap = new HashMap<>();
+    private Map<String,Integer> debugCmdToDirMap = new HashMap<>();
     /**
      * This is a random number generator to generate random numbers for the 
      * game.

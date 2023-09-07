@@ -101,10 +101,10 @@ public class ColorSelectionPainter implements Painter<Color>, SnakeConstants{
     }
     /**
      * This renders a color selection box to the given graphics context. This 
-     * method  may modify the state of the graphics object and is not required 
-     * to restore that state once they're finished. It's recommended that the 
-     * caller should pass in a scratch graphics object. The graphics object must 
-     * not be null. <p>
+     * method may modify the state of the graphics object and is not required to 
+     * restore that state once it's finished. It is recommended that the caller 
+     * should pass in a scratch graphics object. The graphics object must not be 
+     * null. <p>
      * 
      * The width and height parameters specify the width and height that the box 
      * should be rendered into. Any specified clip on the graphics context will 
@@ -126,6 +126,7 @@ public class ColorSelectionPainter implements Painter<Color>, SnakeConstants{
      * hue and saturation graphic.
      * @param width The width of the area to paint.
      * @param height The height of the area to paint.
+     * @throws NullPointerException If the graphics context is null.
      * @see #getContentGap 
      * @see #setContentGap 
      * @see #getBackground 
@@ -137,7 +138,7 @@ public class ColorSelectionPainter implements Painter<Color>, SnakeConstants{
     public void paint(Graphics2D g, Color color, int width, int height) {
         if (g == null)  // If the graphics context is null
             throw new NullPointerException();
-            // If the width or height is less than or equal to zero
+            // If the width or height are less than or equal to zero
         else if (width <= 0 || height <= 0) 
             return;
         if (bg != null){        // If there is a background set

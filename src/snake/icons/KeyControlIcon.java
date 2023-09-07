@@ -25,7 +25,7 @@ public abstract class KeyControlIcon implements Icon2D{
      * This is the painter used to render the key.
      * @since 1.1.0
      */
-    protected KeyPainter keyPainter;
+    protected KeyPainter<Object> keyPainter;
     /**
      * This constructs a KeyControlIcon with the given color, width, height, and 
      * bevel for the key.
@@ -52,8 +52,8 @@ public abstract class KeyControlIcon implements Icon2D{
             // method
         keyPainter = new KeyPainter<>() {
             @Override
-            public void paintSymbol(Graphics2D g,Component c, Object object,int x,int y,
-                    int w,int h) {
+            public void paintSymbol(Graphics2D g,Component c,Object object,
+                    int x,int y,int w,int h) {
                 paintKeySymbol(c,g,x,y,w,h);
             }
         }.setKeyBevel(bevel).setBackground(color);
@@ -153,7 +153,9 @@ public abstract class KeyControlIcon implements Icon2D{
      * location and size of the raised section of the key.
      * @param c A {@code Component} to get useful properties for painting the 
      * symbol.
-     * @param g The graphics context to render to.
+     * @param g The graphics context to render to. This will usually be a {@code 
+     * Graphics2D} object, but allows a {@code Graphics} objects for backwards 
+     * compatibility.
      * @param x The x-coordinate of the top-left corner of the raised portion of 
      * the key.
      * @param y The y-coordinate of the top-left corner of the raised portion of 

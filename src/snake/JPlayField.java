@@ -932,7 +932,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * copy of the {@code Graphics} object is passed to the UI delegate so as to 
      * protect the rest of the paint code from irrevocable changes (for example, 
      * {@code Graphics.translate}). After the UI delegate finishes, this will 
-     * call the {@link #getRenderer() play field renderer}'s {@link 
+     * call the {@link #getRenderer play field renderer}'s {@link 
      * PlayFieldRenderer#paint paint} method to paint the play field if the 
      * renderer is non-null. A second copy of the {@code Graphics} object, now 
      * in the form of a {@code Graphics2D} object, is passed to the renderer to 
@@ -979,8 +979,12 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
         if (g instanceof Graphics2D)
             g2D = (Graphics2D) g;
         else if (g != null){            // If the graphics context is not null
+                // Create the image to render to
             img = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
+                // Create a graphics context for the image
             g2D = img.createGraphics();
+                // Configure the image graphics context to match the given 
+                // graphics context
             g2D.setFont(g.getFont());
             g2D.setColor(g.getColor());
         }
@@ -1019,7 +1023,7 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
     public void setModel(PlayFieldModel model){
             // Check if the model is null
         Objects.requireNonNull(model, "Model cannot be null");
-        if (Objects.equals(model, this.model))  // If the model would not change
+        if (model == this.model)                // If the model would not change
             return;
         PlayFieldModel old = this.model;        // Get the old model
         this.model = model;

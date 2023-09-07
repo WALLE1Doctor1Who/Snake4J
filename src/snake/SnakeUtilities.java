@@ -185,7 +185,7 @@ public class SnakeUtilities implements SnakeConstants{
     /**
      * This checks the given value to see how many directions are set, and if 
      * there is only one direction set, then this returns that flag. Otherwise, 
-     * an IllegalArgumentException will be thrown.
+     * an {@code IllegalArgumentException} will be thrown.
      * @param value The value to check.
      * @return The direction from the given value.
      * @throws IllegalArgumentException If either no directions are set or there 
@@ -208,6 +208,65 @@ public class SnakeUtilities implements SnakeConstants{
                     // If there are no directions set, say that there are no 
                     // directions set. Otherwise, say there are too many 
                 (count == 0)?"No":"Too many",value,count)); // directions set
+    }
+    /**
+     * This returns whether there are no opposing directions set on the given 
+     * value. If there are opposing directions set on the given value, such as 
+     * if both {@link #LEFT_DIRECTION left} and {@link #RIGHT_DIRECTION right} 
+     * are set on the given value, then this will return {@code false}. 
+     * Otherwise, this will return {@code true}.
+     * @param value The value to check.
+     * @return Whether there are no opposing directions set on the given value.
+     * @see #getDirections 
+     * @see #getDirectionCount 
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     * @see #VERTICAL_DIRECTIONS
+     * @see #HORIZONTAL_DIRECTIONS
+     * @see #UP_LEFT_DIRECTION
+     * @see #UP_RIGHT_DIRECTION
+     * @see #DOWN_LEFT_DIRECTION
+     * @see #DOWN_RIGHT_DIRECTION
+     * @since 1.1.0
+     */
+    public static boolean hasNoOpposingDirections(int value){
+        value = getDirections(value);
+        return (value & invertDirections(value)) == 0;
+    }
+    /**
+     * This checks the given value to see if there are no opposing directions 
+     * set, and if so, this will return the direction flags set on the value. 
+     * If there are opposing directions set on the given value, such as if both 
+     * {@link #LEFT_DIRECTION left} and {@link #RIGHT_DIRECTION right} are set, 
+     * then this will throw an {@code IllegalArgumentException}.
+     * @param value The value to check.
+     * @return The direction from the given value.
+     * @throws IllegalArgumentException If there are opposing directions set on 
+     * the given value.
+     * @see #getDirections 
+     * @see #getDirectionCount 
+     * @see #hasNoOpposingDirections
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     * @see #VERTICAL_DIRECTIONS
+     * @see #HORIZONTAL_DIRECTIONS
+     * @see #UP_LEFT_DIRECTION
+     * @see #UP_RIGHT_DIRECTION
+     * @see #DOWN_LEFT_DIRECTION
+     * @see #DOWN_RIGHT_DIRECTION
+     * @since 1.1.0
+     */
+    public static int requireNonOpposingDirections(int value){
+            // If there are no opposing directions set
+        if (hasNoOpposingDirections(value)) 
+            return getDirections(value);
+        else
+            throw new IllegalArgumentException("Opposing directions set on " + 
+                    value);
     }
     /**
      * This inverts which directions are set for the given value. In other 
@@ -574,6 +633,60 @@ public class SnakeUtilities implements SnakeConstants{
         }
     }
     /**
+     * This checks the given value to see if the given value can be used to get 
+     * a triangle via the {@link #getTriangle getTriangle} and {@link 
+     * #getTriangle2D getTriangle2D} methods, and if so, this will return the 
+     * given value. The given value must be either one of the four direction 
+     * flags ({@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
+     * #LEFT_DIRECTION}, or {@link #RIGHT_DIRECTION}) or any combination of a 
+     * single horizontal flag and a single vertical flag ({@link 
+     * #UP_LEFT_DIRECTION}, {@link #UP_RIGHT_DIRECTION}, {@link 
+     * #DOWN_LEFT_DIRECTION}, or {@link #DOWN_RIGHT_DIRECTION}). If the given 
+     * value is not one of the values listed above, then this will throw an 
+     * {@code IllegalArgumentException}.
+     * @param value The value to check. This should be one of the following: 
+     *      {@link #UP_DIRECTION}, 
+     *      {@link #DOWN_DIRECTION}, 
+     *      {@link #LEFT_DIRECTION}, 
+     *      {@link #RIGHT_DIRECTION}, 
+     *      {@link #UP_LEFT_DIRECTION}, 
+     *      {@link #UP_RIGHT_DIRECTION}, 
+     *      {@link #DOWN_LEFT_DIRECTION}, or
+     *      {@link #DOWN_RIGHT_DIRECTION}.
+     * @return The given value.
+     * @throws IllegalArgumentException If the given value is not one of the 
+     * values listed above.
+     * @see #getTriangle 
+     * @see #getTriangle2D 
+     * @see #getDirections 
+     * @see #getDirectionCount 
+     * @see #hasNoOpposingDirections
+     * @see #requireNonOpposingDirections 
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     * @see #VERTICAL_DIRECTIONS
+     * @see #HORIZONTAL_DIRECTIONS
+     * @see #UP_LEFT_DIRECTION
+     * @see #UP_RIGHT_DIRECTION
+     * @see #DOWN_LEFT_DIRECTION
+     * @see #DOWN_RIGHT_DIRECTION
+     * @since 1.1.0
+     */
+    public static int requireDirectionForTriangle(int value){
+            // Check to see if the given value has any opposing directions set 
+            // and get the direction flags set on the value
+        int dir = requireNonOpposingDirections(value);
+            // If the given value has more than just direction flags set on it
+        if (dir != value)
+            throw new IllegalArgumentException("Invalid value for direction: " + 
+                    value);
+        else if (dir == 0)  // If there are no directions set for the value
+            throw new IllegalArgumentException("No directions set on 0");
+        return dir;
+    }
+    /**
      * This returns a polygon that can be used to render a triangle pointing in 
      * the given direction. The direction must be either one of the four 
      * direction flags ({@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
@@ -608,8 +721,12 @@ public class SnakeUtilities implements SnakeConstants{
      * @see #UP_RIGHT_DIRECTION
      * @see #DOWN_LEFT_DIRECTION
      * @see #DOWN_RIGHT_DIRECTION
+     * @see #getTriangle2D 
+     * @see #requireDirectionForTriangle 
      */
     public static Polygon getTriangle(int x,int y,int w,int h,int direction){
+            // Check the direction for the triangle
+        requireDirectionForTriangle(direction);
             // This gets the triangle to return
         Polygon triangle = new Polygon(new int[3],new int[3],3);
         switch(direction){  // Determine the direction for the triangle
@@ -683,6 +800,125 @@ public class SnakeUtilities implements SnakeConstants{
         triangle.invalidate();  
             // Translate the polygon to put it where it should be
         triangle.translate(x, y);   
+        return triangle;
+    }
+    /**
+     * This returns a Path2D that can be used to render a triangle pointing in 
+     * the given direction. The direction must be either one of the four 
+     * direction flags ({@link #UP_DIRECTION}, {@link #DOWN_DIRECTION}, {@link 
+     * #LEFT_DIRECTION}, or {@link #RIGHT_DIRECTION}) or any combination of a 
+     * single horizontal flag and a single vertical flag ({@link 
+     * #UP_LEFT_DIRECTION}, {@link #UP_RIGHT_DIRECTION}, {@link 
+     * #DOWN_LEFT_DIRECTION}, or {@link #DOWN_RIGHT_DIRECTION}).
+     * @param x The x-coordinate of the top-left corner of the bounding 
+     * rectangle for the triangle.
+     * @param y The y-coordinate of the top-left corner of the bounding 
+     * rectangle for the triangle.
+     * @param w The width of the triangle.
+     * @param h The height of the triangle.
+     * @param direction The direction the triangle should be pointing. This 
+     * should be one of the following: 
+     *      {@link #UP_DIRECTION}, 
+     *      {@link #DOWN_DIRECTION}, 
+     *      {@link #LEFT_DIRECTION}, 
+     *      {@link #RIGHT_DIRECTION}, 
+     *      {@link #UP_LEFT_DIRECTION}, 
+     *      {@link #UP_RIGHT_DIRECTION}, 
+     *      {@link #DOWN_LEFT_DIRECTION}, or
+     *      {@link #DOWN_RIGHT_DIRECTION}.
+     * @return A Path2D representing a triangle pointing in the given 
+     * direction.
+     * @throws IllegalArgumentException If the direction is invalid.
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     * @see #UP_LEFT_DIRECTION
+     * @see #UP_RIGHT_DIRECTION
+     * @see #DOWN_LEFT_DIRECTION
+     * @see #DOWN_RIGHT_DIRECTION
+     * @see #getTriangle
+     * @see #requireDirectionForTriangle 
+     * @since 1.1.0
+     */
+    public static Path2D getTriangle2D(double x,double y,double w,double h,
+            int direction){
+            // Check the direction for the triangle
+        requireDirectionForTriangle(direction);
+            // An array containing the x-coordinates of the triangle to return
+        double[] xPoints = new double[3];
+            // An array containing the y-coordinates of the triangle to return
+        double[] yPoints = new double[3];
+        switch(direction){      // Determine the direction for the triangle
+            case(UP_DIRECTION):     // If pointing up
+            case(DOWN_DIRECTION):   // If pointing down
+                    // Both up and down have the same x points
+                xPoints[0] = 0;     // Start at the left-most point
+                xPoints[1] = w;     // Go to the right-most point
+                xPoints[2] = w/2.0; // End at the point in the middle
+                break;
+            case(LEFT_DIRECTION):   // If pointing left
+            case(RIGHT_DIRECTION):  // If pointing right
+                    // Both left and right have the same y points
+                yPoints[0] = 0;     // Start at the top point
+                yPoints[1] = h;     // Go to the bottom point
+                yPoints[2] = h/2.0; // End at the point in the middle
+                break;
+            case(UP_LEFT_DIRECTION):    // If pointing up and left
+            case(UP_RIGHT_DIRECTION):   // If pointing up and right
+            case(DOWN_LEFT_DIRECTION):  // If pointing down and left
+                    // All three start at the top point. Down and right 
+                yPoints[0] = 0;     // starts at a different y point
+            case(DOWN_RIGHT_DIRECTION): // If pointing down and right
+                    // All four corners have the following in common
+                xPoints[0] = yPoints[2] = 0;
+                xPoints[2] = w;
+                yPoints[1] = h;
+                break;
+            default:    // Invalid direction
+                throw new IllegalArgumentException(
+                        "Cannot get triangle for direction " + direction);
+        }   // Determine the direction for the triangle again to fill in the 
+        switch(direction){  // more specific points
+            case(UP_DIRECTION):     // If pointing up
+                    // Start at the bottom and end at the top
+                yPoints[0] = yPoints[1] = h;
+                yPoints[2] = 0;
+                break;
+            case(DOWN_DIRECTION):   // If pointing down
+                    // Start at the top and end at the bottom
+                yPoints[0] = yPoints[1] = 0;
+                yPoints[2] = h;
+                break;
+            case(LEFT_DIRECTION):   // If pointing left
+                    // Start at the right and end at the left
+                xPoints[0] = xPoints[1] = w;
+                xPoints[2] = 0;
+                break;
+            case(RIGHT_DIRECTION):  // If pointing right
+                    // Start at the left and end at the right
+                xPoints[0] = xPoints[1] = 0;
+                xPoints[2] = w;
+                break;
+            case(DOWN_LEFT_DIRECTION):  // If pointing down and left
+                yPoints[2] = h;     // Down and left ends at the bottom point
+            case(UP_LEFT_DIRECTION):    // If pointing up and left
+                    // Both left corners have the middle x be the to the left
+                xPoints[1] = 0;
+                break;
+            case(DOWN_RIGHT_DIRECTION): // If pointing down and right
+                yPoints[0] = h;     // Down and right starts at the bottom point
+            case(UP_RIGHT_DIRECTION):   // If pointing up and right
+                    // Both right corners have the middle x be the to the right
+                xPoints[1] = w;
+        }   // The Path2D that draws the triangle
+        Path2D triangle = new Path2D.Double();  
+        triangle.moveTo(xPoints[0] + x, yPoints[0] + y);
+            // A for loop to add lines connecting the remaining points
+        for (int p = 1; p < xPoints.length; p++){
+            triangle.lineTo(xPoints[p] + x, yPoints[p] + y);
+        }
+        triangle.closePath();
         return triangle;
     }
     /**

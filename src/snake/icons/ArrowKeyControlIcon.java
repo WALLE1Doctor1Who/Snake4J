@@ -6,6 +6,7 @@ package snake.icons;
 
 import java.awt.*;
 import snake.*;
+import snake.painters.*;
 
 /**
  * This is an icon that can be used to represent the arrow keys on the keyboard.
@@ -13,13 +14,17 @@ import snake.*;
  */
 public class ArrowKeyControlIcon extends MovementControlIcon{
     /**
-     * The width of the triangles on the keys.
+     * The width of the arrows on the keys.
      */
     private final int arrowW;
     /**
-     * The height of the triangles on the keys.
+     * The height of the arrows on the keys.
      */
     private final int arrowH;
+    /**
+     * This is the painter used to render the arrows on the keys.
+     */
+    protected ArrowPainter arrowPainter = new ArrowPainter();
     /**
      * This constructs an ArrowKeyControlIcon with the given color, key width, 
      * key height, key bevel, arrow width, and arrow height.
@@ -206,10 +211,17 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
     @Override
     protected void paintKeySymbol(Component c, Graphics g, int x, int y, int w,
             int h, int direction) {
-        g.fillPolygon(SnakeUtilities.getTriangle(
-                x+Math.floorDiv(w-getArrowWidth(), 2)+1, 
-                y+Math.floorDiv(h-getArrowHeight(), 2)+1, 
-                getArrowWidth(), getArrowHeight(), direction));
+            // If the graphics context is a Graphics2D object
+        if (g instanceof Graphics2D)
+            ((Graphics2D) g).fill(SnakeUtilities.getTriangle2D(
+                    x+((w-getArrowWidth())/2.0), 
+                    y+((h-getArrowHeight())/2.0),
+                    getArrowWidth(), getArrowHeight(), direction));
+        else if (g != null) // If the graphics context is not null
+            g.fillPolygon(SnakeUtilities.getTriangle(
+                    x+Math.floorDiv(w-getArrowWidth(), 2)+1, 
+                    y+Math.floorDiv(h-getArrowHeight(), 2)+1, 
+                    getArrowWidth(), getArrowHeight(), direction));
     }
     /**
      * This returns the width of the arrows on the keys.

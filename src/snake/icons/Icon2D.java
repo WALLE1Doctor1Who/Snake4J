@@ -17,10 +17,12 @@ import javax.swing.Icon;
  */
 public interface Icon2D extends Icon{
     /**
-     * {@inheritDoc } This delegates to the {@link #paintIcon2D paintIcon2D} 
-     * method, providing a scratch Graphics2D object to it. If the given 
-     * graphics context is not a Graphics2D object, then this will draw to an 
-     * image that will then be drawn to the given graphics context.
+     * This draws the icon at the specified location. Icon implementations may 
+     * use the given Component to get properties useful for painting, such as 
+     * the foreground or background. This delegates to the {@link #paintIcon2D 
+     * paintIcon2D} method, providing a scratch Graphics2D object to it. If the 
+     * given graphics context is not a Graphics2D object, then this will draw to 
+     * an image that will then be drawn to the given graphics context.
      * @param c A {@code Component} to get useful properties for painting.
      * @param g The graphics context to render to.
      * @param x The x-coordinate of the icon's top-left corner.
@@ -41,10 +43,17 @@ public interface Icon2D extends Icon{
         if (g instanceof java.awt.Graphics2D)// If the graphics context is a Graphics2D object
             g2D = (java.awt.Graphics2D) g;
         else if (g != null){            // If the graphics context is not null
+                // Create the image to render to
             img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                // Create a graphics context for the image
             g2D = img.createGraphics();
+                // Configure the image graphics context to match the given 
+                // graphics context
             g2D.setFont(g.getFont());
             g2D.setColor(g.getColor());
+                // Translate the image graphics context so that the coordinate 
+                // space for the image graphics context matches the given 
+                // graphics context
             g2D.translate(-1*x, -1*y);
         }
         else                            //If the graphics conext is somehow null
