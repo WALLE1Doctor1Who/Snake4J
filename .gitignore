@@ -32,7 +32,7 @@ Development_Stuff/
 **/desktop.ini
 
 # The open files and bookmarks config file for the project
-nbproject/private/private.xml
+/nbproject/private/private.xml
 
 # Excluded source files (Usually these files are currently unused and/or not ready to be added)
 /src/snake/NimbusBrowser.java
@@ -41,4 +41,5 @@ test/snake/action/SnakeInputAction.java
 /test/snake/game/JArrowButton.java
 /test/snake/game/JDirectionPane.java
 /src/snake/game/package-info.java
+nbproject/private/private.xml
 nbproject/private/private.xml

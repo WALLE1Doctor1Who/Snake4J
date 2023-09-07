@@ -74,7 +74,8 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         debugMenuButton.setAction(debugAction);
             // Don't show the pause title label right now, since we're not 
         pauseTitleLabel.setVisible(false);  // currently in game
-        setVisibleGameOverlayLayer(0);// Show only the pause menu and play field
+            // Show the pause menu overlay
+        setVisibleGameOverlay(pauseMenuPanel);   
             // Create a new snake on the play field model and set its allowed 
         snake = new Snake(playField.getModel()).setAllowedFails(1);// fails to 1
             // Add a snake listener for the player one snake
@@ -271,6 +272,38 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             tile.setApple();    // Set the tile to be an apple tile
     }
     /**
+     * This sets the currently visible game overlay card to the card with the 
+     * given name. If the name is null, then the game overlay will be hidden 
+     * (i.e. only the play field will be visible). If the name is not null but 
+     * there is no component added to the overlay layer with that name, then 
+     * will do nothing.
+     * @param name The name for the game overlay card to show, or null to hide 
+     * the overlay layer.
+     * @see #setVisibleGameOverlay(Component) 
+     * @see #setVisibleGameOverlay(int) 
+     */
+    private void setVisibleGameOverlay(String name){
+        if (name != null)   // If the name is not null
+            ((CardLayout)gameOverlayPanel.getLayout())
+                    .show(gameOverlayPanel, name);
+            // Set whether the overlay is visible depending on whether the name 
+            // is null
+        gameOverlayPanel.setVisible(name != null);
+    }
+    /**
+     * This sets the currently visible game overlay card to the given card. If 
+     * the card is null, then the game overlay will be hidden (i.e. only the 
+     * play field will be visible). If the card is not null and not added to the 
+     * the overlay layer, then this will do nothing.
+     * @param card The game overlay card to show, or null to hide the overlay 
+     * layer.
+     * @see #setVisibleGameOverlay(String) 
+     * @see #setVisibleGameOverlay(int) 
+     */
+    private void setVisibleGameOverlay(Component card){
+        setVisibleGameOverlay((card != null) ? card.getName() : null);
+    }
+    /**
      * This sets the currently visible game overlay layer. Only the overlay 
      * layer corresponding to the given {@code layerIndex} will be visible after 
      * this (along with the play field). <p>
@@ -290,19 +323,22 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @param layerIndex The index of the overlay layer to make visible. If this 
      * is not a valid index in the {@code gameOverlayLayers} array, then only 
      * the play field will be visible.
+     * @see #setVisibleGameOverlay(String) 
+     * @see #setVisibleGameOverlay(Component) 
      */
-    private void setVisibleGameOverlayLayer(int layerIndex){
-            // A for loop to go through the overlay layers
-        for (int i = 0; i < gameOverlayLayers.length; i++)
-                // Only make this layer visible if it's index matches the given 
-            gameOverlayLayers[i].setVisible(layerIndex == i);   // layer index
+    private void setVisibleGameOverlay(int layerIndex){
+            // If the index is not in the game overlays array
+        if (layerIndex < 0 || layerIndex >= gameOverlayLayers.length)
+            setVisibleGameOverlay((String)null);
+        else
+            setVisibleGameOverlay(gameOverlayLayers[layerIndex]);
     }
     /**
      * This sets the game into its game over state and displays the results 
      * screen. 
      * @param isVictory Whether the player won the game.
      * @see #setInGameplay
-     * @see #setVisibleGameOverlayLayer 
+     * @see #setVisibleGameOverlay 
      */
     private void setGameOver(boolean isVictory){
         setInGameplay(false);           // We are no longer in gameplay
@@ -312,7 +348,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         resultLostLabel.setVisible(!isVictory);
             // State how long the snake managed to get
         resultLengthLabel.setText("Length: "+snake.size());
-        setVisibleGameOverlayLayer(3);  // Show the results screen
+        setVisibleGameOverlay(resultsPanel);  // Show the results screen
     }
     /**
      * This sets whether a game is currently in progress. When this is set to 
@@ -372,8 +408,9 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @see #setInGameplay 
      */
     protected void setPaused(boolean paused){
-            // If the game is now paused, show the pause menu. Otherwise, only 
-        setVisibleGameOverlayLayer((paused)?0:-1);  // show the play field
+            // If the game is now paused, show the pause menu. Otherwise, hide 
+            // the game overlays
+        setVisibleGameOverlay((paused)?pauseMenuPanel:null);  
         pauseToggle.setSelected(paused);    // Update the debug toggle for this
             // Enable the play field if the game is not paused
         playField.setEnabled(!paused);      
@@ -474,6 +511,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         cancelColorButton = new javax.swing.JButton();
         layeredPane = new javax.swing.JLayeredPane();
         playField = new snake.JPlayField();
+        gameOverlayPanel = new javax.swing.JPanel();
         pauseMenuPanel = new javax.swing.JPanel();
         titleLabel = new javax.swing.JLabel();
         versionLabel = new javax.swing.JLabel();
@@ -964,7 +1002,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Snake4J");
-        setMinimumSize(new java.awt.Dimension(420, 340));
 
         layeredPane.setLayout(new javax.swing.OverlayLayout(layeredPane));
 
@@ -977,16 +1014,20 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         playField.setLayout(playFieldLayout);
         playFieldLayout.setHorizontalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
+            .addGap(0, 512, Short.MAX_VALUE)
         );
         playFieldLayout.setVerticalGroup(
             playFieldLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
+            .addGap(0, 512, Short.MAX_VALUE)
         );
 
         layeredPane.add(playField);
 
+        gameOverlayPanel.setOpaque(false);
+        gameOverlayPanel.setLayout(new java.awt.CardLayout(12, 13));
+
         pauseMenuPanel.setFont(pauseMenuPanel.getFont().deriveFont(pauseMenuPanel.getFont().getStyle() | java.awt.Font.BOLD, pauseMenuPanel.getFont().getSize()+4));
+        pauseMenuPanel.setName("Pause"); // NOI18N
         pauseMenuPanel.setOpaque(false);
         pauseMenuPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -999,7 +1040,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
         pauseMenuPanel.add(titleLabel, gridBagConstraints);
 
         versionLabel.setFont(pauseMenuPanel.getFont());
@@ -1011,7 +1051,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         pauseMenuPanel.add(versionLabel, gridBagConstraints);
 
         pauseTitleLabel.setFont(pauseMenuPanel.getFont());
@@ -1023,7 +1063,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         pauseMenuPanel.add(pauseTitleLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1108,7 +1148,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         pauseMenuPanel.add(pauseButtonsPanel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1185,7 +1225,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         pauseMenuPanel.add(ctrlPanel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1196,10 +1236,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.weighty = 0.5;
         pauseMenuPanel.add(ctrlBottomFiller, gridBagConstraints);
 
-        layeredPane.setLayer(pauseMenuPanel, 1);
-        layeredPane.add(pauseMenuPanel);
+        gameOverlayPanel.add(pauseMenuPanel, "Pause");
 
         gameConfigPanel.setFont(pauseMenuPanel.getFont());
+        gameConfigPanel.setName("Game Config"); // NOI18N
         gameConfigPanel.setOpaque(false);
         gameConfigPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -1213,7 +1253,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
         gameConfigPanel.add(gameConfigTitleLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1351,7 +1390,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         gameConfigPanel.add(gameSettingsPanel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1373,7 +1412,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         gameConfigPanel.add(gameSettingsStartButton, gridBagConstraints);
 
         gameSettingsCancelButton.setFont(gameConfigPanel.getFont());
@@ -1389,7 +1428,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         gameConfigPanel.add(gameSettingsCancelButton, gridBagConstraints);
 
         gameSettingsResetButton.setFont(gameConfigPanel.getFont());
@@ -1406,7 +1445,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         gameConfigPanel.add(gameSettingsResetButton, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1416,10 +1455,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.weighty = 0.5;
         gameConfigPanel.add(configBottomFiller, gridBagConstraints);
 
-        layeredPane.setLayer(gameConfigPanel, 2);
-        layeredPane.add(gameConfigPanel);
+        gameOverlayPanel.add(gameConfigPanel, "Game Config");
 
         settingsPanel.setFont(pauseMenuPanel.getFont());
+        settingsPanel.setName("Settings"); // NOI18N
         settingsPanel.setOpaque(false);
         settingsPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -1432,7 +1471,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
         settingsPanel.add(settingsTitleLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1559,7 +1597,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 13, 0);
         settingsPanel.add(settingCompPanel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1582,7 +1620,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 0.25;
-        gridBagConstraints.insets = new java.awt.Insets(0, 12, 13, 0);
         settingsPanel.add(settingsDoneButton, gridBagConstraints);
 
         settingsResetButton.setFont(settingsPanel.getFont());
@@ -1599,7 +1636,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.25;
-        gridBagConstraints.insets = new java.awt.Insets(0, 7, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(0, 7, 0, 0);
         settingsPanel.add(settingsResetButton, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1609,10 +1646,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.weighty = 0.5;
         settingsPanel.add(settingsBottomFiller, gridBagConstraints);
 
-        layeredPane.setLayer(settingsPanel, 3);
-        layeredPane.add(settingsPanel);
+        gameOverlayPanel.add(settingsPanel, "Settings");
 
         resultsPanel.setFont(pauseMenuPanel.getFont());
+        resultsPanel.setName("Results"); // NOI18N
         resultsPanel.setOpaque(false);
         resultsPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -1624,7 +1661,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 13, 0);
         resultsPanel.add(resultsTitleLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1655,7 +1692,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 12, 0, 12);
         resultsPanel.add(resultWinLabel, gridBagConstraints);
 
         resultLostLabel.setFont(resultsPanel.getFont());
@@ -1665,7 +1701,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 12, 0, 12);
         resultsPanel.add(resultLostLabel, gridBagConstraints);
 
         resultLengthLabel.setFont(resultsPanel.getFont());
@@ -1675,7 +1710,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         resultsPanel.add(resultLengthLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1698,7 +1733,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
         resultsPanel.add(resultMenuButton, gridBagConstraints);
 
         resultStartGameButton.setFont(resultsPanel.getFont());
@@ -1714,7 +1749,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 0, 0, 0);
         resultsPanel.add(resultStartGameButton, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1724,18 +1759,20 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         gridBagConstraints.weighty = 0.5;
         resultsPanel.add(resultsBottomFiller, gridBagConstraints);
 
-        layeredPane.setLayer(resultsPanel, 4);
-        layeredPane.add(resultsPanel);
+        gameOverlayPanel.add(resultsPanel, "Results");
+
+        layeredPane.setLayer(gameOverlayPanel, 1);
+        layeredPane.add(gameOverlayPanel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(layeredPane, javax.swing.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
+            .addComponent(layeredPane)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(layeredPane, javax.swing.GroupLayout.PREFERRED_SIZE, 340, Short.MAX_VALUE)
+            .addComponent(layeredPane)
         );
 
         pack();
@@ -1772,7 +1809,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @param evt The ActionEvent to process.
      */
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
-        setVisibleGameOverlayLayer(2);  // Show the pause menu
+        setVisibleGameOverlay(settingsPanel);  // Show the settings menu
     }//GEN-LAST:event_settingsButtonActionPerformed
     /**
      * This shows the menu for configuring the game before starting it.
@@ -1784,7 +1821,8 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         delaySpinner.setValue(timer.getDelay());
         wrapAroundToggle.setSelected(snake.isWrapAroundEnabled());
         allowedFailsSpinner.setValue(snake.getAllowedFails());
-        setVisibleGameOverlayLayer(1);  // Show the start game menu
+            // Show the start game menu
+        setVisibleGameOverlay(gameConfigPanel);  
     }//GEN-LAST:event_startGameButtonActionPerformed
     /**
      * This unpauses and resumes any game that is currently in progress if the 
@@ -1810,6 +1848,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         System.out.println("Total Amount of Tiles: " + playField.getTileCount());
         System.out.println("Action Queue: " + snake.getActionQueue());
         System.out.println("Snake's next action: " + snake.getActionQueue().peekNext());
+        System.out.println("JPlayField Size: " + playField.getSize());
         System.out.println("Play Field Size: " + playField.getPlayFieldBounds());
         System.out.println("Empty Tiles: " + playField.getEmptyTiles());
         System.out.println("Empty Tile Count: " + playField.getEmptyTileCount());
@@ -1821,6 +1860,9 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         System.out.println("Tile Border Color: " + playField.getTileBorder());
         System.out.println("Background: " + playField.getBackground());
         System.out.println("Foreground: " + playField.getForeground());
+        System.out.println("Size: " + getSize());
+        System.out.println("Preferred Size: " + getPreferredSize());
+        System.out.println("Minimum Size: " + getMinimumSize());
     }//GEN-LAST:event_printButtonActionPerformed
     /**
      * This returns to the pause menu from whatever layer is currently being 
@@ -1828,7 +1870,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      * @param evt The ActionEvent to process.
      */
     private void returnToPauseMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_returnToPauseMenuActionPerformed
-        setVisibleGameOverlayLayer(0);
+        setVisibleGameOverlay(pauseMenuPanel);  // Show the pause menu
     }//GEN-LAST:event_returnToPauseMenuActionPerformed
     /**
      * This resets the game configuration to the default configuration.
@@ -1898,7 +1940,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     private void showLayerComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showLayerComboActionPerformed
             // Offset everything by one, so that the first item turns off the 
             // overlays, and the others coorespond with their appropriate 
-        setVisibleGameOverlayLayer(showLayerCombo.getSelectedIndex()-1);//indexes
+        setVisibleGameOverlay(showLayerCombo.getSelectedIndex()-1);//indexes
     }//GEN-LAST:event_showLayerComboActionPerformed
     /**
      * This forwards the game by one tick.
@@ -2262,7 +2304,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
         }
         //</editor-fold>
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> {
+        EventQueue.invokeLater(() -> {
                 // Check to see  whether we should be in debug mode or not, 
                 // first by getting whether there are any command line arguments
             boolean debug = args != null && args.length > 0;
@@ -2457,6 +2499,10 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
     * The label displaying the title for the game settings menu.
     */
     private javax.swing.JLabel gameConfigTitleLabel;
+    /**
+    * This is the panel that displays the game overlay components.
+    */
+    private javax.swing.JPanel gameOverlayPanel;
     /**
     * This is the button that cancels starting a new game.
     */
