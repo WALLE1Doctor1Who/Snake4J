@@ -259,12 +259,7 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
         super.setColor(color);
     }
     /**
-     * This returns a String representation of this icon. This method is 
-     * primarily intended to be used only for debugging purposes, and the 
-     * content and format of the returned String may vary between 
-     * implementations.
-     * @return A String representation of this icon.
-     * @since 1.1.0
+     * {@inheritDoc }
      */
     @Override
     protected String paramString(){

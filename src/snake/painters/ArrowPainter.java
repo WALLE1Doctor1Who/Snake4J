@@ -62,9 +62,9 @@ public class ArrowPainter implements Painter<Integer>, SnakeConstants{
      * @param width The width of the area to paint.
      * @param height The height of the area to paint.
      * @throws NullPointerException If the graphics context is null.
-     * @see #getDirections 
-     * @see #getDirectionCount 
-     * @see #hasNoOpposingDirections
+     * @see SnakeUtilities#getDirections 
+     * @see SnakeUtilities#getDirectionCount 
+     * @see SnakeUtilities#hasNoOpposingDirections
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION

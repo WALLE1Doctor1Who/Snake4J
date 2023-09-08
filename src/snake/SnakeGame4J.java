@@ -40,11 +40,6 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
      */
     public static final String SNAKE4J_VERSION_INFO = "1.1.0-alpha";
     /**
-     * This is the path to the file containing the configuration file for the 
-     * program. This is currently unused.
-     */
-    public static final String SNAKE4J_CONFIG_FILE = "Snake4J.cfg";
-    /**
      * This creates a new SnakeGame4J with the given value for the debug mode.
      * @param debugMode Whether the game will be in debug mode.
      */
@@ -2771,7 +2766,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
          * @throws IllegalArgumentException If the given direction is not one of 
          * the four direction flags.
          */
-        public SnakeMoveInputAction(String name, int direction){
+        SnakeMoveInputAction(String name, int direction){
             super(name);
                 // Check the direction for the snake
             this.direction = SnakeUtilities.requireSingleDirection(direction);
@@ -2785,7 +2780,7 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
          * @throws IllegalArgumentException If the given direction is not one of 
          * the four direction flags.
          */
-        public SnakeMoveInputAction(int direction){
+        SnakeMoveInputAction(int direction){
                 // Set the name for this action based off the command this gives 
                 // to the snake
             this("Snake->"+getCommandForDirection(direction,false),direction);
@@ -2827,7 +2822,9 @@ public class SnakeGame4J extends javax.swing.JFrame implements SnakeConstants{
             return getCommandForDirection(direction,false);
         }
         /**
-         * {@inheritDoc }
+         * This adds the {@link #getCommand snake command} to the snake's {@link 
+         * Snake#getActionQueue action queue}.
+         * @param evt The ActionEvent to be processed.
          */
         @Override
         public void actionPerformed(ActionEvent evt) {

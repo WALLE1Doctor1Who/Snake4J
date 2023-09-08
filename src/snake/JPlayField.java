@@ -2366,14 +2366,23 @@ public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
      * {@code PlayFieldEvent}s that it fires to the listeners and renderer.
      */
     private class Handler implements PlayFieldListener{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void tilesAdded(PlayFieldEvent evt) {
             firePlayFieldChange(evt);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void tilesRemoved(PlayFieldEvent evt) {
             firePlayFieldChange(evt);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void tilesChanged(PlayFieldEvent evt) {
             firePlayFieldChange(evt);

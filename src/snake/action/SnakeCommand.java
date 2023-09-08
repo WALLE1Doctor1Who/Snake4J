@@ -236,7 +236,7 @@ public enum SnakeCommand implements SnakeConstants{
          * be null).
          * @throws NullPointerException If the command is null.
          */
-        public SimpleSnakeActionCommand(SnakeCommand command){
+        SimpleSnakeActionCommand(SnakeCommand command){
             if (command == null)    // If the command is null.
                 throw new NullPointerException();
             this.command = command;

@@ -4,6 +4,8 @@
  */
 package snake;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.beans.*;
 
 /**
@@ -502,7 +504,6 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
     public BeanDescriptor getBeanDescriptor() {
         return getBdescriptor();
     }
-
     /**
      * Gets the bean's <code>PropertyDescriptor</code>s.
      *
@@ -519,7 +520,6 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
     public PropertyDescriptor[] getPropertyDescriptors() {
         return getPdescriptor();
     }
-
     /**
      * Gets the bean's <code>EventSetDescriptor</code>s.
      *
@@ -531,7 +531,6 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
     public EventSetDescriptor[] getEventSetDescriptors() {
         return getEdescriptor();
     }
-
     /**
      * Gets the bean's <code>MethodDescriptor</code>s.
      *
@@ -543,7 +542,6 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
     public MethodDescriptor[] getMethodDescriptors() {
         return getMdescriptor();
     }
-
     /**
      * A bean may have a "default" property that is the property that will
      * mostly commonly be initially chosen for update by human's who are
@@ -558,7 +556,6 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
     public int getDefaultPropertyIndex() {
         return defaultPropertyIndex;
     }
-
     /**
      * A bean may have a "default" event that is the event that will mostly
      * commonly be used by human's when using the bean.
@@ -584,13 +581,20 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
      * @see SnakeConstants#PRIMARY_SNAKE_COLOR
      * @see SnakeConstants#SECONDARY_SNAKE_COLOR
      */
-    private static final java.awt.Color[][] ICON_COLORS = {
-        {new java.awt.Color(0x8694A2),new java.awt.Color(0x55606B),
-            SnakeConstants.APPLE_COLOR,SnakeConstants.PRIMARY_SNAKE_COLOR,
-            SnakeConstants.SECONDARY_SNAKE_COLOR},
-        {new java.awt.Color(0x949494),new java.awt.Color(0x606060),
-            java.awt.Color.GRAY,java.awt.Color.LIGHT_GRAY,
-            java.awt.Color.DARK_GRAY}
+    private static final Color[][] ICON_COLORS = {
+        {       // The colors to use for a color icon
+            new Color(0x8694A2),        // The top color for the outline gradient
+            new Color(0x55606B),        // The bottom color for the outline gradient
+            SnakeConstants.APPLE_COLOR, // The color for apple tiles
+            SnakeConstants.PRIMARY_SNAKE_COLOR,     // The color for primary snake tiles
+            SnakeConstants.SECONDARY_SNAKE_COLOR    // The color for secondary snake tiles
+        }, {    // The colors to use for a monochrome icon
+            new Color(0x949494),        // The top color for the outline gradient
+            new Color(0x606060),        // The bottom color for the outline gradient
+            Color.GRAY,                 // The color for apple tiles
+            Color.LIGHT_GRAY,           // The color for primary snake tiles
+            Color.DARK_GRAY             // The color for secondary snake tiles
+        }
     };
     /**
      * This generates the image to use for an icon that represents JPlayField. 
@@ -607,24 +611,24 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
      * @see #getIcon(int) 
      * @see #loadImage(String) 
      */
-    private java.awt.Image generateIcon(String iconName,int scale,boolean mono){
+    private Image generateIcon(String iconName,int scale,boolean mono){
         if (iconName != null)   // If the icon name is not null
+                // Load the icon from the given location
             return loadImage(iconName);
             // Get the array of colors to use based off whether this is a 
             // monochrome icon or not.
-        java.awt.Color[] colors = ICON_COLORS[(mono)?1:0];
+        Color[] colors = ICON_COLORS[(mono)?1:0];
             // Create a buffered image to render to
-        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
-                16*scale,16*scale,java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(16*scale,16*scale,
+                BufferedImage.TYPE_INT_ARGB);
             // The graphics object used to paint the image
-        java.awt.Graphics2D g = img.createGraphics();
+        Graphics2D g = img.createGraphics();
         
             // Paint a transparent shadow behind everything
-        g.setColor(new java.awt.Color(0x80808080,true));
+        g.setColor(new Color(0x80808080,true));
         g.fillRect(0, 0, img.getWidth()-1, img.getHeight());
             // Paint a gradient to outline the panel
-        g.setPaint(new java.awt.GradientPaint(0,0,colors[0],0,img.getHeight()-2,
-                colors[1]));
+        g.setPaint(new GradientPaint(0,0,colors[0],0,img.getHeight()-2,colors[1]));
         g.fillRect(0, 0, img.getWidth()-1, img.getHeight()-1);
             // Fill the panel with the tile background color
         g.setColor(SnakeConstants.TILE_BACKGROUND_COLOR);
@@ -735,7 +739,7 @@ public class JPlayFieldBeanInfo extends SimpleBeanInfo{
      * if no suitable icon is available.
      */
     @Override
-    public java.awt.Image getIcon(int iconKind) {
+    public Image getIcon(int iconKind) {
         switch (iconKind) {         // Get the appropriate icon to return
             case ICON_COLOR_16x16:  // If this is getting a 16x16 color icon
                 if (iconColor16 == null)//If the icon has not been generated yet

@@ -1213,17 +1213,19 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
             tileCount = getTileCount();
         }
         /**
-         * {@inheritDoc }
-         * @return {@inheritDoc }
+         * This returns {@code true} if the iteration has more elements. (In 
+         * other words, this returns {@code true} if {@link #next next} will 
+         * return an element instead of throwing an exception.)
+         * @return {@code true} if the iteration has more elements.
          */
         @Override
         public boolean hasNext() {
             return index < tileCount;
         }
         /**
-         * {@inheritDoc }
-         * @return {@inheritDoc }
-         * @throws NoSuchElementException {@inheritDoc}
+         * This returns the next element in the iteration.
+         * @return The next element in the iteration.
+         * @throws NoSuchElementException If the iteration has no more elements.
          * @throws ConcurrentModificationException If the model was modified 
          * since this iterator was constructed.
          */

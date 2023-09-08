@@ -5635,17 +5635,19 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             tail = peek();
         }
         /**
-         * {@inheritDoc }
-         * @return {@inheritDoc }
+         * This returns {@code true} if the iteration has more elements. (In 
+         * other words, this returns {@code true} if {@link #next() next} will 
+         * return an element instead of throwing an exception.)
+         * @return {@code true} if the iteration has more elements.
          */
         @Override
         public boolean hasNext() {
             return next != null || iterator.hasNext();
         }
         /**
-         * {@inheritDoc }
-         * @return {@inheritDoc }
-         * @throws NoSuchElementException {@inheritDoc }
+         * This returns the next element in the iteration.
+         * @return The next element in the iteration.
+         * @throws NoSuchElementException If the iteration has no more elements.
          * @throws ConcurrentModificationException If the snake has been 
          * modified while the iteration is in progress in any way other than via 
          * the {@code remove} method of this iterator.
@@ -5664,8 +5666,21 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             return current;
         }
         /**
-         * {@inheritDoc }
-         * @throws IllegalStateException {@inheritDoc }
+         * This removes the last element returned by this iterator from the 
+         * underlying collection. This method can be called only once per call 
+         * to {@link #next() next}. <p>
+         * 
+         * If the underlying collection is modified while the iteration is in 
+         * progress in any way other than calling this method will result in 
+         * this iterator throwing a {@code ConcurrentModificationException}. <p>
+         * 
+         * The behavior of this iterator is unspecified if this method is called 
+         * after a call to the {@link #forEachRemaining forEachRemaining} 
+         * method.
+         * 
+         * @throws IllegalStateException If either the {@code next} method has 
+         * not been called yet or this method has already been called since the 
+         * last call to the {@code next} method.
          * @throws ConcurrentModificationException If the snake has been 
          * modified while the iteration is in progress in any way other than via 
          * this method.
