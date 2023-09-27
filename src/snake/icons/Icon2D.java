@@ -39,9 +39,9 @@ public interface Icon2D extends Icon{
         g = g.create();
             // An image to render to if the given graphics context is not a 
         BufferedImage img = null;       // Graphics2D object
-        java.awt.Graphics2D g2D;        // This will get the Graphics2D object to render to.
-        if (g instanceof java.awt.Graphics2D)// If the graphics context is a Graphics2D object
-            g2D = (java.awt.Graphics2D) g;
+        Graphics2D g2D;                 // This will get the Graphics2D object to render to.
+        if (g instanceof Graphics2D)    // If the graphics context is a Graphics2D object
+            g2D = (Graphics2D) g;
         else if (g != null){            // If the graphics context is not null
                 // Create the image to render to
             img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);

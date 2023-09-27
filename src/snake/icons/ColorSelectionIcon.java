@@ -15,7 +15,8 @@ import snake.painters.ColorSelectionPainter;
  * #getColor getColor} method. If the {@code getColor} method returns null, then 
  * a hue and saturation gradient will be used instead. This is effectively an 
  * icon equivalent for {@link ColorSelectionPainter ColorSelectionPainter}, with 
- * one used internally to render the color selection box.
+ * a {@code ColorSelectionPainter} used internally to render the color selection 
+ * box.
  * @author Milo Steier
  * @since 1.1.0
  * @see ColorSelectionPainter

@@ -24,7 +24,8 @@ import snake.event.*;
  * JPlayFields will directly notify their set renderer of the changes. 
  * Registering a PlayFieldRenderer as a {@code PlayFieldListener} on the 
  * JPlayField they render for may result in the PlayFieldRenderer being notified 
- * of changes to the tiles twice, once while notifying the registered {@code 
+ * of changes to the tiles more than once, as the PlayFieldRenderer would be 
+ * notified while the JPlayField is notifying the registered {@code 
  * PlayFieldListener}s, and again when the JPlayField goes to notify its 
  * renderer specifically.
  * 

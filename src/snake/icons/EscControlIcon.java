@@ -99,12 +99,6 @@ public class EscControlIcon extends KeyControlIcon {
      * This draws a String with the text "ESC" in the center of the key as the 
      * key's symbol.
      * 
-     * @param c {@inheritDoc }
-     * @param g {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
-     * @param w {@inheritDoc }
-     * @param h  {@inheritDoc }
      * @see #paintIcon2D 
      * @see SnakeUtilities#drawCenteredString 
      * @see #ESCAPE_KEY_TEXT

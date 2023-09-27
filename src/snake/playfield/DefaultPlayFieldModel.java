@@ -11,8 +11,8 @@ import snake.*;
  * This is the default implementation of {@link PlayFieldModel} which uses a 
  * two-dimensional array to store the {@link Tile tiles}, which can store a 
  * maximum of {@value MAXIMUM_ROW_COUNT} rows and {@value #MAXIMUM_COLUMN_COUNT} 
- * columns of tiles. The minimum number of rows and columns is {@value 
- * #MINIMUM_ROW_COUNT} by {@value MINIMUM_ROW_COUNT}. <p>
+ * columns of tiles. The minimum number of rows and columns for this model is 
+ * {@value #MINIMUM_ROW_COUNT} by {@value MINIMUM_ROW_COUNT}. <p>
  * 
  * The tiles in this model are created using the protected {@code createTile} 
  * method which is given the row and column of the tile to create and returns a 
@@ -36,12 +36,12 @@ import snake.*;
  * columns, the iterator will throw a {@link ConcurrentModificationException 
  * ConcurrentModificationException}. This way, when faced with concurrent 
  * modification, the iterator will fail quickly and cleanly instead of risking 
- * arbitrary, non-deterministic behavior. However, the fail-fast behavior of the 
+ * arbitrary, non-deterministic behavior. However, the fail-fast behavior of an 
  * iterator cannot be guaranteed, especially when dealing with unsynchronized 
  * concurrent modifications. It is also possible, though not guaranteed, for the 
  * iterator to not fail if the structure of the model is reverted to how it was 
- * when the iterator was created. The fail-fast iterators throw {@code 
- * ConcurrentModificationExceptions} on a best-effort basis. As such the 
+ * when the iterator was created. Fail-fast iterators throw {@code 
+ * ConcurrentModificationException}s on a best-effort basis. As such the 
  * fail-fast behavior should not be depended on for its correctness and should 
  * only be used to detect bugs.
  * 

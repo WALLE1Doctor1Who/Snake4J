@@ -23,12 +23,12 @@ import snake.event.*;
  * columns, the iterator will throw a {@link ConcurrentModificationException 
  * ConcurrentModificationException}. This way, when faced with concurrent 
  * modification, the iterator will fail quickly and cleanly instead of risking 
- * arbitrary, non-deterministic behavior. However, the fail-fast behavior of the 
+ * arbitrary, non-deterministic behavior. However, the fail-fast behavior of an 
  * iterator cannot be guaranteed, especially when dealing with unsynchronized 
  * concurrent modifications. It is also possible, though not guaranteed, for the 
  * iterator to not fail if the structure of the model is reverted to how it was 
- * when the iterator was created. The fail-fast iterators throw {@code 
- * ConcurrentModificationExceptions} on a best-effort basis. As such the 
+ * when the iterator was created. Fail-fast iterators throw {@code 
+ * ConcurrentModificationException}s on a best-effort basis. As such the 
  * fail-fast behavior should not be depended on for its correctness and should 
  * only be used to detect bugs.
  * 
@@ -198,6 +198,7 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
      * The listener type can be specified using a class literal, such as 
      * <code><em>Foo</em>Listener.class</code>. If no such listeners exist, then 
      * an empty array will be returned.
+     * 
      * @param <T> The type of {@code EventListener} being requested.
      * @param listenerType The type of listeners being requested. This should 
      * be an interface that descends from {@code EventListener}.
@@ -1226,8 +1227,8 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
          * This returns the next element in the iteration.
          * @return The next element in the iteration.
          * @throws NoSuchElementException If the iteration has no more elements.
-         * @throws ConcurrentModificationException If the model was modified 
-         * since this iterator was constructed.
+         * @throws ConcurrentModificationException If the model was structurally 
+         * modified since this iterator was constructed.
          */
         @Override
         public Tile next() {
@@ -1244,8 +1245,8 @@ public abstract class AbstractPlayFieldModel implements PlayFieldModel,
          * This checks to see if the model has been modified since this iterator 
          * was constructed, and if so, throws a {@code 
          * ConcurrentModificationException}.
-         * @throws ConcurrentModificationException If the model was modified 
-         * since this iterator was constructed.
+         * @throws ConcurrentModificationException If the model was structurally 
+         * modified since this iterator was constructed.
          */
         protected void checkForConcurrentModification(){
                 // If the amount of rows, columns, or tiles has changed since 

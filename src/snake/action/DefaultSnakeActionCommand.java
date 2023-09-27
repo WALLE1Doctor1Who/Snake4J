@@ -18,7 +18,7 @@ import snake.*;
  * @see SnakeCommand
  * @see SnakeActionCommand
  * @see SnakeCommand#getCommandActionMap 
- * @see SnakeCommand#getActionForCommand 
+ * @see SnakeCommand#getAction 
  * @see Snake#doCommand 
  * @see #accept 
  */

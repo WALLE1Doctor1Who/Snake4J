@@ -78,7 +78,7 @@ import snake.playfield.*;
  * @see PlayFieldRenderer
  * @see DefaultPlayFieldRenderer
  */
-public class JPlayField extends javax.swing.JPanel implements SnakeConstants{
+public class JPlayField extends JPanel implements SnakeConstants{
     /**
      * This identifies that the play field renderer used to delegate the task of 
      * rendering the play field and handling tile calculations has changed.

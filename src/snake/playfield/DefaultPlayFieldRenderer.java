@@ -654,7 +654,7 @@ public class DefaultPlayFieldRenderer implements PlayFieldRenderer {
      * SnakeUtilities.computeTileContentsOffset}. This method is here so that a 
      * subclass could do JPlayField specific things or to change the offset for 
      * the contents of the tiles. Note that changing the offset will change the 
-     * size at which the contents are rendered at.
+     * size at which the contents of a tile are rendered at.
      * 
      * @param c The JPlayField being rendered.
      * @param tile The tile currently being rendered.

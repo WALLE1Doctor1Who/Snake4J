@@ -9,7 +9,13 @@ import snake.*;
 
 /**
  * This is an icon that can be used to represent keys on the keyboard that are 
- * used to control movement. 
+ * used to control movement. This will draw four keys, each representing one of 
+ * four directions {@link #UP_DIRECTION up}, {@link #LEFT_DIRECTION left}, 
+ * {@link #DOWN_DIRECTION down}, and {@link #RIGHT_DIRECTION right}. Each key 
+ * will be {@link #getKeyWidth getKeyWidth()} pixels wide by {@link 
+ * #getKeyHeight getKeyHeight()} pixels tall. The symbol for each key is drawn 
+ * using the directional {@link #paintKeySymbol(Component, Graphics, int, int, 
+ * int, int, int) paintKeySymbol} method.
  * @author Milo Steier
  */
 public abstract class MovementControlIcon extends KeyControlIcon implements 
@@ -68,19 +74,7 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
         this(color,40,40);
     }
     /**
-     * This draws the icon at the specified location. This will draw four keys, 
-     * each representing one of four directions {@link #UP_DIRECTION up}, {@link 
-     * #LEFT_DIRECTION left}, {@link #DOWN_DIRECTION down}, and {@link 
-     * #RIGHT_DIRECTION right}. Each key will be {@link #getKeyWidth 
-     * getKeyWidth()} pixels wide by {@link #getKeyHeight getKeyHeight()} pixels 
-     * tall. The symbol for each key is drawn using the directional {@link 
-     * #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
-     * paintKeySymbol} method.
-     * @param c A {@code Component} to get useful properties for painting the 
-     * icon. 
-     * @param g The graphics context to render to.
-     * @param x The x-coordinate of the icon's top-left corner.
-     * @param y The x-coordinate of the icon's top-left corner.
+     * {@inheritDoc }
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int, int) 
      * @see #paintKeySymbol(Component, Graphics, int, int, int, int) 
      * @see #paintIcon 
@@ -140,7 +134,9 @@ public abstract class MovementControlIcon extends KeyControlIcon implements
         return UP_DIRECTION;
     }
     /**
-     * {@inheritDoc } <p>
+     * {@inheritDoc } The graphics context given to this method will typically 
+     * be the scratch graphics context given to the {@link #keyPainter 
+     * KeyPainter} when painting a given key. <p>
      * 
      * This implementation forwards the call to the directional {@link 
      * #paintKeySymbol(Component, Graphics, int, int, int, int, int) 

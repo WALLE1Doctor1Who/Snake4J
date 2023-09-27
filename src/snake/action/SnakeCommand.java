@@ -4,8 +4,7 @@
  */
 package snake.action;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 import snake.*;
 
 /**
@@ -16,8 +15,7 @@ import snake.*;
  * This also provides immutable implementations of {@link SnakeActionCommand 
  * SnakeActionCommand} for each command, which can be accessed either via the 
  * map returned by the {@link #getCommandActionMap getCommandActionMap} method 
- * or via the {@link #getActionForCommand getActionForCommand} method to get the 
- * action for a specific command.
+ * or via the {@link #getAction getAction} method of a given command.
  * 
  * @author Milo Steier
  * @see Snake
@@ -25,7 +23,6 @@ import snake.*;
  * @see SnakeActionCommand
  * @see DefaultSnakeActionCommand
  * @see getCommandActionMap 
- * @see getActionForCommand 
  */
 public enum SnakeCommand implements SnakeConstants{
     /**
@@ -35,9 +32,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#move(int)
      * @see #UP_DIRECTION
-     * @see #getDirectionOf 
      */
-    MOVE_UP,
+    MOVE_UP(UP_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#move(int) move} {@link #DOWN_DIRECTION down}.
@@ -45,9 +41,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#move(int)
      * @see #DOWN_DIRECTION
-     * @see #getDirectionOf 
      */
-    MOVE_DOWN,
+    MOVE_DOWN(DOWN_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#move(int) move} {@link #LEFT_DIRECTION left}.
@@ -55,9 +50,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#move(int)
      * @see #LEFT_DIRECTION
-     * @see #getDirectionOf 
      */
-    MOVE_LEFT,
+    MOVE_LEFT(LEFT_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#move(int) move} {@link #RIGHT_DIRECTION right}.
@@ -65,9 +59,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#move(int)
      * @see #RIGHT_DIRECTION
-     * @see #getDirectionOf 
      */
-    MOVE_RIGHT,
+    MOVE_RIGHT(RIGHT_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link Snake#move() 
      * move} {@link Snake#getDirectionFaced forward}.
@@ -76,9 +69,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#move(int)
      * @see Snake#move()
      * @see Snake#getDirectionFaced 
-     * @see #getDirectionOf 
      */
-    MOVE_FORWARD,
+    MOVE_FORWARD(0),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#add(int) add} the tile {@link #UP_DIRECTION above} its head.
@@ -86,9 +78,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#add(int) 
      * @see #UP_DIRECTION
-     * @see #getDirectionOf 
      */
-    ADD_UP,
+    ADD_UP(UP_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#add(int) add} the tile {@link #DOWN_DIRECTION below} its head.
@@ -96,9 +87,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#add(int) 
      * @see #DOWN_DIRECTION
-     * @see #getDirectionOf 
      */
-    ADD_DOWN,
+    ADD_DOWN(DOWN_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#add(int) add} the tile {@link #LEFT_DIRECTION to the left of} its 
@@ -107,9 +97,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#add(int) 
      * @see #LEFT_DIRECTION
-     * @see #getDirectionOf 
      */
-    ADD_LEFT,
+    ADD_LEFT(LEFT_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link 
      * Snake#add(int) add} the tile {@link #RIGHT_DIRECTION to the right of} its 
@@ -118,9 +107,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#doCommand
      * @see Snake#add(int) 
      * @see #RIGHT_DIRECTION
-     * @see #getDirectionOf 
      */
-    ADD_RIGHT,
+    ADD_RIGHT(RIGHT_DIRECTION),
     /**
      * This is the instruction for a {@link Snake snake} to {@link Snake#add() 
      * add} the tile {@link Snake#getDirectionFaced in front} of it.
@@ -129,9 +117,8 @@ public enum SnakeCommand implements SnakeConstants{
      * @see Snake#add(int)
      * @see Snake#add()
      * @see Snake#getDirectionFaced 
-     * @see #getDirectionOf 
      */
-    ADD_FORWARD,
+    ADD_FORWARD(0),
     /**
      * This is the instruction for a {@link Snake snake} to {@link Snake#flip 
      * flip}.
@@ -167,6 +154,63 @@ public enum SnakeCommand implements SnakeConstants{
      */
     DEFAULT_ACTION;
     /**
+     * This stores an integer representing the direction associated with this 
+     * command. This may be null if no direction is associated with this 
+     * command. If this is zero, then this command is associated with the 
+     * forward direction.
+     * @since 1.1.0
+     */
+    private final Integer direction;
+    /**
+     * This constructs a {@code SnakeCommand} with the given direction.
+     * @param direction The direction that this command is to be associated 
+     * with ({@code 0} for forward), or null.
+     * @since 1.1.0
+     */
+    private SnakeCommand(Integer direction){
+        this.direction = direction;
+    }
+    /**
+     * This constructs a {@code SnakeCommand} with no direction associated with 
+     * it.
+     */
+    private SnakeCommand(){
+        this(null);
+    }
+    /**
+     * This returns an integer representing the direction associated with this 
+     * command. If this associated with the direction a snake is facing, then 
+     * this will return zero. If this command is not associated with any 
+     * direction, then this will return null. Otherwise, this will return the 
+     * direction flag for the direction associated with this command.
+     * @return Either the direction flag associated with this command, zero if 
+     * this command uses the direction a snake is facing, or null if this 
+     * command has no direction associated with it.
+     * @see #UP_DIRECTION
+     * @see #DOWN_DIRECTION
+     * @see #LEFT_DIRECTION
+     * @see #RIGHT_DIRECTION
+     * @see Snake#getDirectionFaced 
+     * @since 1.1.0
+     */
+    public Integer getDirection(){
+        return direction;
+    }
+    /**
+     * This returns an immutable implementation of {@link SnakeActionCommand 
+     * SnakeActionCommand} that will perform this command. This is equivalent 
+     * to, for this {@code command}, calling {@link #getCommandActionMap 
+     * getCommandActionMap()}{@code .get(command)}.
+     * @return An action that performs this command.
+     * @see SnakeActionCommand
+     * @see Snake#doCommand 
+     * @see #getCommandActionMap 
+     * @since 1.1.0
+     */
+    public SnakeActionCommand getAction(){
+        return getCommandActionMap().get(this);
+    }
+    /**
      * This returns an integer representing the direction associated with the 
      * given command. If the given command is associated with the direction a 
      * snake is facing, then this will return zero. If the given command is not 
@@ -192,27 +236,13 @@ public enum SnakeCommand implements SnakeConstants{
      * @see #ADD_LEFT
      * @see #ADD_RIGHT
      * @see #ADD_FORWARD
+     * @see SnakeCommand#getDirection 
+     * @deprecated Replaced with the non-static {@link SnakeCommand#getDirection 
+     * SnakeCommand.getDirection} method.
      */
+    @Deprecated
     public static Integer getDirectionOf(SnakeCommand cmd){
-        switch (cmd){           // Determine which command this is 
-            case MOVE_UP:       // If the command is to move up
-            case ADD_UP:        // If the command is to add up
-                return UP_DIRECTION;
-            case MOVE_DOWN:     // If the command is to move down
-            case ADD_DOWN:      // If the command is to add down
-                return DOWN_DIRECTION;
-            case MOVE_LEFT:     // If the command is to move left
-            case ADD_LEFT:      // If the command is to add left
-                return LEFT_DIRECTION;
-            case MOVE_RIGHT:    // If the command is to move right
-            case ADD_RIGHT:     // If the command is to add right
-                return RIGHT_DIRECTION;
-            case MOVE_FORWARD:  // If the command is to move forward
-            case ADD_FORWARD:   // If the command is to add forward
-                return 0;
-            default:
-                return null;
-        }
+        return cmd.getDirection();
     }
     /**
      * This is a map used to map the snake commands to immutable snake command 
@@ -263,7 +293,7 @@ public enum SnakeCommand implements SnakeConstants{
      * @return A map of the commands and actions that will perform them.
      * @see SnakeActionCommand
      * @see Snake#doCommand 
-     * @see #getActionForCommand 
+     * @see #getAction 
      */
     public static Map<SnakeCommand,SnakeActionCommand>getCommandActionMap(){
         if (commandMap == null){    // If the map has not been initialized yet
@@ -272,23 +302,27 @@ public enum SnakeCommand implements SnakeConstants{
             for (SnakeCommand cmd : SnakeCommand.values())
                 commandMap.put(cmd, new SimpleSnakeActionCommand(cmd));
         }
-        return java.util.Collections.unmodifiableMap(commandMap);
+        return Collections.unmodifiableMap(commandMap);
     }
     /**
      * This returns an immutable implementation of {@link SnakeActionCommand 
      * SnakeActionCommand} that will perform the given command. This is 
-     * equivalent to calling {@link #getCommandActionMap getCommandActionMap} 
-     * and then getting the action associated with the given command.
+     * equivalent to invoking the {@link #getAction getAction} method on the 
+     * given command. 
      * @param command The command to get the action for (cannot be null).
      * @return An action that performs the given command.
      * @throws NullPointerException If the command is null.
      * @see SnakeActionCommand
      * @see Snake#doCommand 
      * @see #getCommandActionMap 
+     * @see #getAction 
+     * @deprecated Replaced with the non-static {@link SnakeCommand#getAction 
+     * SnakeCommand.getAction} method.
      */
+    @Deprecated
     public static SnakeActionCommand getActionForCommand(SnakeCommand command){
         if (command == null)    // If the command is null
             throw new NullPointerException();
-        return getCommandActionMap().get(command);
+        return command.getAction();
     }
 }

@@ -9,7 +9,13 @@ import java.util.Objects;
 import snake.painters.KeyPainter;
 
 /**
- * This is an icon that can be used to represent a key on the keyboard. 
+ * This is an icon that can be used to represent a key on the keyboard. The icon 
+ * will resemble a key on the keyboard, and will be {@link #getIconWidth 
+ * getIconWidth()} pixels wide by {@link #getIconHeight getIconHeight()} pixels 
+ * tall. The symbol for the key is drawn using the {@link #paintKeySymbol 
+ * paintKeySymbol} method. This is effectively an icon equivalent for {@link 
+ * KeyPainter KeyPainter}, with a {@code KeyPainter} used internally to render 
+ * the key for this icon. 
  * @author Milo Steier
  */
 public abstract class KeyControlIcon implements Icon2D{
@@ -121,16 +127,8 @@ public abstract class KeyControlIcon implements Icon2D{
         this(Color.WHITE);
     }
     /**
-     * This draws the icon at the specified location. The icon will resemble a 
-     * key on the keyboard, and will be {@link #getIconWidth getIconWidth()} 
-     * pixels wide by {@link #getIconHeight getIconHeight()} pixels tall. The 
-     * The symbol for the key is drawn using the {@link #paintKeySymbol 
-     * paintKeySymbol} method. 
-     * @param c A {@code Component} to get useful properties for painting the 
-     * icon. 
-     * @param g The graphics context to render to.
-     * @param x The x-coordinate of the icon's top-left corner.
-     * @param y The x-coordinate of the icon's top-left corner.
+     * {@inheritDoc }
+     * 
      * @see #paintKeySymbol 
      * @see #paintIcon 
      */

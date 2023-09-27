@@ -248,10 +248,10 @@ import snake.playfield.*;
  * the iterator will generally throw a {@link ConcurrentModificationException 
  * ConcurrentModificationException}. This way, when faced with concurrent 
  * modification, the iterator will fail quickly and cleanly instead of risking 
- * arbitrary, non-deterministic behavior. However, the fail-fast behavior of the 
+ * arbitrary, non-deterministic behavior. However, the fail-fast behavior of an 
  * iterator cannot be guaranteed, especially when dealing with unsynchronized 
- * concurrent modifications. The fail-fast iterators throw {@code 
- * ConcurrentModificationExceptions} on a best-effort basis. As such the 
+ * concurrent modifications. Fail-fast iterators throw {@code 
+ * ConcurrentModificationException}s on a best-effort basis. As such the 
  * fail-fast behavior should not be depended on for its correctness and should 
  * only be used to detect bugs. <p>
  * 
@@ -4326,11 +4326,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see Consumer#accept 
      * @see SnakeCommand
      * @see SnakeCommand#DEFAULT_ACTION
+     * @see SnakeCommand#getAction 
+     * @see SnakeCommand#getCommandActionMap 
      * @see SnakeActionCommand
      * @see SnakeActionCommand#getCommand 
      * @see DefaultSnakeActionCommand
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
      */
     public Consumer<Snake> getDefaultAction(){
         return defaultAction;
@@ -4342,6 +4342,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * default value for this is a {@link SnakeActionCommand SnakeActionCommand} 
      * that invokes the {@link SnakeCommand#MOVE_FORWARD MOVE_FORWARD} command. 
      * <p>
+     * 
      * Note that the default action should not invoke {@link #doDefaultAction 
      * doDefaultAction}, as doing so could result in undefined and unpredictable 
      * behavior. It is also recommended for the default action to not invoke the 
@@ -4366,11 +4367,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see Consumer#accept 
      * @see SnakeCommand
      * @see SnakeCommand#DEFAULT_ACTION
+     * @see SnakeCommand#getAction 
+     * @see SnakeCommand#getCommandActionMap 
      * @see SnakeActionCommand
      * @see SnakeActionCommand#getCommand 
      * @see DefaultSnakeActionCommand
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
      */
     public Snake setDefaultAction(Consumer<Snake> action){
             // If the old default action matches the current one
@@ -4388,15 +4389,15 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * SnakeActionCommand SnakeActionCommand} that will invoke the action 
      * associated with the given command. If the given command is null, then the 
      * default action will be set to null. Otherwise, this will retrieve the 
-     * {@code SnakeActionCommand} to use for the given command by calling {@link 
-     * SnakeCommand#getActionForCommand SnakeCommand.getActionForCommand} with 
-     * the command. Refer to the documentation for the {@link #getDefaultAction 
-     * getDefaultAction} for more information about the default action. <p>
+     * {@code SnakeActionCommand} to use for the given command by invoking the 
+     * {@link SnakeCommand#getAction getAction} method on the command. Refer to 
+     * the documentation for the {@link #getDefaultAction getDefaultAction} for 
+     * more information about the default action. <p>
      * 
      * This is equivalent to calling {@link #setDefaultAction(Consumer) 
-     * setDefaultAction} with either the {@code SnakeActionCommand} returned by 
-     * {@link SnakeCommand#getActionForCommand SnakeCommand.getActionForCommand} 
-     * for the given command or null if the given command is null. <p>
+     * setDefaultAction}{@code (command.}{@link SnakeCommand#getAction 
+     * getAction()}{@code )} if {@code command} is not null, and {@code 
+     * setDefaultAction(null)} if {@code command} is null. <p>
      * 
      * Note that the default action should not invoke {@link #doDefaultAction 
      * doDefaultAction}, as doing so could result in undefined and unpredictable 
@@ -4419,20 +4420,19 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see #doNextAction 
      * @see SnakeCommand
      * @see SnakeCommand#DEFAULT_ACTION
+     * @see SnakeCommand#getAction 
+     * @see SnakeCommand#getCommandActionMap 
      * @see SnakeActionCommand
      * @see SnakeActionCommand#getCommand 
      * @see SnakeActionCommand#accept 
      * @see DefaultSnakeActionCommand
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
      */
     public Snake setDefaultAction(SnakeCommand command){
             // Check if the action tries to invoke the default action
         checkDefaultAction(command);
             // If the command is not null, get the action for the given command. 
             // Otherwise, set the default action to null
-        return setDefaultAction((command != null)?
-                SnakeCommand.getActionForCommand(command):null);
+        return setDefaultAction((command != null)?command.getAction():null);
     }
     /**
      * This returns whether the {@link #getDefaultAction default action} is 
@@ -4519,6 +4519,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * #move() move forward} when the snake is player controlled, needs to move 
      * at a regular interval, and has not received any input from the player. 
      * <p>
+     * 
      * Note that the default action should never invoke this method. If the 
      * default action were to invoke this, then this may result in undefined and 
      * unpredictable behavior. Most often this will either cause an exception to 
@@ -4528,12 +4529,12 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * the action queue has run out of actions to perform. 
      * 
      * @return Whether the default action was successfully performed. 
-     * @throws IllegalStateException If this snake is not in a {@link #isValid() 
+     * @throws IllegalStateException If this snake is not in a {@link #isValid 
      * valid} state.
      * @throws IllegalArgumentException If the default action is a {@link 
      * SnakeActionCommand SnakeActionCommand} with the {@link 
      * SnakeCommand#DEFAULT_ACTION DEFAULT_ACTION} command as the {@link 
-     * SnakeActionCommand#getCommand() command it invokes}.
+     * SnakeActionCommand#getCommand command it invokes}.
      * @see #getDefaultAction 
      * @see #setDefaultAction(Consumer) 
      * @see #setDefaultAction(SnakeCommand) 
@@ -4545,11 +4546,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see Consumer#accept 
      * @see SnakeCommand
      * @see SnakeCommand#DEFAULT_ACTION
+     * @see SnakeCommand#getAction 
+     * @see SnakeCommand#getCommandActionMap 
      * @see SnakeActionCommand
      * @see SnakeActionCommand#getCommand 
      * @see DefaultSnakeActionCommand
-     * @see SnakeCommand#getCommandActionMap 
-     * @see SnakeCommand#getActionForCommand 
      */
     public boolean doDefaultAction(){
         checkIfInvalid();       // Check if this snake is invalid
@@ -4619,7 +4620,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * valid} state.
      * @see #canPerformAction(SnakeCommand) 
      * @see SnakeCommand
-     * @see SnakeCommand#getDirectionOf 
+     * @see SnakeCommand#getDirection 
      * @see #isValid 
      * @see #getHead 
      * @see #getTail 
@@ -4665,7 +4666,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             case MOVE_LEFT:     // If the command is the move left command
             case MOVE_RIGHT:    // If the command is the move right command
                     // Move the snake in the direction for the command
-                return move(SnakeCommand.getDirectionOf(command));
+                return move(command.getDirection());
             case MOVE_FORWARD:  // If the command is the move forward command
                 return move();  // Move the snake forward
             case ADD_UP:        // If the command is the add up command
@@ -4673,7 +4674,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             case ADD_LEFT:      // If the command is the add left command
             case ADD_RIGHT:     // If the command is the add right command
                     // Add a tile to the snake in the direction for the command
-                return add(SnakeCommand.getDirectionOf(command));
+                return add(command.getDirection());
             case ADD_FORWARD:   // If the command is the add forward command
                 return add();   // Add the tile in front of the snake
             case FLIP:          // If the command is the flip command
@@ -4770,7 +4771,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * @see #isDefaultActionEnabled 
      * @see SnakeUtilities#invertDirections 
      * @see SnakeCommand
-     * @see SnakeCommand#getDirectionOf 
+     * @see SnakeCommand#getDirection 
      */
     public boolean canPerformAction(SnakeCommand command){
             // If the command is null or this snake is invalid
@@ -4778,7 +4779,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
             return false;
         if (hasTail()){             // If this snake has a tail
                 // Get the direction for the command
-            Integer dir = SnakeCommand.getDirectionOf(command);
+            Integer dir = command.getDirection();
                     // If the command has a direction and that direction is 
                     // opposite to the direction this snake is facing
             if (dir != null && dir == 
@@ -5649,8 +5650,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @return The next element in the iteration.
          * @throws NoSuchElementException If the iteration has no more elements.
          * @throws ConcurrentModificationException If the snake has been 
-         * modified while the iteration is in progress in any way other than via 
-         * the {@code remove} method of this iterator.
+         * structurally modified while the iteration is in progress in any way 
+         * other than via the {@code remove} method of this iterator.
          */
         @Override
         public Tile next() {
@@ -5682,8 +5683,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * not been called yet or this method has already been called since the 
          * last call to the {@code next} method.
          * @throws ConcurrentModificationException If the snake has been 
-         * modified while the iteration is in progress in any way other than via 
-         * this method.
+         * structurally modified while the iteration is in progress in any way 
+         * other than via this method.
          */
         @Override
         public void remove() {
@@ -5719,8 +5720,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * This checks to see if the snake has been modified externally since 
          * this iterator was constructed, and if so, throws a {@code 
          * ConcurrentModificationException}.
-         * @throws ConcurrentModificationException If the snake was modified 
-         * since this iterator was constructed.
+         * @throws ConcurrentModificationException If the snake was structurally 
+         * modified since this iterator was constructed.
          */
         protected void checkForConcurrentModification(){
                 // If the snake's model has changed, the snake has been flipped, 
@@ -5825,11 +5826,11 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
      * ConcurrentModificationException}. This way, when faced with concurrent 
      * modification, the iterator will fail quickly and cleanly instead of 
      * risking arbitrary, non-deterministic behavior. However, the fail-fast 
-     * behavior of the iterator cannot be guaranteed, especially when dealing 
-     * with unsynchronized concurrent modifications. The fail-fast iterators 
-     * throw {@code ConcurrentModificationExceptions} on a best-effort basis. As 
-     * such the fail-fast behavior should not be depended on for its correctness 
-     * and should only be used to detect bugs.
+     * behavior of an iterator cannot be guaranteed, especially when dealing 
+     * with unsynchronized concurrent modifications. Fail-fast iterators throw 
+     * {@code ConcurrentModificationException}s on a best-effort basis. As such 
+     * the fail-fast behavior should not be depended on for its correctness and 
+     * should only be used to detect bugs.
      * 
      * @author Milo Steier
      * @see Snake
@@ -6401,8 +6402,8 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * This returns the {@code Consumer} to add to this action queue that 
          * will perform the given command. <p>
          * 
-         * This forwards the call to {@link SnakeCommand#getActionForCommand 
-         * SnakeCommand.getActionForCommand}, and throws an {@code 
+         * This forwards the call to the given command's {@link 
+         * SnakeCommand#getAction getAction} method, and throws an {@code 
          * IllegalArgumentException} if it returns null. This method is here so 
          * that a subclass could change the {@code Consumer} used to represent a 
          * given command.
@@ -6414,13 +6415,13 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @throws IllegalArgumentException If no {@code Consumer} is available 
          * for the given command.
          * @see SnakeCommand#getCommandActionMap 
-         * @see SnakeCommand#getActionForCommand 
+         * @see SnakeCommand#getAction 
          * @see SnakeActionCommand
          * @see DefaultSnakeActionCommand
          */
         protected Consumer<Snake> getActionForCommand(SnakeCommand command){
                 // Get the Consumer for the given command
-            Consumer<Snake> action = SnakeCommand.getActionForCommand(command);
+            Consumer<Snake> action =Objects.requireNonNull(command).getAction();
             if (action == null) // If the Consumer is somehow null
                 throw new IllegalArgumentException(
                         "No action available for command " + command);
@@ -6482,8 +6483,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * 
          * This method is equivalent to calling {@link #offerFirst(Consumer) 
          * offerFirst(Consumer)} with the {@code Consumer} returned by the 
-         * protected {@link #getActionForCommand(SnakeCommand) 
-         * getActionForCommand} method.
+         * protected {@link #getActionForCommand getActionForCommand} method.
          * 
          * @param command The command for the {@code Consumer} to add (cannot be 
          * null).
@@ -6501,8 +6501,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #push(SnakeCommand) 
          */
         public boolean offerFirst(SnakeCommand command){
-            return offerFirst(getActionForCommand(
-                    Objects.requireNonNull(command)));
+            return offerFirst(getActionForCommand(Objects.requireNonNull(command)));
         }
         /**
          * This attempts to insert the given {@code Consumer} at the end of this 
@@ -6541,8 +6540,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * 
          * This method is equivalent to calling {@link #offerLast(Consumer) 
          * offerLast(Consumer)} with the {@code Consumer} returned by the 
-         * protected {@link #getActionForCommand(SnakeCommand) 
-         * getActionForCommand} method.
+         * protected {@link #getActionForCommand getActionForCommand} method.
          * 
          * @param command The command for the {@code Consumer} to add (cannot be 
          * null).
@@ -6560,8 +6558,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * @see #push(SnakeCommand) 
          */
         public boolean offerLast(SnakeCommand command){
-            return offerLast(getActionForCommand(
-                    Objects.requireNonNull(command)));
+            return offerLast(getActionForCommand(Objects.requireNonNull(command)));
         }
         /**
          * This attempts to insert the given {@code Consumer} at the end of this 
@@ -6754,8 +6751,7 @@ public class Snake extends AbstractQueue<Tile> implements SnakeConstants,
          * 
          * This method is equivalent to calling {@link #add(Consumer) 
          * add(Consumer)} with the {@code Consumer} returned by the protected 
-         * {@link #getActionForCommand(SnakeCommand) getActionForCommand} 
-         * method.
+         * {@link #getActionForCommand getActionForCommand} method.
          * 
          * @param command The command for the {@code Consumer} to add (cannot be 
          * null).

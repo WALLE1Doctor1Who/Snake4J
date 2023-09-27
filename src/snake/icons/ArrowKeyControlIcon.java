@@ -23,6 +23,7 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
     private final int arrowH;
     /**
      * This is the painter used to render the arrows on the keys.
+     * @since 1.1.0
      */
     protected ArrowPainter arrowPainter = new ArrowPainter();
     /**
@@ -194,15 +195,9 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
      * 
      * This draws a centered triangle pointing in the given direction.
      * 
-     * @param c {@inheritDoc }
-     * @param g {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
-     * @param w {@inheritDoc }
-     * @param h {@inheritDoc }
-     * @param direction {@inheritDoc }
      * @see #paintIcon2D 
      * @see SnakeUtilities#getTriangle 
+     * @see #arrowPainter
      * @see #UP_DIRECTION
      * @see #DOWN_DIRECTION
      * @see #LEFT_DIRECTION
@@ -212,11 +207,16 @@ public class ArrowKeyControlIcon extends MovementControlIcon{
     protected void paintKeySymbol(Component c, Graphics g, int x, int y, int w,
             int h, int direction) {
             // If the graphics context is a Graphics2D object
-        if (g instanceof Graphics2D)
-            ((Graphics2D) g).fill(SnakeUtilities.getTriangle2D(
+        if (g instanceof Graphics2D){
+                // Translate the origin for the graphics object to where the 
+                // top-left corner for the arrow should be
+            ((Graphics2D) g).translate(
                     x+((w-getArrowWidth())/2.0), 
-                    y+((h-getArrowHeight())/2.0),
-                    getArrowWidth(), getArrowHeight(), direction));
+                    y+((h-getArrowHeight())/2.0));
+                // Use the arrow painter to paint the arrow
+            arrowPainter.paint(((Graphics2D) g), direction, getArrowWidth(), 
+                    getArrowHeight());
+        }
         else if (g != null) // If the graphics context is not null
             g.fillPolygon(SnakeUtilities.getTriangle(
                     x+Math.floorDiv(w-getArrowWidth(), 2)+1, 

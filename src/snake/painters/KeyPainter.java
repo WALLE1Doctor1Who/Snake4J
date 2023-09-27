@@ -15,8 +15,7 @@ import snake.SnakeUtilities;
  * Each setter method will return the calling KeyPainter so that they can be 
  * chained together to change multiple properties with a single line of code.
  * @author Milo Steier
- * @param <T> The datatype of the optional configuration argument for the 
- * symbol.
+ * @param <T> The type of the optional configuration argument for the symbol.
  * @since 1.1.0
  */
 public abstract class KeyPainter<T> implements Painter<Component>,SnakeConstants {

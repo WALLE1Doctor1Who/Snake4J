@@ -42,3 +42,5 @@ test/snake/action/SnakeInputAction.java
 /test/snake/game/JDirectionPane.java
 nbproject/private/private.xml
 nbproject/private/private.xml
+/src/snake/game/SnakeConfigurationMap.java
+/src/snake/game/InputActionMap.java

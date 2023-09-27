@@ -98,13 +98,6 @@ public class WASDControlIcon extends MovementControlIcon{
      * {@link #LEFT_DIRECTION}, "S" for {@link #DOWN_DIRECTION}, and "D" for 
      * {@link #RIGHT_DIRECTION}.
      * 
-     * @param c {@inheritDoc }
-     * @param g {@inheritDoc }
-     * @param x {@inheritDoc }
-     * @param y {@inheritDoc }
-     * @param w {@inheritDoc }
-     * @param h {@inheritDoc }
-     * @param direction {@inheritDoc }
      * @see #paintIcon2D 
      * @see SnakeUtilities#drawCenteredString 
      * @see #UP_DIRECTION
